@@ -1,26 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Contacto - +Pizza</title>
+    <link rel="stylesheet" href="estilo-principal.css">
 </head>
 <body>
     <header>
-
+        <a href="index.html" class="logo">🍕 +Pizza</a>
     </header>
 
     <nav>
         <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="pagina1.html">About</a></li>
-            <li><a href="pagina2.html">Contact</a></li>
-            <li><a href="pagina3.html">Services</a></li>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="pagina1.html">Reservas</a></li>
+            <li><a href="pagina2.html">Menú</a></li>
+            <li><a href="pagina3.html">Contacto</a></li>
+            <li><a href="pagina4.html">Productos</a></li>
+            <li><a href="login.html">Salir</a></li>
         </ul>
     </nav>
 
-    <main>
+    <main class="main-container">
+        <section class="welcome">
+            <h1>Registro de Empleados</h1>
+            <p class="tagline"><strong>Crear una nueva cuenta de empleado.</strong></p>
+            <p class="description">
+                Completa el siguiente formulario para registrar un nuevo empleado en el sistema de gestión de la pizzería.
+            </p>
+        </section>
 
+        <form id="registroEmpleadoForm" class="registration-form" method="POST" action="#">
+            <!-- Sección de Información Personal -->
+            <fieldset>
+                <legend>Información Personal del Empleado</legend>
+                
+                <label for="nombre">Nombre Completo:</label>
+                <input 
+                    type="text" 
+                    id="nombre" 
+                    name="nombre" 
+                    required 
+                    placeholder="Juan Pérez García"
+                    minlength="3"
+                    maxlength="100"
+                >
+
+                <label for="correo">Correo Electrónico:</label>
+                <input 
+                    type="email" 
+                    id="correo" 
+                    name="correo" 
+                    required 
+                    placeholder="empleado@pizzeria.com"
+                >
+
+                <label for="fechaIngreso">Fecha de Ingreso:</label>
+                <input 
+                    type="date" 
+                    id="fechaIngreso" 
+                    name="fechaIngreso" 
+                    required
+                    min="2020-01-01"
+                    max="2026-12-31"
+                >
+            </fieldset>
+
+            <!-- Sección de Cargo y Departamento -->
+            <fieldset>
+                <legend>Cargo y Departamento</legend>
+                
+                <label for="cargo">Selecciona el Cargo:</label>
+                <select id="cargo" name="cargo" required>
+                    <option value="">-- Por favor selecciona un cargo --</option>
+                    <option value="cocinero">Cocinero</option>
+                    <option value="camarero">Camarero</option>
+                    <option value="repartidor">Repartidor</option>
+                    <option value="cajero">Cajero</option>
+                    <option value="limpieza">Personal de Limpieza</option>
+                </select>
+
+                <label for="salario">Salario Mensual (en dólares):</label>
+                <input 
+                    type="number" 
+                    id="salario" 
+                    name="salario" 
+                    required
+                    min="500"
+                    max="5000"
+                    step="50"
+                    placeholder="Ej: 1200"
+                >
+            </fieldset>
+
+            <!-- Sección de Observaciones -->
+            <fieldset>
+                <legend>Observaciones y Notas</legend>
+                
+                <label for="observaciones">Notas o Comentarios:</label>
+                <textarea 
+                    id="observaciones" 
+                    name="observaciones" 
+                    rows="5"
+                    placeholder="Información adicional sobre el empleado (horarios especiales, habilidades, etc.)..."
+                    minlength="0"
+                    maxlength="500"
+                ></textarea>
+                <small>Máximo 500 caracteres (opcional)</small>
+            </fieldset>
+
+            <!-- Botones de Acción -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Registrar Empleado</button>
+                <button type="reset" class="btn-secondary">Limpiar Formulario</button>
+            </div>
+        </form>
     </main>
 
     <footer>    
