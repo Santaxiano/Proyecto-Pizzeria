@@ -1,0 +1,373 @@
+/* Importación oficial de Google Fonts para Asap Condensed */
+@import url('https://fonts.googleapis.com/css2?family=Asap+Condensed:wght@400;600;700;800;900&display=swap');
+
+/* PARTE D - Variables :root con la paleta exacta de la marca */
+:root {
+  /* Manual de Marca Oracal 651 */
+  --color-rojo-tomate: #AD1A10;      /* Rojo salsa de tomate (030) */
+  --color-negro: #1A1A1A;            /* Black noir (070) */
+  --color-blanco: #FFFFFF;           /* White blac (010) */
+  --color-gris: #9d9d9c;             /* Middle grey (074) */
+
+  /* Variantes operativas */
+  --color-rojo-hover: #8b1a0a;
+  --color-fondo-alt: #f4f4f4;
+  --color-borde: #e0e0e0;
+  
+  /* Estados del Salón */
+  --color-libre: #2ecc71;
+  --color-ocupada: var(--color-rojo-tomate);
+  
+  /* Espaciados y estructura */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --radio-borde: 8px;
+  --sombra: 0 4px 10px rgba(26, 26, 26, 0.12);
+}
+
+/* Reset y Modelo de Caja */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+/* Tipografía global: Asap Condensed Bold por defecto */
+body {
+  font-family: 'Asap Condensed', sans-serif;
+  font-weight: 700;
+  background-color: var(--color-blanco);
+  color: var(--color-negro);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+p, span, td, th, input, select, textarea {
+  font-family: 'Asap Condensed', sans-serif;
+}
+
+/* Header principal con fondo Negro Oracal */
+#header-principal {
+  background-color: var(--color-negro);
+  color: var(--color-blanco);
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: center;
+  border-bottom: 3px solid var(--color-rojo-tomate);
+}
+
+/* Composición tipográfica del Logo +PIZZA */
+.brand-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  user-select: none;
+}
+
+.logo-main {
+  display: flex;
+  align-items: center;
+  line-height: 0.85;
+}
+
+.logo-plus {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--color-gris);
+  margin-right: 2px;
+}
+
+.logo-text {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: var(--color-rojo-tomate);
+  letter-spacing: 0.5px;
+}
+
+.logo-slogan {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--color-gris);
+  letter-spacing: 1px;
+  margin-top: 5px;
+  text-transform: uppercase;
+}
+
+/* Barra de Navegación */
+nav {
+  background-color: var(--color-rojo-tomate);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: var(--spacing-xs);
+  gap: var(--spacing-sm);
+}
+
+nav a {
+  color: var(--color-blanco);
+  text-decoration: none;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radio-borde);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+nav a:hover,
+nav a.activo {
+  background-color: var(--color-rojo-hover);
+  transform: translateY(-2px);
+}
+
+main {
+  flex: 1;
+  width: 90%;
+  max-width: 1000px;
+  margin: var(--spacing-lg) auto;
+}
+
+/* Tarjetas y Secciones */
+.tarjeta {
+  background-color: var(--color-blanco);
+  padding: var(--spacing-lg);
+  border-radius: var(--radio-borde);
+  border: 1px solid var(--color-borde);
+  box-shadow: var(--sombra);
+  margin-bottom: var(--spacing-lg);
+}
+.tarjeta h1,
+.tarjeta h2 {
+  color: var(--color-rojo-tomate);
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: var(--spacing-xs);
+  text-transform: uppercase;
+}
+
+.tarjeta p {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.tarjeta ol {
+  padding-left: 1.5rem;
+  margin-top: var(--spacing-sm);
+}
+
+.tarjeta li {
+  margin-bottom: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* Tablas */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--spacing-md) 0 var(--spacing-lg) 0;
+  background-color: var(--color-blanco);
+  box-shadow: var(--sombra);
+  border-radius: var(--radio-borde);
+  overflow: hidden;
+}
+
+caption {
+  font-weight: 800;
+  font-size: 1.3rem;
+  color: var(--color-rojo-tomate);
+  margin-bottom: var(--spacing-xs);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+th, td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+}
+
+th {
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+td {
+  border-bottom: 1px solid var(--color-borde);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--color-fondo-alt);
+}
+
+tbody tr:hover {
+  background-color: #fef5e7;
+}
+
+/* Formularios */
+form {
+  background-color: var(--color-blanco);
+  padding: var(--spacing-lg);
+  border-radius: var(--radio-borde);
+  border: 1px solid var(--color-borde);
+  box-shadow: var(--sombra);
+}
+
+fieldset {
+  border: 2px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+legend {
+  font-weight: 800;
+  color: var(--color-rojo-tomate);
+  font-size: 1.15rem;
+  text-transform: uppercase;
+  padding: 0 var(--spacing-xs);
+}
+
+label {
+  display: block;
+  font-weight: 700;
+  font-size: 1rem;
+  margin: var(--spacing-sm) 0 0.2rem 0;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 0.65rem var(--spacing-sm);
+  border: 2px solid var(--color-borde);
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  background-color: var(--color-blanco);
+  color: var(--color-negro);
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-rojo-tomate);
+  box-shadow: 0 0 0 3px rgba(173, 26, 16, 0.2);
+}
+
+/* Botones */
+.btn {
+  display: inline-block;
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  padding: 0.65rem var(--spacing-lg);
+  border: none;
+  border-radius: var(--radio-borde);
+  font-weight: 800;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  box-shadow: var(--sombra);
+}
+
+.btn:hover {
+  background-color: var(--color-rojo-hover);
+  transform: translateY(-2px);
+}
+
+.btn-secundario {
+  background-color: var(--color-gris);
+}
+
+.btn-secundario:hover {
+  background-color: #7f7f7e;
+}
+
+/* Salón de Mesas */
+.grid-mesas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.mesa {
+  padding: var(--spacing-md);
+  text-align: center;
+  border-radius: var(--radio-borde);
+  border: 2px solid transparent;
+  box-shadow: var(--sombra);
+}
+
+.mesa h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-bottom: 0.3rem;
+}
+
+.mesa-libre {
+  border-color: #a9dfbf;
+  background-color: #eafaf1;
+  color: #196f3d;
+}
+
+.mesa-ocupada {
+  border-color: #f5b7b1;
+  background-color: #fdedec;
+  color: #922b21;
+}
+.mesa-reservada {
+  border-color: #f9e79f;
+  background-color: #fef5e7;
+  color: #b9770e;
+}
+
+/* Footer con Negro Oracal */
+footer {
+  background-color: var(--color-negro);
+  color: var(--color-gris);
+  text-align: center;
+  padding: var(--spacing-md);
+  margin-top: auto;
+  border-top: 3px solid var(--color-rojo-tomate);
+}
+
+footer p {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+/* Media Query Mobile */
+@media (max-width: 600px) {
+  nav ul {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  nav a {
+    text-align: center;
+  }
+  .grid-mesas {
+    grid-template-columns: 1fr;
+  }
+}

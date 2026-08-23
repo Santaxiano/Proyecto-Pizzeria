@@ -1,39 +1,89 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú - +Pizza</title>
-    <link rel="stylesheet" href="estilo-principal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salón - +Pizza</title>
+  <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-    <header class="main-header">
-        <a href="inicio.html" class="brand-logo">
-        <div class="logo-main">
+
+  <!-- Header oficial con tipografía y slogan -->
+  <header id="header-principal">
+    <a href="index.html" class="brand-logo">
+      <div class="logo-main">
         <span class="logo-plus">+</span>
         <span class="logo-text">PIZZA</span>
-        </div>
-        <span class="logo-slogan">MUCHO MÁS QUE PIZZA LIBRE</span>
-  </a>
-    </header>
+      </div>
+      <span class="logo-slogan">Mucho más que pizza libre</span>
+    </a>
+  </header>
 
-    <nav>
-            <ul>
-                <li><a href="inicio.html">Inicio</a></li>
-                <li><a href="salon.html">Salon</a></li>
-                <li><a href="productos.html">Productos</a></li>
-                <li><a href="horarios.html">Horarios</a></li>
-                <li><a href="personal.html">Personal</a></li>
-                <li><a href="index.html">Salir</a></li>
-            </ul>
-    </nav>
+  <!-- Navegación semántica -->
+  <nav>
+    <ul>
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="salon.html" class="activo">Salón</a></li>
+      <li><a href="productos.html">Productos</a></li>
+      <li><a href="personal.html">Personal</a></li>
+    </ul>
+  </nav>
 
-    <main class="main-container">
+  <main>
+    <section class="tarjeta">
+      <h1>Mapa de Mesas</h1>
+      <p>Estado del salón y control de ocupación en tiempo real:</p>
 
-    </main>
+      <div class="grid-mesas">
+        <!-- Mesa Libre -->
+        <article class="mesa mesa-libre">
+          <h2>Mesa 1</h2>
+          <p>🟢 Libre</p>
+          <small>Capacidad: 4 personas</small>
+        </article>
 
-    <footer>
-        <p>&copy; 2026 Sistema de Gestión +Pizza.</p>
-    </footer>
+        <!-- Mesa Ocupada (sin mozo) -->
+        <article class="mesa mesa-ocupada">
+          <h2>Mesa 2</h2>
+          <p>🔴 Ocupada</p>
+          <small>4 comensales</small>
+        </article>
+
+        <!-- Mesa Reservada con horario -->
+        <article class="mesa mesa-reservada">
+          <h2>Mesa 3</h2>
+          <p>🟡 Reservada</p>
+          <small>(Turno: 21:30 hs)</small>
+        </article>
+
+        <!-- Mesa Libre -->
+        <article class="mesa mesa-libre">
+          <h2>Mesa 4</h2>
+          <p>🟢 Libre</p>
+          <small>Capacidad: 2 personas</small>
+        </article>
+
+        <!-- Mesa Ocupada -->
+        <article class="mesa mesa-ocupada">
+          <h2>Mesa 5</h2>
+          <p>🔴 Ocupada</p>
+          <small>6 comensales</small>
+        </article>
+
+        <!-- Mesa Reservada -->
+        <article class="mesa mesa-reservada">
+          <h2>Mesa 6</h2>
+          <p>🟡 Reservada</p>
+          <small>(Turno: 22:15 hs)</small>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 +Pizza. Todos los derechos reservados.</p>
+    <p><a href="index.html" style="color: var(--color-blanco);">Volver a Inicio</a></p>
+  </footer>
+
 </body>
 </html>

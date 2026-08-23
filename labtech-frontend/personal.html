@@ -1,130 +1,71 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contacto - +Pizza</title>
-    <link rel="stylesheet" href="estilo-principal.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal - +Pizza</title>
+  <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
-    <header class="main-header">
-        <a href="inicio.html" class="brand-logo">
-        <div class="logo-main">
-        <span class="logo-plus">+</span>
-        <span class="logo-text">PIZZA</span>
-        </div>
-        <span class="logo-slogan">MUCHO MÁS QUE PIZZA LIBRE</span>
+
+<header id="header-principal">
+  <a href="index.html" class="brand-logo">
+    <div class="logo-main">
+      <span class="logo-plus">+</span>
+      <span class="logo-text">PIZZA</span>
+    </div>
+    <span class="logo-slogan">Mucho más que pizza libre</span>
   </a>
-    </header>
+</header>
 
-    <nav>
-            <ul>
-                <li><a href="inicio.html">Inicio</a></li>
-                <li><a href="salon.html">Salon</a></li>
-                <li><a href="productos.html">Productos</a></li>
-                <li><a href="horarios.html">Horarios</a></li>
-                <li><a href="personal.html">Personal</a></li>
-                <li><a href="index.html">Salir</a></li>
-            </ul>
-    </nav>
+  <nav>
+    <ul>
+      <li><a href="index.html">Inicio</a></li>
+      <li><a href="salon.html">Salón</a></li>
+      <li><a href="productos.html">Productos</a></li>
+      <li><a href="personal.html" class="activo">Personal</a></li>
+    </ul>
+  </nav>
 
-    <main class="main-container">
-        <section class="welcome">
-            <h1>Registro de Empleados</h1>
-            <p class="tagline"><strong>Crear una nueva cuenta de empleado.</strong></p>
-            <p class="description">
-                Completa el siguiente formulario para registrar un nuevo empleado en el sistema de gestión de la pizzería.
-            </p>
-        </section>
+  <main>
+    <!-- PARTE C - Ejercicio 4: Formulario con text, email, date/number, select, textarea y labels for/id -->
+    <form action="#" method="POST">
+      <fieldset>
+        <legend>Alta de Nuevo Empleado</legend>
 
-        <form id="registroEmpleadoForm" class="registration-form" method="POST" action="#">
-            <!-- Sección de Información Personal -->
-            <fieldset>
-                <legend>Información Personal del Empleado</legend>
-                
-                <label for="nombre">Nombre Completo:</label>
-                <input 
-                    type="text" 
-                    id="nombre" 
-                    name="nombre" 
-                    required 
-                    placeholder="Juan Pérez García"
-                    minlength="3"
-                    maxlength="100"
-                >
+        <label for="nombre">Nombre Completo:</label>
+        <input type="text" id="nombre" name="nombre" required placeholder="Ej: Lucas Martínez">
 
-                <label for="correo">Correo Electrónico:</label>
-                <input 
-                    type="email" 
-                    id="correo" 
-                    name="correo" 
-                    required 
-                    placeholder="empleado@pizzeria.com"
-                >
+        <label for="email">Correo Electrónico:</label>
+        <input type="email" id="email" name="email" required placeholder="empleado@maspizza.com">
 
-                <label for="fechaIngreso">Fecha de Ingreso:</label>
-                <input 
-                    type="date" 
-                    id="fechaIngreso" 
-                    name="fechaIngreso" 
-                    required
-                    min="2020-01-01"
-                    max="2026-12-31"
-                >
-            </fieldset>
+        <label for="fecha-ingreso">Fecha de Ingreso:</label>
+        <input type="date" id="fecha-ingreso" name="fecha-ingreso" min="2020-01-01" max="2026-12-31" required>
 
-            <!-- Sección de Cargo y Departamento -->
-            <fieldset>
-                <legend>Cargo y Departamento</legend>
-                
-                <label for="cargo">Selecciona el Cargo:</label>
-                <select id="cargo" name="cargo" required>
-                    <option value="">-- Por favor selecciona un cargo --</option>
-                    <option value="cocinero">Pizzero</option>
-                    <option value="repartidor">Mesero</option>
-                    <option value="cajero">Cajero</option>
-                    <option value="limpieza">Personal de Limpieza</option>
-                </select>
+        <label for="puesto">Puesto de Trabajo:</label>
+        <select id="puesto" name="puesto" required>
+          <option value="">-- Seleccione un puesto --</option>
+          <option value="pizzero">Pizzero</option>
+          <option value="mozo">Mozo / Salón</option>
+          <option value="cajero">Cajero</option>
+        </select>
 
-                <label for="salario">Salario Mensual (en dólares):</label>
-                <input 
-                    type="number" 
-                    id="salario" 
-                    name="salario" 
-                    required
-                    min="500"
-                    max="5000"
-                    step="50"
-                    placeholder="Ej: 1200"
-                >
-            </fieldset>
+        <label for="horas">Horas Semanales Asignadas:</label>
+        <input type="number" id="horas" name="horas" min="10" max="48" value="30" required>
 
-            <!-- Sección de Observaciones -->
-            <fieldset>
-                <legend>Observaciones y Notas</legend>
-                
-                <label for="observaciones">Notas o Comentarios:</label>
-                <textarea 
-                    id="observaciones" 
-                    name="observaciones" 
-                    rows="5"
-                    placeholder="Información adicional sobre el empleado (horarios especiales, habilidades, etc.)..."
-                    minlength="0"
-                    maxlength="500"
-                ></textarea>
-                <small>Máximo 500 caracteres (opcional)</small>
-            </fieldset>
+        <label for="observaciones">Observaciones adicionales:</label>
+        <textarea id="observaciones" name="observaciones" rows="4" placeholder="Disponibilidad horaria o notas relevantes..."></textarea>
+      </fieldset>
 
-            <!-- Botones de Acción -->
-            <div class="form-actions">
-                <button type="submit" class="btn-primary">Registrar Empleado</button>
-                <button type="reset" class="btn-secondary">Limpiar Formulario</button>
-            </div>
-        </form>
-    </main>
+      <button type="submit" class="btn">Registrar Empleado</button>
+      <button type="reset" class="btn btn-secundario">Limpiar</button>
+    </form>
+  </main>
 
-    <footer>
-        <p>&copy; 2026 Sistema de Gestión +Pizza.</p>
-    </footer>
+  <footer>
+    <p>&copy; 2026 +Pizza. Todos los derechos reservados.</p>
+    <p><a href="index.html" style="color: white;">Volver a Inicio</a></p>
+  </footer>
+
 </body>
 </html>
