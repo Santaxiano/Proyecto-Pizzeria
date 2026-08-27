@@ -34,55 +34,121 @@
       <p>Precios vigentes de los servicios y adicionales de la pizzería.</p>
     </section>
 
-    <table>
-      <caption>Comidas</caption>
+    <!-- Tabla Comidas -->
+    <table id="tabla-comidas">
+      <caption>
+        <div class="caption-content">
+          <span>Comidas</span>
+          <button type="button" class="btn-sm btn-agregar" data-tipo="comidas">+ Agregar Producto</button>
+        </div>
+      </caption>
       <thead>
         <tr>
-          <th>Modalidad</th>
+          <th>Modalidad / Plato</th>
           <th>Precio</th>
+          <th class="col-acciones">Acciones</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>Pizzas Libre Adulto</td>
           <td>$13.500</td>
+          <td class="col-acciones">
+            <div class="acciones-tabla">
+              <button type="button" class="btn-sm btn-warning">Modificar</button>
+              <button type="button" class="btn-sm btn-danger">Eliminar</button>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>Pizza libre Menores</td>
           <td>$8.000</td>
+          <td class="col-acciones">
+            <div class="acciones-tabla">
+              <button type="button" class="btn-sm btn-warning">Modificar</button>
+              <button type="button" class="btn-sm btn-danger">Eliminar</button>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>Lomo Completo</td>
           <td>$13.500</td>
+          <td class="col-acciones">
+            <div class="acciones-tabla">
+              <button type="button" class="btn-sm btn-warning">Modificar</button>
+              <button type="button" class="btn-sm btn-danger">Eliminar</button>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
 
-    <table>
-      <caption>Bebidas y Adicionales</caption>
+    <!-- Tabla Bebidas -->
+    <table id="tabla-bebidas">
+      <caption>
+        <div class="caption-content">
+          <span>Bebidas y Adicionales</span>
+          <button type="button" class="btn-sm btn-agregar" data-tipo="bebidas">+ Agregar Producto</button>
+        </div>
+      </caption>
       <thead>
         <tr>
           <th>Producto</th>
           <th>Precio</th>
+          <th class="col-acciones">Acciones</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Gaseosa Línea Coca-Cola 1.5L</td>
+          <td>Gaseosa Línea Pepsi 1.5L</td>
           <td>$3.500</td>
+          <td class="col-acciones">
+            <div class="acciones-tabla">
+              <button type="button" class="btn-sm btn-warning">Modificar</button>
+              <button type="button" class="btn-sm btn-danger">Eliminar</button>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>Cerveza Artesanal 1L</td>
           <td>$4.500</td>
+          <td class="col-acciones">
+            <div class="acciones-tabla">
+              <button type="button" class="btn-sm btn-warning">Modificar</button>
+              <button type="button" class="btn-sm btn-danger">Eliminar</button>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
   </main>
+
+  <!-- Modal para Agregar Producto -->
+  <div id="modal-producto" class="modal-overlay oculto">
+    <div class="modal-contenido">
+      <h2 id="modal-titulo">Nuevo Producto</h2>
+      <form id="form-producto">
+        <input type="hidden" id="input-tipo-tabla">
+
+        <label for="input-nombre-prod">Nombre / Modalidad:</label>
+        <input type="text" id="input-nombre-prod" required placeholder="Ej: Pizza Napolitana">
+
+        <label for="input-precio-prod">Precio ($):</label>
+        <input type="number" id="input-precio-prod" required min="1" placeholder="Ej: 12000">
+
+        <div class="modal-acciones">
+          <button type="submit" class="btn">Guardar</button>
+          <button type="button" id="btn-cancelar-modal" class="btn btn-secundario">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <footer>
     <p>&copy; 2026 +Pizza. Todos los derechos reservados.</p>
     <p><a href="index.html" style="color: var(--color-blanco);">Salir del Sistema</a></p>
   </footer>
 
+  <script src="./js/productos.js"></script>
 </body>
 </html>

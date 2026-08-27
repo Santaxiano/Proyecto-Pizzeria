@@ -8,7 +8,7 @@
   --color-negro: #1A1A1A;            /* Black noir (070) */
   --color-blanco: #FFFFFF;           /* White blac (010) */
   --color-gris: #9d9d9c;             /* Middle grey (074) */
-
+  --color-gris-oscuro:#4A4A4A;
   /* Variantes operativas */
   --color-rojo-hover: #8b1a0a;
   --color-fondo-alt: #f4f4f4;
@@ -153,6 +153,7 @@ main {
   box-shadow: var(--sombra);
   margin-bottom: var(--spacing-lg);
 }
+
 .tarjeta h1,
 .tarjeta h2 {
   color: var(--color-rojo-tomate);
@@ -337,10 +338,79 @@ input:focus, select:focus, textarea:focus {
   background-color: #fdedec;
   color: #922b21;
 }
+
 .mesa-reservada {
   border-color: #f9e79f;
   background-color: #fef5e7;
   color: #b9770e;
+}
+
+/* ===== AJUSTES GLOBALES DE TABLAS Y ACCIONES ===== */
+.caption-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.col-acciones {
+  text-align: center;
+  width: 180px;
+}
+
+.acciones-tabla {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Botones pequeños para tablas */
+.btn-sm {
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 0.35rem 0.65rem;
+  border: none;
+  border-radius: var(--radio-borde);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn-sm:hover {
+  transform: translateY(-1px);
+}
+
+/* Botón + Agregar Producto */
+.btn-agregar {
+  background-color: var(--color-negro);
+  color: var(--color-blanco);
+  border: 1px solid var(--color-rojo-tomate);
+}
+
+.btn-agregar:hover {
+  background-color: var(--color-rojo-tomate);
+}
+
+/* Botón Modificar */
+.btn-warning {
+  background-color: var(--color-gris-oscuro);
+  color: var(--color-blanco);
+}
+
+.btn-warning:hover {
+  background-color: var(--color-gris-oscuro);
+}
+
+/* Botón Eliminar */
+.btn-danger {
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+}
+
+.btn-danger:hover {
+  background-color: var(--color-rojo-hover);
 }
 
 /* Footer con Negro Oracal */
@@ -370,4 +440,50 @@ footer p {
   .grid-mesas {
     grid-template-columns: 1fr;
   }
+  /* ===== MODAL DE PRODUCTOS ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(26, 26, 26, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px);
+}
+
+.modal-overlay.oculto {
+  display: none;
+}
+
+.modal-contenido {
+  background-color: var(--color-blanco);
+  padding: var(--spacing-lg);
+  border-radius: var(--radio-borde);
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  border-top: 4px solid var(--color-rojo-tomate);
+}
+
+.modal-contenido h2 {
+  color: var(--color-rojo-tomate);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+}
+
+.modal-acciones .btn {
+  flex: 1;
+}
+
 }
