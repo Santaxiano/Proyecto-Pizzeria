@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>+Pizza - Sistema de Gestión</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+
+  <!-- PARTE C - Ejercicio 1: header con nombre -->
+ <header id="header-principal">
+  <a href="index.html" class="brand-logo">
+    <div class="logo-main">
+      <span class="logo-plus">+</span>
+      <span class="logo-text">PIZZA</span>
+    </div>
+    <span class="logo-slogan">Mucho más que pizza libre</span>
+  </a>
+</header>
+
+  <!-- PARTE C - Ejercicio 1 y 2: nav con lista ul + li + a -->
+  <nav>
+    <ul>
+      <li><a href="inicio.html" class="activo">Inicio</a></li>
+      <li><a href="salon.html">Salón</a></li>
+      <li><a href="productos.html">Productos</a></li>
+      <li><a href="personal.html">Personal</a></li>
+      <li><a href="index.html">Cerrar Sesión</a></li>
+    </ul>
+  </nav>
+
+  <!-- PARTE C - Ejercicio 1: main semántico -->
+  <main>
+    <section class="tarjeta">
+      <h1>Bienvenido al Sistema</h1>
+      <p>
+        Esta plataforma centraliza la administración operativa de la pizzería: control de mesas, catálogo de productos y registro del personal.
+      </p>
+      <!-- PARTE C - Ejercicio 3: Marcador interno con # -->
+      <p>
+        <a href="#guia-uso" class="btn" style="margin-top: 1rem;">Ver Guía de Uso del Sistema</a>
+      </p>
+    </section>
+
+    <!-- PARTE C - Ejercicio 2: Lista ordenada (ol) -->
+    <section id="guia-uso" class="tarjeta">
+      <h2>Módulos y Pasos de Operación</h2>
+      <ol>
+        <li><strong>Control de Salón:</strong> Visualización del plano de mesas libres y ocupadas.</li>
+        <li><strong>Catálogo de Productos:</strong> Consulta del tarifario de pizza libre y bebidas.</li>
+        <li><strong>Administración de Personal:</strong> Alta y registro de nuevos empleados mediante formulario.</li>
+      </ol>
+    </section>
+  </main>
+
+  <!-- PARTE C - Ejercicio 1: footer semántico -->
+  <footer>
+    <p>&copy; 2026 +Pizza. Todos los derechos reservados.</p>
+    <p>Contacto de soporte: soporte@maspizza.com</p>
+  </footer>
+
+</body>
+</html>

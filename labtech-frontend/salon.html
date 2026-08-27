@@ -8,9 +8,8 @@
 </head>
 <body>
 
-  <!-- Header oficial con tipografía y slogan -->
   <header id="header-principal">
-    <a href="index.html" class="brand-logo">
+    <a href="salon.html" class="brand-logo">
       <div class="logo-main">
         <span class="logo-plus">+</span>
         <span class="logo-text">PIZZA</span>
@@ -19,13 +18,14 @@
     </a>
   </header>
 
-  <!-- Navegación semántica -->
+  <!-- Navbar con todas las funciones del sistema habilitadas -->
   <nav>
     <ul>
-      <li><a href="index.html">Inicio</a></li>
+      <li><a href="inicio.html">Inicio</a></li>
       <li><a href="salon.html" class="activo">Salón</a></li>
       <li><a href="productos.html">Productos</a></li>
       <li><a href="personal.html">Personal</a></li>
+      <li><a href="index.html">Cerrar Sesión</a></li>
     </ul>
   </nav>
 
@@ -35,44 +35,38 @@
       <p>Estado del salón y control de ocupación en tiempo real:</p>
 
       <div class="grid-mesas">
-        <!-- Mesa Libre -->
         <article class="mesa mesa-libre">
-          <h2>Mesa 1</h2>
+          <h3>Mesa 1</h3>
           <p>🟢 Libre</p>
           <small>Capacidad: 4 personas</small>
         </article>
 
-        <!-- Mesa Ocupada (sin mozo) -->
         <article class="mesa mesa-ocupada">
-          <h2>Mesa 2</h2>
+          <h3>Mesa 2</h3>
           <p>🔴 Ocupada</p>
           <small>4 comensales</small>
         </article>
 
-        <!-- Mesa Reservada con horario -->
         <article class="mesa mesa-reservada">
-          <h2>Mesa 3</h2>
+          <h3>Mesa 3</h3>
           <p>🟡 Reservada</p>
           <small>(Turno: 21:30 hs)</small>
         </article>
 
-        <!-- Mesa Libre -->
         <article class="mesa mesa-libre">
-          <h2>Mesa 4</h2>
+          <h3>Mesa 4</h3>
           <p>🟢 Libre</p>
           <small>Capacidad: 2 personas</small>
         </article>
 
-        <!-- Mesa Ocupada -->
         <article class="mesa mesa-ocupada">
-          <h2>Mesa 5</h2>
+          <h3>Mesa 5</h3>
           <p>🔴 Ocupada</p>
           <small>6 comensales</small>
         </article>
 
-        <!-- Mesa Reservada -->
         <article class="mesa mesa-reservada">
-          <h2>Mesa 6</h2>
+          <h3>Mesa 6</h3>
           <p>🟡 Reservada</p>
           <small>(Turno: 22:15 hs)</small>
         </article>
@@ -82,7 +76,7 @@
 
   <footer>
     <p>&copy; 2026 +Pizza. Todos los derechos reservados.</p>
-    <p><a href="index.html" style="color: var(--color-blanco);">Volver a Inicio</a></p>
+    <p><a href="index.html" style="color: var(--color-blanco);">Salir del Sistema</a></p>
   </footer>
 
 </body>
