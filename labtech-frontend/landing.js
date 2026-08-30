@@ -1,47 +1,47 @@
 // Carrusel de fotitos
-const slides = document.querySelectorAll('.carousel-slide');
-let currentIndex = 0;
+const diapositivas = document.querySelectorAll('.diapositiva-carrusel');
+let indiceActual = 0;
 
-function nextSlide() {
-  slides[currentIndex].classList.remove('active');
-  currentIndex = (currentIndex + 1) % slides.length;
-  slides[currentIndex].classList.add('active');
+function siguienteDiapositiva() {
+  diapositivas[indiceActual].classList.remove('activa');
+  indiceActual = (indiceActual + 1) % diapositivas.length;
+  diapositivas[indiceActual].classList.add('activa');
 }
 
-setInterval(nextSlide, 5000);
+setInterval(siguienteDiapositiva, 5000);
 
-const header = document.querySelector('.header');
+const encabezado = document.querySelector('.encabezado');
 
 window.addEventListener('scroll', () => {
   if (window.scrollY > 50) {
-    header.classList.add('scrolled');
+    encabezado.classList.add('desplazado');
   } else {
-    header.classList.remove('scrolled');
+    encabezado.classList.remove('desplazado');
   }
 });
 
 // Control del menu hamburguesa para telefonos
-const hamburgerBtn = document.getElementById('hamburger-btn');
-const closeMenuBtn = document.getElementById('close-menu-btn');
-const navMenuWrapper = document.getElementById('nav-menu-wrapper');
-const menuOverlay = document.getElementById('menu-overlay');
-const navLinks = document.querySelectorAll('.nav-links a, .nav-menu-wrapper .nav-btn');
+const botonHamburguesa = document.getElementById('boton-hamburguesa');
+const botonCerrarMenu = document.getElementById('boton-cerrar-menu');
+const contenedorMenuNavegacion = document.getElementById('contenedor-menu-navegacion');
+const capaFondoMenu = document.getElementById('capa-fondo-menu');
+const enlacesNavegacion = document.querySelectorAll('.enlaces-navegacion a, .contenedor-menu-navegacion .boton-ingreso');
 
-function toggleMenu() {
-  navMenuWrapper.classList.toggle('active');
-  menuOverlay.classList.toggle('active');
-  document.body.style.overflow = navMenuWrapper.classList.contains('active') ? 'hidden' : 'auto';
+function alternarMenu() {
+  contenedorMenuNavegacion.classList.toggle('activo');
+  capaFondoMenu.classList.toggle('activo');
+  document.body.style.overflow = contenedorMenuNavegacion.classList.contains('activo') ? 'hidden' : 'auto';
 }
 
-if (hamburgerBtn) hamburgerBtn.addEventListener('click', toggleMenu);
-if (closeMenuBtn) closeMenuBtn.addEventListener('click', toggleMenu);
-if (menuOverlay) menuOverlay.addEventListener('click', toggleMenu);
+if (botonHamburguesa) botonHamburguesa.addEventListener('click', alternarMenu);
+if (botonCerrarMenu) botonCerrarMenu.addEventListener('click', alternarMenu);
+if (capaFondoMenu) capaFondoMenu.addEventListener('click', alternarMenu);
 
 // Cerrar el menú automáticamente al hacer clic en un enlace
-navLinks.forEach(link => {
-  link.addEventListener('click', () => {
-    if (navMenuWrapper.classList.contains('active')) {
-      toggleMenu();
+enlacesNavegacion.forEach(enlace => {
+  enlace.addEventListener('click', () => {
+    if (contenedorMenuNavegacion.classList.contains('activo')) {
+      alternarMenu();
     }
   });
 });

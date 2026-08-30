@@ -32,7 +32,7 @@ body {
 }
 
 /* Header y naaav */
-.header {
+.encabezado {
   position: fixed;
   top: 0;
   left: 0;
@@ -42,13 +42,13 @@ body {
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7), transparent);
 }
 
-.header.scrolled {
+.encabezado.desplazado {
   background-color: rgba(26, 26, 26, 0.95);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--color-gris-oscuro);
 }
 
-.navbar {
+.barra-navegacion {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
@@ -57,13 +57,13 @@ body {
   align-items: center;
 }
 
-.nav-logo {
+.logo-navegacion {
   display: flex;
   align-items: center;
   text-decoration: none;
 }
 
-.nav-logo img {
+.logo-navegacion img {
   height: 45px;         
   width: auto;          
   object-fit: contain;
@@ -71,23 +71,23 @@ body {
   transition: transform 0.2s ease;
 }
 
-.nav-logo img:hover {
+.logo-navegacion img:hover {
   transform: scale(1.05);
 }
 
-.nav-menu-wrapper {
+.contenedor-menu-navegacion {
   display: flex;
   align-items: center;
   gap: 30px;
 }
 
-.nav-links {
+.enlaces-navegacion {
   display: flex;
   list-style: none;
   gap: 30px;
 }
 
-.nav-links a {
+.enlaces-navegacion a {
   color: var(--color-blanco);
   text-decoration: none;
   font-weight: 700;
@@ -97,7 +97,7 @@ body {
   padding-bottom: 6px; 
 }
 
-.nav-links a::after {
+.enlaces-navegacion a::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -108,11 +108,11 @@ body {
   transition: width 0.3s ease;
 }
 
-.nav-links a:hover::after {
+.enlaces-navegacion a:hover::after {
   width: 100%;
 }
 
-.nav-btn {
+.boton-ingreso {
   background-color: var(--color-rojo-tomate);
   color: var(--color-blanco);
   padding: 10px 20px;
@@ -123,21 +123,21 @@ body {
   transition: opacity 0.2s ease;
 }
 
-.nav-btn:hover {
+.boton-ingreso:hover {
   opacity: 0.9;
 }
 
 /* Botones de control móvil ocultos en escritorio */
-.hamburger-btn,
-.close-menu-btn,
-.menu-overlay {
+.boton-hamburguesa,
+.boton-cerrar-menu,
+.capa-fondo-menu {
   display: none;
 }
 
 /* --- RESPONSIVE MOBILE (< 860px) --- */
 @media (max-width: 860px) {
   /* Botón Hamburguesa */
-  .hamburger-btn {
+  .boton-hamburguesa {
     display: flex;
     flex-direction: column;
     justify-content: space-around;
@@ -150,7 +150,7 @@ body {
     z-index: 1002;
   }
 
-  .hamburger-btn span {
+  .boton-hamburguesa span {
     width: 100%;
     height: 3px;
     background-color: var(--color-blanco);
@@ -159,7 +159,7 @@ body {
   }
 
   /* Menú desplegable lateral derecho */
-  .nav-menu-wrapper {
+  .contenedor-menu-navegacion {
     position: fixed;
     top: 0;
     right: -100%;
@@ -181,11 +181,11 @@ body {
   }
 
   /* Estado cuando se abre el menú */
-  .nav-menu-wrapper.active {
+  .contenedor-menu-navegacion.activo {
     right: 0;
   }
 
-  .close-menu-btn {
+  .boton-cerrar-menu {
     display: block;
     position: absolute;
     top: 20px;
@@ -198,18 +198,18 @@ body {
     line-height: 1;
   }
 
-  .nav-links {
+  .enlaces-navegacion {
     flex-direction: column;
     align-items: center;
     gap: 25px;
   }
 
-  .nav-links a {
+  .enlaces-navegacion a {
     font-size: 1.4rem;
     padding-bottom: 4px;
   }
 
-  .nav-btn {
+  .boton-ingreso {
     font-size: 1.2rem;
     padding: 12px 28px;
     width: 80%;
@@ -217,7 +217,7 @@ body {
   }
 
   /* Overlay de fondo */
-  .menu-overlay {
+  .capa-fondo-menu {
     display: block;
     position: fixed;
     top: 0;
@@ -232,14 +232,14 @@ body {
     transition: opacity 0.3s ease, visibility 0.3s ease;
   }
 
-  .menu-overlay.active {
+  .capa-fondo-menu.activo {
     opacity: 1;
     visibility: visible;
   }
 }
 
 /* --- carrusel de fotitos--- */
-.carousel-container {
+.contenedor-carrusel {
   position: relative;
   width: 100%;
   height: 100vh;
@@ -247,7 +247,7 @@ body {
   overflow: hidden;
 }
 
-.carousel-slide {
+.diapositiva-carrusel {
   position: absolute;
   top: 0;
   left: 0;
@@ -257,18 +257,18 @@ body {
   transition: opacity 1s ease-in-out;
 }
 
-.carousel-slide.active {
+.diapositiva-carrusel.activa {
   opacity: 1;
 }
 
-.carousel-slide img {
+.diapositiva-carrusel img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.hero-overlay {
+.superposicion-hero {
   position: absolute;
   top: 0;
   left: 0;
@@ -282,12 +282,12 @@ body {
   padding: 20px;
 }
 
-.hero-content {
+.contenido-hero {
   max-width: 750px;
   color: var(--color-blanco);
 }
 
-.hero-content h1 {
+.contenido-hero h1 {
   font-size: clamp(2.4rem, 6vw, 4.2rem);
   font-weight: 800;
   margin-bottom: 16px;
@@ -295,14 +295,14 @@ body {
   text-transform: uppercase;
 }
 
-.hero-content p {
+.contenido-hero p {
   font-size: clamp(1.1rem, 2.5vw, 1.4rem);
   font-weight: 600;
   margin-bottom: 28px;
   color: var(--color-gris);
 }
 
-.btn-hero {
+.boton-hero {
   display: inline-block;
   background-color: var(--color-rojo-tomate);
   color: var(--color-blanco);
@@ -316,12 +316,12 @@ body {
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.btn-hero:hover {
+.boton-hero:hover {
   opacity: 0.9;
   transform: translateY(-3px);
 }
 /* --- SECCIÓN SOBRE NOSOTROS --- */
-.about-section {
+.seccion-nosotros {
   width: 100%;
   background-color: var(--color-negro);
   color: var(--color-blanco);
@@ -329,7 +329,7 @@ body {
   border-top: 2px solid var(--color-gris-oscuro);
 }
 
-.about-container {
+.contenedor-nosotros {
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
@@ -338,7 +338,7 @@ body {
   align-items: center;
 }
 
-.about-badge {
+.insignia-nosotros {
   display: inline-block;
   background-color: rgba(173, 26, 16, 0.18);
   color: var(--color-rojo-tomate);
@@ -352,7 +352,7 @@ body {
   margin-bottom: 14px;
 }
 
-.about-content h2 {
+.contenido-nosotros h2 {
   font-size: clamp(2rem, 4vw, 2.8rem);
   font-weight: 800;
   line-height: 1.15;
@@ -360,7 +360,7 @@ body {
   margin-bottom: 20px;
 }
 
-.about-lead {
+.destacado-nosotros {
   font-size: 1.2rem;
   font-weight: 700;
   color: var(--color-blanco);
@@ -368,7 +368,7 @@ body {
   margin-bottom: 14px;
 }
 
-.about-text {
+.texto-nosotros {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--color-gris);
@@ -376,11 +376,12 @@ body {
   margin-bottom: 12px;
 }
 
-.about-text strong {
+.texto-nosotros strong {
   color: var(--color-rojo-tomate);
 }
 
-.about-stats {
+/* Grilla de métricas / números */
+.estadisticas-nosotros {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
@@ -389,11 +390,11 @@ body {
   border-top: 1px solid var(--color-gris-oscuro);
 }
 
-.stat-item {
+.elemento-estadistica {
   text-align: left;
 }
 
-.stat-number {
+.numero-estadistica {
   display: block;
   font-size: 2rem;
   font-weight: 800;
@@ -401,7 +402,7 @@ body {
   line-height: 1;
 }
 
-.stat-label {
+.etiqueta-estadistica {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--color-gris);
@@ -409,11 +410,12 @@ body {
   letter-spacing: 0.5px;
 }
 
-.about-image-wrapper {
+/* Columna visual / Imagen */
+.contenedor-imagen-nosotros {
   position: relative;
 }
 
-.about-img-main {
+.imagen-principal-nosotros {
   width: 100%;
   height: 440px;
   object-fit: cover;
@@ -423,7 +425,7 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-.about-experience-card {
+.tarjeta-experiencia-nosotros {
   position: absolute;
   bottom: -20px;
   left: -20px;
@@ -435,14 +437,14 @@ body {
   max-width: 240px;
 }
 
-.about-experience-card h4 {
+.tarjeta-experiencia-nosotros h4 {
   font-size: 1.2rem;
   font-weight: 800;
   text-transform: uppercase;
   margin-bottom: 4px;
 }
 
-.about-experience-card p {
+.tarjeta-experiencia-nosotros p {
   font-size: 0.95rem;
   font-weight: 600;
   line-height: 1.3;
@@ -450,22 +452,22 @@ body {
 
 /* Adaptación responsive para pantallas chicas */
 @media (max-width: 900px) {
-  .about-container {
+  .contenedor-nosotros {
     grid-template-columns: 1fr;
     gap: 40px;
   }
 
-  .about-img-main {
+  .imagen-principal-nosotros {
     height: 320px;
   }
 
-  .about-experience-card {
+  .tarjeta-experiencia-nosotros {
     left: 20px;
     bottom: -15px;
   }
 }
 /* --- SECCIÓN ELECCIÓN DE CARTA REDISEÑADA --- */
-.menu-choice-section {
+.seccion-eleccion-menu {
   width: 100%;
   background-color: var(--color-negro);
   color: var(--color-blanco);
@@ -474,17 +476,17 @@ body {
   border-bottom: 2px solid var(--color-gris-oscuro);
 }
 
-.menu-choice-container {
+.contenedor-eleccion-menu {
   max-width: 1000px;
   margin: 0 auto;
 }
 
-.menu-choice-header {
+.cabecera-eleccion-menu {
   text-align: center;
   margin-bottom: 55px; /* Separación con las tarjetas */
 }
 
-.menu-badge {
+.insignia-menu {
   display: inline-block;
   background-color: rgba(173, 26, 16, 0.18);
   color: var(--color-rojo-tomate);
@@ -498,7 +500,7 @@ body {
   margin-bottom: 16px;
 }
 
-.menu-choice-header h2 {
+.cabecera-eleccion-menu h2 {
   font-size: clamp(2.2rem, 5vw, 3rem);
   font-weight: 800;
   text-transform: uppercase;
@@ -507,7 +509,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-.menu-choice-header p {
+.cabecera-eleccion-menu p {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--color-gris);
@@ -517,14 +519,14 @@ body {
 }
 
 /* Grilla de Tarjetas */
-.menu-choice-grid {
+.grilla-eleccion-menu {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 35px;
   padding-bottom: 20px; /* Margen inferior de seguridad */
 }
 
-.menu-choice-card {
+.tarjeta-eleccion-menu {
   background-color: #202020;
   border: 1px solid var(--color-gris-oscuro);
   border-radius: 16px;
@@ -538,13 +540,13 @@ body {
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.menu-choice-card:hover {
+.tarjeta-eleccion-menu:hover {
   transform: translateY(-6px);
   border-color: var(--color-rojo-tomate);
   box-shadow: 0 14px 40px rgba(173, 26, 16, 0.2);
 }
 
-.card-icon-wrapper {
+.contenedor-icono-tarjeta {
   width: 75px;
   height: 75px;
   background-color: rgba(255, 255, 255, 0.05);
@@ -557,7 +559,7 @@ body {
   margin-bottom: 20px;
 }
 
-.card-text h3 {
+.texto-tarjeta h3 {
   font-size: 1.7rem;
   font-weight: 800;
   color: var(--color-blanco);
@@ -566,7 +568,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-.card-text p {
+.texto-tarjeta p {
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--color-gris);
@@ -575,7 +577,7 @@ body {
 }
 
 /* Botones de acción unificados */
-.btn-choice {
+.boton-eleccion {
   display: inline-block;
   width: 100%;
   padding: 15px 24px;
@@ -591,7 +593,7 @@ body {
   transition: all 0.25s ease;
 }
 
-.btn-choice:hover {
+.boton-eleccion:hover {
   background-color: transparent;
   color: var(--color-rojo-tomate);
   transform: translateY(-2px);
@@ -599,7 +601,7 @@ body {
 }
 
 /* --- el gugle maps --- */
-.map-container {
+.contenedor-mapa {
   width: 100%;
   max-width: 100%;
   margin: 0;
@@ -607,7 +609,7 @@ body {
   display: block;
   line-height: 0; 
 }
-.map-container iframe {
+.contenedor-mapa iframe {
   width: 100%;
   height: 380px;
   display: block;
@@ -630,7 +632,7 @@ body {
   opacity: 0.9;
 }
 /*Boton wpp flotante */
-.whatsapp-float {
+.whatsapp-flotante {
   position: fixed;
   bottom: 25px;
   right: 25px;
@@ -648,13 +650,16 @@ body {
   transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
 }
 
-.whatsapp-float svg {
+.whatsapp-flotante svg {
   stroke: var(--color-blanco);
+  fill: var(--color-blanco);
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
 }
 
 /* El cartelito / tooltip a la izquierda */
-.whatsapp-tooltip {
+.globo-whatsapp {
   position: absolute;
   right: 72px; /* Queda separado a la izquierda del botón */
   background-color: var(--color-negro);
@@ -677,7 +682,7 @@ body {
 }
 
 /* Flechita / triángulo que apunta al botón */
-.whatsapp-tooltip::after {
+.globo-whatsapp::after {
   content: '';
   position: absolute;
   top: 50%;
@@ -689,13 +694,13 @@ body {
 }
 
 /* Mostrar tooltip al pasar el mouse por el botón */
-.whatsapp-float:hover .whatsapp-tooltip {
+.whatsapp-flotante:hover .globo-whatsapp {
   opacity: 1;
   visibility: visible;
   transform: translateX(0);
 }
 
-.whatsapp-float:hover {
+.whatsapp-flotante:hover {
   transform: translateY(-4px) scale(1.05);
   background-color: #20ba5a;
   box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
@@ -703,33 +708,26 @@ body {
 
 /* Ajustes para pantallas táctiles */
 @media (max-width: 768px) {
-  .whatsapp-float {
+  .whatsapp-flotante {
     bottom: 20px;
     right: 20px;
     width: 54px;
     height: 54px;
   }
   
-  .whatsapp-float svg {
+  .whatsapp-flotante svg {
     width: 30px;
     height: 30px;
   }
 
   /* En móviles se oculta el tooltip ya que no hay hover con mouse */
-  .whatsapp-tooltip {
+  .globo-whatsapp {
     display: none;
   }
 }
 
-.whatsapp-float svg {
-  fill: var(--color-blanco);
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-}
-
 /* --- footer --- */
-.footer {
+.pie-pagina {
   width: 100%;
   background-color: var(--color-negro);
   color: var(--color-blanco);
@@ -738,7 +736,7 @@ body {
   margin-top: 0;
 }
 
-.footer-container {
+.contenedor-pie-pagina {
   max-width: 1100px;
   margin: 0 auto;
   display: grid;
@@ -746,11 +744,11 @@ body {
   gap: 40px;
 }
 
-.footer-col .footer-logo {
+.columna-pie-pagina .logo-pie-pagina {
   margin-bottom: 16px;
 }
 
-.footer-col .footer-logo img {
+.columna-pie-pagina .logo-pie-pagina img {
   height: 50px;
   width: auto;
   max-width: 160px;
@@ -758,7 +756,7 @@ body {
   display: block;
 }
 
-.footer-col h4 {
+.columna-pie-pagina h4 {
   font-size: 1.2rem;
   font-weight: 800;
   color: var(--color-blanco);
@@ -768,7 +766,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-.footer-col h4::after {
+.columna-pie-pagina h4::after {
   content: '';
   display: block;
   width: 175px;
@@ -777,7 +775,7 @@ body {
   margin-top: 6px;
 }
 
-.footer-col p {
+.columna-pie-pagina p {
   font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.5;
@@ -785,20 +783,20 @@ body {
   margin-bottom: 8px;
 }
 
-.footer-col .footer-contact {
+.columna-pie-pagina .contacto-pie-pagina {
   color: var(--color-blanco);
   font-weight: 700;
   margin-top: 10px;
 }
 
 /* Botones de Redes Sociales con Iconos */
-.footer-socials {
+.redes-sociales-pie {
   display: flex;
   gap: 12px;
   margin-top: 14px;
 }
 
-.footer-socials .btn-social {
+.redes-sociales-pie .boton-social {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -813,29 +811,29 @@ body {
   transition: all 0.25s ease;
 }
 
-.footer-socials .btn-social svg {
+.redes-sociales-pie .boton-social svg {
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
-.footer-socials .btn-instagram:hover {
+.redes-sociales-pie .boton-instagram:hover {
   background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
   border-color: transparent;
   transform: translateY(-2px);
 }
 
-.footer-socials .btn-whatsapp:hover {
+.redes-sociales-pie .boton-whatsapp:hover {
   background-color: #25d366;
   border-color: #25d366;
   color: var(--color-blanco);
   transform: translateY(-2px);
 }
 
-.footer-socials .btn-social:hover svg {
+.redes-sociales-pie .boton-social:hover svg {
   transform: scale(1.1);
 }
 
-.footer-bottom {
+.base-pie-pagina {
   max-width: 1100px;
   margin: 40px auto 0;
   padding-top: 20px;
