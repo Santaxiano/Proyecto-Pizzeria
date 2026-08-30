@@ -1,4 +1,4 @@
-// 1. Transición automática del carrusel de fondo
+// Carrusel de fotitos
 const slides = document.querySelectorAll('.carousel-slide');
 let currentIndex = 0;
 
@@ -8,10 +8,8 @@ function nextSlide() {
   slides[currentIndex].classList.add('active');
 }
 
-// Cambia de imagen cada 4 segundos
 setInterval(nextSlide, 5000);
 
-// 2. Fondo del Navbar: de transparente a oscuro al hacer scroll hacia abajo
 const header = document.querySelector('.header');
 
 window.addEventListener('scroll', () => {
@@ -22,7 +20,7 @@ window.addEventListener('scroll', () => {
   }
 });
 
-// Control del Menú Hamburguesa en Móviles
+// Control del menu hamburguesa para telefonos
 const hamburgerBtn = document.getElementById('hamburger-btn');
 const closeMenuBtn = document.getElementById('close-menu-btn');
 const navMenuWrapper = document.getElementById('nav-menu-wrapper');
