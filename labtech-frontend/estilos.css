@@ -3,22 +3,21 @@
 
 /* PARTE D - Variables :root con la paleta exacta de la marca */
 :root {
-  /* Manual de Marca Oracal 651 */
-  --color-rojo-tomate: #AD1A10;      /* Rojo salsa de tomate (030) */
-  --color-negro: #1A1A1A;            /* Black noir (070) */
-  --color-blanco: #FFFFFF;           /* White blac (010) */
-  --color-gris: #9d9d9c;             /* Middle grey (074) */
+  --color-rojo-tomate: #AD1A10;     
+  --color-negro: #1A1A1A;            
+  --color-blanco: #FFFFFF;          
+  --color-gris: #9d9d9c;            
   --color-gris-oscuro:#4A4A4A;
-  /* Variantes operativas */
+
   --color-rojo-hover: #8b1a0a;
   --color-fondo-alt: #f4f4f4;
   --color-borde: #e0e0e0;
   
-  /* Estados del Salón */
+
   --color-libre: #2ecc71;
   --color-ocupada: var(--color-rojo-tomate);
   
-  /* Espaciados y estructura */
+
   --spacing-xs: 0.5rem;
   --spacing-sm: 1rem;
   --spacing-md: 1.5rem;
@@ -27,7 +26,6 @@
   --sombra: 0 4px 10px rgba(26, 26, 26, 0.12);
 }
 
-/* Reset y Modelo de Caja */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
@@ -39,7 +37,6 @@ html {
   font-size: 16px;
 }
 
-/* Tipografía global: Asap Condensed Bold por defecto */
 body {
   font-family: 'Asap Condensed', sans-serif;
   font-weight: 700;
