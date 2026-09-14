@@ -1,4 +1,6 @@
 import LayoutPublico from './shared/layout/LayoutPublico';
+import { RouterProvider } from 'react-router/dom'
+import { router } from './router'
 
 const enlacesNav = [
   { id: 1, texto: 'Nosotros', destino: '#nosotros' },
@@ -9,17 +11,10 @@ const enlacesNav = [
 
 function App() {
   return (
-    <LayoutPublico enlaces={enlacesNav}>
-      <section>
-        <h1>
-          ¡Bienvenido a +PIZZA!
-        </h1>
-        <p>
-          Masa artesanal y horno napolitano.
-        </p>
-      </section>
-    </LayoutPublico>
+      <RouterProvider router={router}/>
   );
 }
+
+
 
 export default App;
