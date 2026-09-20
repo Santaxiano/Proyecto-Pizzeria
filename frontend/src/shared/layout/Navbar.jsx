@@ -1,18 +1,14 @@
 import { useState, useEffect } from 'react';
+import { NavLink, Link } from 'react-router';
 
-function Navbar({ enlaces = [] }) {
+function Navbar({ cantidadCarrito = 0 }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [desplazado, setDesplazado] = useState(false);
 
   useEffect(() => {
     const controlarScroll = () => {
-      if (window.scrollY > 50) {
-        setDesplazado(true);
-      } else {
-        setDesplazado(false);
-      }
+      setDesplazado(window.scrollY > 50);
     };
-
     window.addEventListener('scroll', controlarScroll);
     return () => window.removeEventListener('scroll', controlarScroll);
   }, []);
@@ -23,9 +19,9 @@ function Navbar({ enlaces = [] }) {
   return (
     <header className={`encabezado ${desplazado ? 'desplazado' : ''}`}>
       <nav className="barra-navegacion">
-        <a href="#inicio" className="logo-navegacion" onClick={cerrarMenu}>
-          <img src="/logo en blanco.png" alt="Logo +PIZZA" />
-        </a>
+        <Link to="/" className="logo-navegacion" onClick={cerrarMenu}>
+          <img src="/logo en blanco.png" alt="+PIZZA" />
+        </Link>
 
         <button 
           className="boton-hamburguesa" 
@@ -47,18 +43,27 @@ function Navbar({ enlaces = [] }) {
           </button>
 
           <ul className="enlaces-navegacion">
-            {enlaces.map((enlace) => (
-              <li key={enlace.id}>
-                <a href={enlace.destino} onClick={cerrarMenu}>
-                  {enlace.texto}
-                </a>
-              </li>
-            ))}
+            <li>
+              <NavLink to="/" end onClick={cerrarMenu}>
+                Inicio
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/menu" onClick={cerrarMenu}>
+                Menú Online
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/reservar" onClick={cerrarMenu}>
+                Reservar Mesa
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to="/carrito" onClick={cerrarMenu} className="enlace-carrito">
+                Carrito {cantidadCarrito > 0 && <span className="badge-carrito">({cantidadCarrito})</span>}
+              </NavLink>
+            </li>
           </ul>
-
-          <a href="#login" className="boton-ingreso" onClick={cerrarMenu}>
-            Iniciar Sesión
-          </a>
         </div>
 
         <div 

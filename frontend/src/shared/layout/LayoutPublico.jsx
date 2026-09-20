@@ -1,12 +1,13 @@
+import { Outlet } from 'react-router';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
-function LayoutPublico({ enlaces, children }) {
+function LayoutPublico() {
   return (
     <>
-      <Navbar enlaces={enlaces} />
+      <Navbar />
       <main style={{ minHeight: '80vh', paddingTop: '80px' }}>
-        {children}
+        <Outlet />
       </main>
       <Footer />
     </>
