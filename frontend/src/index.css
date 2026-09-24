@@ -31,7 +31,7 @@ body {
   flex-direction: column;
 }
 
-/* Header & Nav */
+/* Header y naaav */
 .encabezado {
   position: fixed;
   top: 0;
@@ -64,8 +64,8 @@ body {
 }
 
 .logo-navegacion img {
-  height: 35px;
-  width: auto;
+  height: 35px;         
+  width: auto;          
   object-fit: contain;
   display: block;
   transition: transform 0.2s ease;
@@ -74,6 +74,7 @@ body {
 .logo-navegacion img:hover {
   transform: scale(0.95);
 }
+
 
 .contenedor-menu-navegacion {
   display: flex;
@@ -94,7 +95,7 @@ body {
   font-size: 1.15rem;
   letter-spacing: 0.5px;
   position: relative;
-  padding-bottom: 6px;
+  padding-bottom: 6px; 
 }
 
 .enlaces-navegacion a::after {
@@ -127,14 +128,16 @@ body {
   opacity: 0.9;
 }
 
+/* Botones de control móvil ocultos en escritorio */
 .boton-hamburguesa,
 .boton-cerrar-menu,
 .capa-fondo-menu {
   display: none;
 }
 
-/* Mobile Nav */
+/* --- RESPONSIVE MOBILE (< 860px) --- */
 @media (max-width: 860px) {
+  /* Botón Hamburguesa */
   .boton-hamburguesa {
     display: flex;
     flex-direction: column;
@@ -156,6 +159,7 @@ body {
     transition: all 0.3s ease;
   }
 
+  /* Menú desplegable lateral derecho */
   .contenedor-menu-navegacion {
     position: fixed;
     top: 0;
@@ -177,6 +181,7 @@ body {
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
   }
 
+  /* Estado cuando se abre el menú */
   .contenedor-menu-navegacion.activo {
     right: 0;
   }
@@ -212,6 +217,7 @@ body {
     text-align: center;
   }
 
+  /* Overlay de fondo */
   .capa-fondo-menu {
     display: block;
     position: fixed;
@@ -233,14 +239,394 @@ body {
   }
 }
 
-/* Footer */
+/* --- carrusel de fotitos--- */
+.contenedor-carrusel {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.diapositiva-carrusel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.diapositiva-carrusel.activa {
+  opacity: 1;
+}
+
+.diapositiva-carrusel img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.superposicion-hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.contenido-hero {
+  max-width: 750px;
+  color: var(--color-blanco);
+}
+
+.contenido-hero h1 {
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.contenido-hero p {
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  font-weight: 600;
+  margin-bottom: 28px;
+  color: var(--color-gris);
+}
+
+.boton-hero {
+  display: inline-block;
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  padding: 14px 32px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.boton-hero:hover {
+  opacity: 0.9;
+  transform: translateY(-3px);
+}
+/* --- SECCIÓN SOBRE NOSOTROS --- */
+.seccion-nosotros {
+  width: 100%;
+  background-color: var(--color-negro);
+  color: var(--color-blanco);
+  padding: 90px 20px;
+  border-top: 2px solid var(--color-gris-oscuro);
+}
+
+.contenedor-nosotros {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  align-items: center;
+}
+
+.insignia-nosotros {
+  display: inline-block;
+  background-color: rgba(173, 26, 16, 0.18);
+  color: var(--color-rojo-tomate);
+  border: 1px solid var(--color-rojo-tomate);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.contenido-nosotros h2 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.destacado-nosotros {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-blanco);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.texto-nosotros {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-gris);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.texto-nosotros strong {
+  color: var(--color-rojo-tomate);
+}
+
+/* Grilla de métricas / números */
+.estadisticas-nosotros {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 1px solid var(--color-gris-oscuro);
+}
+
+.elemento-estadistica {
+  text-align: left;
+}
+
+.numero-estadistica {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-rojo-tomate);
+  line-height: 1;
+}
+
+.etiqueta-estadistica {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-gris);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Columna visual / Imagen */
+.contenedor-imagen-nosotros {
+  position: relative;
+}
+
+.imagen-principal-nosotros {
+  width: 100%;
+  height: 440px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--color-gris-oscuro);
+  display: block;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.tarjeta-experiencia-nosotros {
+  position: absolute;
+  bottom: -20px;
+  left: -20px;
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  padding: 18px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 240px;
+}
+
+.tarjeta-experiencia-nosotros h4 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.tarjeta-experiencia-nosotros p {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Adaptación responsive para pantallas chicas */
+@media (max-width: 900px) {
+  .contenedor-nosotros {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .imagen-principal-nosotros {
+    height: 320px;
+  }
+
+  .tarjeta-experiencia-nosotros {
+    left: 20px;
+    bottom: -15px;
+  }
+}
+
+
+/* Botones de acción unificados */
+.boton-eleccion {
+  display: inline-block;
+  width: 100%;
+  padding: 15px 24px;
+  border-radius: 8px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  border: 2px solid var(--color-rojo-tomate);
+  transition: all 0.25s ease;
+}
+
+.boton-eleccion:hover {
+  background-color: transparent;
+  color: var(--color-rojo-tomate);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(173, 26, 16, 0.35);
+}
+
+/* --- el gugle maps --- */
+.contenedor-mapa {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  display: block;
+  line-height: 0; 
+}
+.contenedor-mapa iframe {
+  width: 100%;
+  height: 380px;
+  display: block;
+  border: 0;
+  border-radius: 0; 
+}
+.btn-como-llegar {
+  display: inline-block;
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  padding: 12px 24px;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 8px;
+  margin-top: 12px;
+  transition: opacity 0.2s ease;
+}
+
+.btn-como-llegar:hover {
+  opacity: 0.9;
+}
+/*Boton wpp flotante */
+.whatsapp-flotante {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 60px;
+  height: 60px;
+  background-color: #25d366;
+  color: var(--color-blanco);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  z-index: 999;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.whatsapp-flotante svg {
+  stroke: var(--color-blanco);
+  fill: var(--color-blanco);
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+/* El cartelito / tooltip a la izquierda */
+.globo-whatsapp {
+  position: absolute;
+  right: 72px; /* Queda separado a la izquierda del botón */
+  background-color: var(--color-negro);
+  color: var(--color-blanco);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--color-gris-oscuro);
+  
+  /* Oculto por defecto con transición */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+  pointer-events: none; /* Evita interferencias con el click */
+}
+
+/* Flechita / triángulo que apunta al botón */
+.globo-whatsapp::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 6px;
+  border-style: solid;
+  border-color: transparent transparent transparent var(--color-negro);
+}
+
+/* Mostrar tooltip al pasar el mouse por el botón */
+.whatsapp-flotante:hover .globo-whatsapp {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.whatsapp-flotante:hover {
+  transform: translateY(-4px) scale(1.05);
+  background-color: #20ba5a;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
+}
+
+/* Ajustes para pantallas táctiles */
+@media (max-width: 768px) {
+  .whatsapp-flotante {
+    bottom: 20px;
+    right: 20px;
+    width: 54px;
+    height: 54px;
+  }
+  
+  .whatsapp-flotante svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* En móviles se oculta el tooltip ya que no hay hover con mouse */
+  .globo-whatsapp {
+    display: none;
+  }
+}
+
+/* --- footer --- */
 .pie-pagina {
   width: 100%;
   background-color: var(--color-negro);
   color: var(--color-blanco);
   padding: 60px 20px 20px;
   border-top: 2px solid var(--color-gris-oscuro);
-  margin-top: auto;
+  margin-top: 0;
 }
 
 .contenedor-pie-pagina {
@@ -296,6 +682,7 @@ body {
   margin-top: 10px;
 }
 
+/* Botones de Redes Sociales con Iconos */
 .redes-sociales-pie {
   display: flex;
   gap: 12px;

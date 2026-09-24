@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router';
 
+
 function Navbar({ cantidadCarrito = 0 }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [desplazado, setDesplazado] = useState(false);
@@ -50,7 +51,7 @@ function Navbar({ cantidadCarrito = 0 }) {
             </li>
             <li>
               <NavLink to="/menu" onClick={cerrarMenu}>
-                Menú Online
+                Menú
               </NavLink>
             </li>
             <li>
