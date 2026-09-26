@@ -9,13 +9,16 @@
   --fuente-principal: 'Asap Condensed', sans-serif;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
@@ -348,4 +351,29 @@ body {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--color-gris);
+}
+
+/*  aca esta parte del uso del boostrap  */
+
+.bg-sidebar {
+  background-color: var(--color-negro);
+}
+
+.nav-link.active {
+  background-color: var(--color-rojo-tomate) !important;
+  color: var(--color-blanco) !important;
+  box-shadow: 0 4px 10px rgba(173, 26, 16, 0.4);
+}
+
+.btn-tomate {
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-tomate:hover {
+  background-color: #8f150d;
+  color: var(--color-blanco);
+  box-shadow: 0 4px 15px rgba(173, 26, 16, 0.4);
 }
