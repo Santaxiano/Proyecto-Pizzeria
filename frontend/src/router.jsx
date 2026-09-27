@@ -3,8 +3,8 @@ import LayoutPublico from './shared/layout/LayoutPublico';
 import NoEncontradaPage from './shared/pages/NoEncontradaPage';
 
 import HomePage from './features/home/pages/HomePage';
-import MenuPage from './features/pedidos/pages/MenuPage';
-import CarritoPage from './features/pedidos/pages/CarritoPage';
+import { MenuPage, DetalleProductoPage } from './features/carta';
+import CarritoPage from './features/carrito/pages/CarritoPage';
 import ReservaPage from './features/reservas/pages/ReservaPage';
 
 export const router = createBrowserRouter([
@@ -14,7 +14,8 @@ export const router = createBrowserRouter([
     errorElement: <NoEncontradaPage />,
     children: [
       { index: true, element: <HomePage /> },           
-      { path: 'menu', element: <MenuPage /> },           
+      {path: '/menu',element: <MenuPage />},
+      { path: '/menu/:id', element: <DetalleProductoPage />},           
       { path: 'carrito', element: <CarritoPage /> },     
       { path: 'reservar', element: <ReservaPage /> },    
       { path: '*', element: <NoEncontradaPage /> }      
