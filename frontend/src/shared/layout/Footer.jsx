@@ -55,9 +55,10 @@ function Footer() {
       </div>
 
       <div className="base-pie-pagina">
-        <p>&copy; {anio} +PIZZA. Todos los derechos reservados.</p>
+        <p>&copy; {anio} +PIZZA. Todos los derechos reservados. annn</p>
       </div>
     </footer>
+
   );
 }
 
