@@ -6,7 +6,7 @@ function LayoutPublico() {
   return (
     <>
       <Navbar />
-      <main style={{ minHeight: '80vh', paddingTop: '80px' }}>
+      <main>
         <Outlet />
       </main>
       <Footer />

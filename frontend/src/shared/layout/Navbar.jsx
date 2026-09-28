@@ -1,77 +1,62 @@
-import { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router';
 
 function Navbar({ cantidadCarrito = 0 }) {
-  const [menuAbierto, setMenuAbierto] = useState(false);
-  const [desplazado, setDesplazado] = useState(false);
-
-  useEffect(() => {
-    const controlarScroll = () => {
-      setDesplazado(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', controlarScroll);
-    return () => window.removeEventListener('scroll', controlarScroll);
-  }, []);
-
-  const toggleMenu = () => setMenuAbierto(!menuAbierto);
-  const cerrarMenu = () => setMenuAbierto(false);
-
   return (
-    <header className={`encabezado ${desplazado ? 'desplazado' : ''}`}>
-      <nav className="barra-navegacion">
-        <Link to="/" className="logo-navegacion" onClick={cerrarMenu}>
-          <img src="/logo en blanco.png" alt="+PIZZA" />
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+      <div className="container">
+        {/* Marca / Logo */}
+        <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
+          <img src="/logo en blanco.png" alt="+PIZZA" height="35" />
         </Link>
 
-        <button 
-          className="boton-hamburguesa" 
-          aria-label="Abrir menú" 
-          onClick={toggleMenu}
+        {/* Botón hamburguesa oficial de Bootstrap */}
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#menuPrincipal"
+          aria-controls="menuPrincipal"
+          aria-expanded="false"
+          aria-label="Desplegar navegación"
         >
-          <span></span>
-          <span></span>
-          <span></span>
+          <span className="navbar-toggler-icon"></span>
         </button>
 
-        <div className={`contenedor-menu-navegacion ${menuAbierto ? 'activo' : ''}`}>
-          <button 
-            className="boton-cerrar-menu" 
-            aria-label="Cerrar menú" 
-            onClick={cerrarMenu}
-          >
-            &times;
-          </button>
-
-          <ul className="enlaces-navegacion">
-            <li>
-              <NavLink to="/" end onClick={cerrarMenu}>
+        {/* Contenido colapsable */}
+        <div className="collapse navbar-collapse" id="menuPrincipal">
+          <ul className="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/" end>
                 Inicio
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/menu" onClick={cerrarMenu}>
-                Menú Online
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/menu">
+                Menú
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/reservar" onClick={cerrarMenu}>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/reservar">
                 Reservar Mesa
               </NavLink>
             </li>
-            <li>
-              <NavLink to="/carrito" onClick={cerrarMenu} className="enlace-carrito">
-                Carrito {cantidadCarrito > 0 && <span className="badge-carrito">({cantidadCarrito})</span>}
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/carrito">
+                Carrito{' '}
+                <span className="badge rounded-pill text-bg-danger ms-1">
+                  {cantidadCarrito}
+                </span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/contacto">
+                Contacto
               </NavLink>
             </li>
           </ul>
         </div>
-
-        <div 
-          className={`capa-fondo-menu ${menuAbierto ? 'activo' : ''}`} 
-          onClick={cerrarMenu}
-        ></div>
-      </nav>
-    </header>
+      </div>
+    </nav>
   );
 }
 

@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "nombre": "Muzzarella Clásica",
+    "precio": 8500,
+    "categoria": "pizzas",
+    "tamanos": ["4 porciones", "8 porciones"],
+    "permiteMitad": true,
+    "stock": 50,
+    "destacado": true,
+    "imagen": "/IMG_2169.jpeg",
+    "descripcion": "Salsa de tomate casera, abundante muzzarella, aceitunas verdes y orégano fresco al horno napolitano."
+  },
+  {
+    "id": 2,
+    "nombre": "Napolitana Especial",
+    "precio": 9800,
+    "categoria": "pizzas",
+    "tamanos": ["4 porciones", "8 porciones"],
+    "permiteMitad": true,
+    "stock": 40,
+    "destacado": true,
+    "imagen": "/IMG_2171.jpeg",
+    "descripcion": "Muzzarella, rodajas de tomate natural, ajo picado, parmesano gratinado y hojas de albahaca fresca."
+  },
+  {
+    "id": 3,
+    "nombre": "Fugazzeta Rellena",
+    "precio": 10500,
+    "categoria": "pizzas",
+    "tamanos": ["4 porciones", "8 porciones"],
+    "permiteMitad": true,
+    "stock": 25,
+    "destacado": false,
+    "imagen": "/IMG_6043.jpeg",
+    "descripcion": "Doble masa rellena de queso cremoso y muzzarella, cubierta con finas tiras de cebolla caramelizada."
+  },
+  {
+    "id": 4,
+    "nombre": "Hamburguesa Doble Smash +Pizza",
+    "precio": 9200,
+    "categoria": "comidas",
+    "tamanos": ["Simple", "Doble con Papas"],
+    "permiteMitad": false,
+    "stock": 30,
+    "destacado": true,
+    "imagen": "/IMG_5211.jpeg",
+    "descripcion": "Doble medallón de carne smash de 120g, cheddar fundido, bacon crocante y salsa especial en pan brioche."
+  },
+  {
+    "id": 5,
+    "nombre": "Lomo Completo San Luis",
+    "precio": 11500,
+    "categoria": "comidas",
+    "tamanos": ["Para compartir"],
+    "permiteMitad": false,
+    "stock": 20,
+    "destacado": false,
+    "imagen": "/IMG_5205.jpeg",
+    "descripcion": "Bife de lomo tierno, lechuga, tomate, jamón, queso, huevo frito y mayonesa casera en pan casero."
+  },
+  {
+    "id": 6,
+    "nombre": "Mascrazzy de Jamón y Queso",
+    "precio": 4500,
+    "categoria": "comidas",
+    "tamanos": ["Individual"],
+    "permiteMitad": false,
+    "stock": 15,
+    "destacado": false,
+    "imagen": "/IMG_2169.jpeg",
+    "descripcion": "Tartita individual crocante rellena de queso tybo fundido y jamón cocido seleccionado."
+  },
+  {
+    "id": 7,
+    "nombre": "Cerveza Corona 710ml",
+    "precio": 4200,
+    "categoria": "bebidas",
+    "tamanos": ["710ml"],
+    "permiteMitad": false,
+    "stock": 60,
+    "destacado": false,
+    "imagen": "/IMG_2171.jpeg",
+    "descripcion": "Cerveza rubia bien fría con rodaja de lima."
+  },
+  {
+    "id": 8,
+    "nombre": "Coca Cola 1.5L",
+    "precio": 3200,
+    "categoria": "bebidas",
+    "tamanos": ["1.5L"],
+    "permiteMitad": false,
+    "stock": 80,
+    "destacado": false,
+    "imagen": "/IMG_6043.jpeg",
+    "descripcion": "Línea clásica sabor original retornable/descartable."
+  }
+]

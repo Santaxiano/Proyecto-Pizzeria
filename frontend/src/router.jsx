@@ -4,9 +4,10 @@ import LayoutGestor from './shared/layout/Layoutgestor';
 import NoEncontradaPage from './shared/pages/NoEncontradaPage';
 
 import HomePage from './features/home/pages/HomePage';
-import MenuPage from './features/pedidos/pages/MenuPage';
-import CarritoPage from './features/pedidos/pages/CarritoPage';
+import { MenuPage, DetalleProductoPage } from './features/carta';
+import CarritoPage from './features/carrito/pages/CarritoPage';
 import ReservaPage from './features/reservas/pages/ReservaPage';
+import ContactoPage from './features/contacto/pages/ContactoPage';
 import LoginPage from './features/iniciogestor/pages/login';
 import { protegerRuta, redirigirSiHaySesion } from './features/iniciogestor/service/inicioservice';
 
@@ -17,9 +18,11 @@ export const router = createBrowserRouter([
     errorElement: <NoEncontradaPage />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'menu', element: <MenuPage /> },
+      { path: '/menu', element: <MenuPage /> },
+      { path: '/menu/:id', element: <DetalleProductoPage /> },
       { path: 'carrito', element: <CarritoPage /> },
       { path: 'reservar', element: <ReservaPage /> },
+      { path: 'contacto', element: <ContactoPage /> },
       { path: '*', element: <NoEncontradaPage /> }
     ]
   },
