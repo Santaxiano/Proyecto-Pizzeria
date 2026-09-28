@@ -29,7 +29,7 @@
     "precio": 10500,
     "categoria": "pizzas",
     "tamanos": ["4 porciones", "8 porciones"],
-    "permiteMitad": false,
+    "permiteMitad": true,
     "stock": 25,
     "destacado": false,
     "imagen": "/IMG_6043.jpeg",

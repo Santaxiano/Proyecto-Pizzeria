@@ -32,7 +32,7 @@ function Navbar({ cantidadCarrito = 0 }) {
             </li>
             <li className="nav-item">
               <NavLink className="nav-link" to="/menu">
-                Menú Online
+                Menú
               </NavLink>
             </li>
             <li className="nav-item">
@@ -46,6 +46,11 @@ function Navbar({ cantidadCarrito = 0 }) {
                 <span className="badge rounded-pill text-bg-danger ms-1">
                   {cantidadCarrito}
                 </span>
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink className="nav-link" to="/contacto">
+                Contacto
               </NavLink>
             </li>
           </ul>

@@ -6,6 +6,7 @@ import HomePage from './features/home/pages/HomePage';
 import { MenuPage, DetalleProductoPage } from './features/carta';
 import CarritoPage from './features/carrito/pages/CarritoPage';
 import ReservaPage from './features/reservas/pages/ReservaPage';
+import ContactoPage from './features/contacto/pages/ContactoPage';
 
 export const router = createBrowserRouter([
   {
@@ -17,8 +18,9 @@ export const router = createBrowserRouter([
       {path: '/menu',element: <MenuPage />},
       { path: '/menu/:id', element: <DetalleProductoPage />},           
       { path: 'carrito', element: <CarritoPage /> },     
-      { path: 'reservar', element: <ReservaPage /> },    
-      { path: '*', element: <NoEncontradaPage /> }      
+      { path: 'reservar', element: <ReservaPage /> }, 
+      { path: 'contacto', element: <ContactoPage /> } ,   
+      { path: '*', element: <NoEncontradaPage /> }     
     ]
   },
 
