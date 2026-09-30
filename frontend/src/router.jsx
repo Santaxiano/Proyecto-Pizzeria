@@ -18,7 +18,7 @@ export const router = createBrowserRouter([
       {path: '/menu',element: <MenuPage />},
       { path: '/menu/:id', element: <DetalleProductoPage />},           
       { path: 'carrito', element: <CarritoPage /> },     
-      { path: 'reservar', element: <ReservaPage /> }, 
+      { path: 'reserva', element: <ReservaPage /> }, 
       { path: 'contacto', element: <ContactoPage /> } ,   
       { path: '*', element: <NoEncontradaPage /> }     
     ]

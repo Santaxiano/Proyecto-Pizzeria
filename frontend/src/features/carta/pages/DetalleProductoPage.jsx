@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useOutletContext } from 'react-router';
 import DetalleProducto from '../components/DetalleProducto';
 import { obtenerProductos, obtenerProductoPorId } from '../services/catalogoService';
 
 function DetalleProductoPage() {
   const { id } = useParams();
+  
+  // 1. Extraemos la función para agregar al carrito desde el contexto global
+  const contexto = useOutletContext() || {};
+  const agregarProducto = contexto.agregarProducto || (() => console.warn('Falta conectar useCarrito al Outlet'));
+
   const [producto, setProducto] = useState(null);
   const [listaPizzas, setListaPizzas] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -47,6 +52,7 @@ function DetalleProductoPage() {
         key={producto.id}
         producto={producto}
         todasLasPizzas={listaPizzas}
+        onAgregar={agregarProducto} // 2. Le pasamos la función a tu componente
       />
     </div>
   );

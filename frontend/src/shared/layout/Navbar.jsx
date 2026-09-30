@@ -4,7 +4,7 @@ function Navbar({ cantidadCarrito = 0 }) {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
       <div className="container">
-        {/* Marca / Logo */}
+        {/* Logo */}
         <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
           <img src="/logo en blanco.png" alt="+PIZZA" height="35" />
         </Link>
@@ -36,7 +36,7 @@ function Navbar({ cantidadCarrito = 0 }) {
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink className="nav-link" to="/reservar">
+              <NavLink className="nav-link" to="/reserva">
                 Reservar Mesa
               </NavLink>
             </li>

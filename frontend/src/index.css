@@ -207,3 +207,85 @@ footer.pie-pagina p {
   color: var(--color-blanco);
   transform: translateY(-2px);
 }
+/* Indicador de pasos - Reserva */
+.indicador-pasos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.paso-item {
+  display: flex;
+  align-items: center;
+}
+
+.paso-circulo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  background-color: var(--bs-light, #f8f9fa);
+  color: var(--bs-secondary, #6c757d);
+  border: 1px solid var(--bs-border-color, #dee2e6);
+}
+
+.paso-circulo.activo {
+  background-color: var(--color-rojo-tomate, #dc3545);
+  color: #ffffff;
+  border-color: var(--color-rojo-tomate, #dc3545);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.paso-circulo.completado {
+  background-color: var(--bs-success, #198754);
+  color: #ffffff;
+  border-color: var(--bs-success, #198754);
+}
+
+.paso-linea {
+  width: 36px;
+  height: 2px;
+  margin: 0 0.5rem;
+  background-color: var(--bs-border-color, #dee2e6);
+  transition: background-color 0.3s ease;
+}
+
+.paso-linea.completada {
+  background-color: var(--bs-success, #198754);
+}
+/* Espacio para que el botón flotante no tape las últimas pizzas */
+.espacio-inferior-menu {
+  padding-bottom: 100px;
+}
+
+/* Contenedor transparente que no bloquea clics en el fondo */
+.contenedor-boton-flotante {
+  z-index: 1030;
+  pointer-events: none; 
+}
+
+/* El botón rojo en sí, que reactiva los clics y tiene la forma de píldora */
+.boton-flotante-pedido {
+  max-width: 500px;
+  background-color: var(--color-rojo-tomate);
+  border-radius: 50px;
+  pointer-events: auto;
+  color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.boton-flotante-pedido:hover {
+  transform: translateY(-2px);
+  color: var(--color-negro);
+  background-color: var(--color-gris);
+}
+
+.texto-rojo-tomate {
+  color: var(--color-rojo-tomate);
+}
