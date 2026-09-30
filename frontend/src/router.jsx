@@ -10,6 +10,7 @@ import ReservaPage from './features/reservas/pages/ReservaPage';
 import ContactoPage from './features/contacto/pages/ContactoPage';
 import LoginPage from './features/iniciogestor/pages/login';
 import { protegerRuta, redirigirSiHaySesion } from './features/iniciogestor/service/inicioservice';
+import { StockPage } from './features/ingredientes';
 
 export const router = createBrowserRouter([
   {
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
             <p>Control de mesas y pedidos en preparación (Integrante 2)</p>
           </div>
         )
+      },
+      {
+        path: 'stock',
+        element: <StockPage />
       }
     ]
   }
