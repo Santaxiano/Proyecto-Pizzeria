@@ -106,8 +106,9 @@ body {
 
 .btn-pizza:hover {
   opacity: 0.9;
-  color: var(--color-blanco);
+  color: var(--color-negro);
   transform: translateY(-2px);
+  background-color: var(--color-gris);
 }
 
 /* ==========================================================================
