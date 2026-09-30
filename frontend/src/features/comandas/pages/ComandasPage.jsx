@@ -1,40 +1,48 @@
 import { Link } from 'react-router';
 import './salonComandas.css';
+import comandas from '../../../../../backend/data/pedidos.json';
 
-const comandas = [
-  { mesaId: 'mesa-2', mesa: 'Mesa 2', inicio: '20:15', personas: 3, estado: 'En preparación', total: '$ 18.500' },
-  { mesaId: 'mesa-5', mesa: 'Mesa 5', inicio: '20:40', personas: 5, estado: 'En preparación', total: '$ 32.800' }
-];
+function TarjetaComanda({ comanda }) {
+  return (
+    <article className="col">
+      <div className="card h-100 comanda-tarjeta">
+        <div className="card-body d-flex flex-column">
+          <div className="comanda-tarjeta-cabecera d-flex align-items-center justify-content-between gap-2 mb-3">
+            <span className={`badge etiqueta-tipo-pedido ${comanda.tipo}`}>
+              {comanda.tipo === 'salon' ? 'Salón' : 'Delivery'}
+            </span>
+            <span className="badge etiqueta-estado ocupada">{comanda.estado}</span>
+          </div>
+          <h2 className="card-title h5 mb-2">{comanda.mesa || 'Pedido a domicilio'}</h2>
+          <p className="comanda-metadatos text-secondary mb-4">
+            {comanda.inicio}{comanda.personas ? ` · ${comanda.personas} personas` : ''}
+          </p>
+          <div className="comanda-tarjeta-pie d-flex align-items-center justify-content-between gap-2 mt-auto pt-3 border-top">
+            <strong>{comanda.total}</strong>
+            <Link className="btn btn-outline-secondary btn-sm" to={`/gestor/comandas/${comanda.id}`}>
+              Ver detalle
+            </Link>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default function ComandasPage() {
   return (
-    <section className="salon-comandas">
-      <header className="vista-encabezado">
+    <section className="salon-comandas container py-4">
+      <header className="vista-encabezado d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-3 mb-4">
         <div>
           <p className="vista-ceja">OPERACIONES</p>
-          <h1>Comandas abiertas</h1>
+          <h1>Comanda</h1>
           <p className="vista-descripcion">Pedidos en curso en el salón</p>
         </div>
-        <Link className="accion-principal" to="/gestor/comandas/todas">Abrir comanda</Link>
+        <Link className="btn btn-success fw-bold" to="/gestor/comandas/todas">Abrir comanda</Link>
       </header>
 
-      <div className="tabla-comandas" role="table" aria-label="Comandas abiertas">
-        <div className="fila-comanda fila-comanda-titulos" role="row">
-          <span role="columnheader">Mesa</span>
-          <span role="columnheader">Inicio</span>
-          <span role="columnheader">Personas</span>
-          <span role="columnheader">Estado</span>
-          <span role="columnheader">Total</span>
-        </div>
-        {comandas.map((comanda) => (
-          <article className="fila-comanda" role="row" key={comanda.mesaId}>
-            <strong role="cell">{comanda.mesa}</strong>
-            <span role="cell">{comanda.inicio}</span>
-            <span role="cell">{comanda.personas}</span>
-            <span role="cell"><span className="etiqueta-estado ocupada">{comanda.estado}</span></span>
-            <strong role="cell">{comanda.total}</strong>
-          </article>
-        ))}
+      <div className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3" aria-label="Comandas abiertas">
+        {comandas.map((comanda) => <TarjetaComanda key={comanda.id} comanda={comanda} />)}
       </div>
     </section>
   );

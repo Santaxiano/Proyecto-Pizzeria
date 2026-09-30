@@ -1,38 +1,52 @@
 import { Link, useParams } from 'react-router';
 import './salonComandas.css';
-
-const comandasAbiertas = [
-  { mesa: 'Mesa 2', inicio: '20:15', personas: 3, items: [['Pizza muzzarella', 2, '$ 12.000'], ['Gaseosa 1.5 L', 1, '$ 3.500'], ['Empanadas', 3, '$ 3.000']], total: '$ 18.500' },
-  { mesa: 'Mesa 5', inicio: '20:40', personas: 5, items: [['Pizza napolitana', 2, '$ 16.000'], ['Pizza especial', 1, '$ 11.000'], ['Agua mineral', 2, '$ 5.800']], total: '$ 32.800' }
-];
+import comandas from '../../../../../backend/data/pedidos.json';
 
 export default function ComandaDetallePage() {
-  const { mesaId } = useParams();
+  const { comandaId } = useParams();
+  const comandasAbiertas = comandaId === 'todas'
+    ? comandas
+    : comandas.filter((comanda) => comanda.id === comandaId);
 
   return (
-    <section className="salon-comandas">
-      <header className="vista-encabezado">
+    <section className="salon-comandas container py-4">
+      <header className="vista-encabezado d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-3 mb-4">
         <div>
           <p className="vista-ceja">COMANDA ABIERTA</p>
-          <h1>{mesaId === 'todas' ? 'Todos los pedidos' : `Mesa ${mesaId}`}</h1>
-          <p className="vista-descripcion">Detalle de las comandas abiertas del salón</p>
+          <h1>{comandaId === 'todas' ? 'Todos los pedidos' : 'Detalle de la comanda'}</h1>
+          <p className="vista-descripcion">Detalle de las comandas abiertas</p>
         </div>
-        <Link className="accion-secundaria" to="/gestor/comandas">Volver a comandas</Link>
+        <Link className="btn btn-outline-secondary" to="/gestor/comandas">Volver a comandas</Link>
       </header>
 
       {comandasAbiertas.map((comanda) => (
-        <section className="detalle-comanda" key={comanda.mesa}>
-          <div className="detalle-mesa">
-            <h2>{comanda.mesa}</h2>
-            <span>{comanda.inicio} · {comanda.personas} personas</span>
-          </div>
-          <div className="detalle-titulos"><span>Producto</span><span>Cant.</span><span>Subtotal</span></div>
-          {comanda.items.map(([producto, cantidad, subtotal]) => (
-            <div className="detalle-fila" key={producto}>
-              <span>{producto}</span><span>{cantidad}</span><strong>{subtotal}</strong>
+        <section className="card detalle-comanda mb-3" key={comanda.id}>
+          <div className="card-header bg-white d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2">
+            <div>
+              <span className={`badge etiqueta-tipo-pedido ${comanda.tipo}`}>
+                {comanda.tipo === 'salon' ? 'Salón' : 'Delivery'}
+              </span>
+              <h2 className="h5 mt-2 mb-0">{comanda.mesa || 'Pedido a domicilio'}</h2>
             </div>
-          ))}
-          <div className="detalle-total"><span>Total</span><strong>{comanda.total}</strong></div>
+            <span className="small text-secondary">{comanda.inicio}{comanda.personas ? ` · ${comanda.personas} personas` : ''}</span>
+          </div>
+          <div className="table-responsive">
+            <table className="table table-striped table-hover align-middle mb-0">
+              <thead>
+                <tr><th scope="col">Producto</th><th className="text-end" scope="col">Cant.</th><th className="text-end" scope="col">Subtotal</th></tr>
+              </thead>
+              <tbody>
+                {comanda.items.map((item) => (
+                  <tr key={item.producto}>
+                    <td>{item.producto}</td><td className="text-end">{item.cantidad}</td><td className="text-end">{item.subtotal}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr><th colSpan="2" scope="row">Total</th><th className="text-end">{comanda.total}</th></tr>
+              </tfoot>
+            </table>
+          </div>
         </section>
       ))}
     </section>

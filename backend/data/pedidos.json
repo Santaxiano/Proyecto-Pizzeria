@@ -1,0 +1,43 @@
+[
+  {
+    "id": "comanda-1",
+    "tipo": "salon",
+    "mesa": "Mesa 2",
+    "inicio": "20:15",
+    "personas": 3,
+    "estado": "En preparación",
+    "total": "$ 18.500",
+    "items": [
+      { "producto": "Pizza muzzarella", "cantidad": 2, "subtotal": "$ 12.000" },
+      { "producto": "Gaseosa 1.5 L", "cantidad": 1, "subtotal": "$ 3.500" },
+      { "producto": "Empanadas", "cantidad": 3, "subtotal": "$ 3.000" }
+    ]
+  },
+  
+  {
+    "id": "comanda-2",
+    "tipo": "salon",
+    "mesa": "Mesa 5",
+    "inicio": "20:40",
+    "personas": 5,
+    "estado": "En preparación",
+    "total": "$ 32.800",
+    "items": [
+      { "producto": "Pizza napolitana", "cantidad": 2, "subtotal": "$ 16.000" },
+      { "producto": "Pizza especial", "cantidad": 1, "subtotal": "$ 11.000" },
+      { "producto": "Agua mineral", "cantidad": 2, "subtotal": "$ 5.800" }
+    ]
+  },
+  {
+    "id": "comanda-3",
+    "tipo": "delivery",
+    "inicio": "20:55",
+    "estado": "En preparación",
+    "total": "$ 15.500",
+    "items": [
+      { "producto": "Pizza napolitana", "cantidad": 1, "subtotal": "$ 9.000" },
+      { "producto": "Gaseosa 1.5 L", "cantidad": 1, "subtotal": "$ 3.500" },
+      { "producto": "Empanadas", "cantidad": 3, "subtotal": "$ 3.000" }
+    ]
+  }
+]

@@ -60,7 +60,7 @@ export const router = createBrowserRouter([
         element: <ComandasPage />
       },
       {
-        path: 'comandas/:mesaId',
+        path: 'comandas/:comandaId',
         element: <ComandaDetallePage />
       }
     ]

@@ -3,14 +3,7 @@
   margin: 0 auto;
   color: var(--color-negro);
   font-family: var(--fuente-principal);
-}
-
-.vista-encabezado {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 28px;
+  font-weight: 400;
 }
 
 .vista-encabezado h1 {
@@ -32,56 +25,8 @@
   font-weight: 600;
 }
 
-.accion-principal,
-.accion-secundaria {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  font: inherit;
-  font-weight: 800;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.accion-principal {
-  background: var(--salon-verde);
-  color: #fff;
-}
-
-.accion-principal:hover {
-  background: #195a3c;
-  color: #fff;
-}
-
-.accion-secundaria {
-  border-color: var(--color-gris);
-  background: var(--color-blanco);
-  color: var(--color-negro);
-}
-
-.accion-secundaria:hover {
-  border-color: #23744f;
-  color: #23744f;
-}
-
 .resumen-mesas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  padding: 14px 0;
-  border-top: 1px solid var(--color-gris);
-  border-bottom: 1px solid var(--color-gris);
   color: var(--color-gris-oscuro);
-}
-
-.resumen-mesas span {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .resumen-mesas strong {
@@ -98,30 +43,13 @@
 .punto-estado.ocupada { background: var(--color-rojo-tomate); }
 .punto-estado.reservada { background: var(--color-gris-oscuro); }
 
-.rejilla-mesas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  margin-top: 20px;
-}
-
 .mesa-item {
   min-height: 190px;
-  padding: 17px;
-  border: 1px solid var(--color-gris);
   border-top: 3px solid #23744f;
-  border-radius: 5px;
-  background: var(--color-blanco);
 }
 
 .mesa-item.mesa-ocupada { border-top-color: var(--color-rojo-tomate); }
 .mesa-item.mesa-reservada { border-top-color: var(--color-gris-oscuro); }
-
-.mesa-cabecera {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
 
 .mesa-icono {
   display: grid;
@@ -150,66 +78,23 @@
 .etiqueta-estado.ocupada { background: #faecea; color: var(--color-rojo-tomate); }
 .etiqueta-estado.reservada { background: #f1f1f1; color: var(--color-gris-oscuro); }
 
-.mesa-item h2 {
-  margin: 14px 0 2px;
-  font-size: 1.2rem;
-}
-
 .mesa-dato,
 .mesa-hora {
-  margin: 2px 0;
   color: var(--color-gris-oscuro);
   font-weight: 600;
 }
 
-.accion-mesa { margin-top: 12px; }
-
-.tabla-comandas,
-.detalle-comanda {
-  border-top: 1px solid var(--color-gris);
+.comanda-tarjeta {
+  border-top: 3px solid var(--salon-verde);
 }
 
-.fila-comanda {
-  display: grid;
-  grid-template-columns: 1.1fr 0.8fr 0.8fr 1.3fr 1fr;
-  align-items: center;
-  gap: 14px;
-  min-height: 64px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--color-gris);
+.etiqueta-tipo-pedido {
+  background: #eaf2ed;
+  color: #195a3c;
 }
 
-.fila-comanda-titulos {
-  min-height: 46px;
-  color: var(--color-gris-oscuro);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
+.etiqueta-tipo-pedido.delivery {
+  background: #fff2df;
+  color: #80500a;
 }
 
-.detalle-titulos,
-.detalle-fila,
-.detalle-total {
-  display: grid;
-  grid-template-columns: 1fr 80px 120px;
-  gap: 16px;
-  align-items: center;
-  padding: 14px 12px;
-  border-bottom: 1px solid var(--color-gris);
-}
-
-.detalle-titulos { color: var(--color-gris-oscuro); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; }
-.detalle-fila span:nth-child(n + 2),
-.detalle-titulos span:nth-child(n + 2) { text-align: right; }
-.detalle-total { border: 0; font-size: 1.1rem; }
-.detalle-total strong { grid-column: 3; text-align: right; }
-.detalle-mesa { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 16px 12px 4px; }
-.detalle-mesa h2 { margin: 0; font-size: 1.2rem; }
-.detalle-mesa span { color: var(--color-gris-oscuro); }
-
-@media (max-width: 760px) {
-  .vista-encabezado { align-items: flex-start; flex-direction: column; }
-  .fila-comanda-titulos { display: none; }
-  .fila-comanda { grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 14px 4px; }
-  .detalle-mesa { align-items: flex-start; flex-direction: column; gap: 2px; }
-}
