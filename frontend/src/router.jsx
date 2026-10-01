@@ -11,7 +11,7 @@ import ReservaPage from './features/reservas/pages/ReservaPage';
 import ContactoPage from './features/contacto/pages/ContactoPage';
 
 // --- Autenticación ---
-import LoginPage from './features/iniciogestor/pages/login';
+import LoginPage from './features/iniciogestor/pages/LoginPage';
 import { protegerRuta, redirigirSiHaySesion } from './features/iniciogestor/service/inicioservice';
 
 // --- Páginas del Gestor ---
