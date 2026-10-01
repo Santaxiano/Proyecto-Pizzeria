@@ -1,0 +1,128 @@
+.salon-comandas {
+  max-width: 1120px;
+  margin: 0 auto;
+  color: var(--color-negro);
+  font-family: var(--fuente-principal);
+  font-weight: 400;
+}
+
+.vista-encabezado h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.vista-ceja {
+  margin: 0 0 5px;
+  color: #23744f;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.vista-descripcion {
+  margin: 5px 0 0;
+  color: var(--salon-suave);
+  font-weight: 600;
+}
+
+.resumen-mesas {
+  color: var(--color-gris-oscuro);
+}
+
+.resumen-mesas strong {
+  color: var(--color-negro);
+}
+
+.punto-estado {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.punto-estado.libre { background: #23744f; }
+.punto-estado.ocupada { background: var(--color-rojo-tomate); }
+.punto-estado.reservada { background: var(--color-gris-oscuro); }
+
+.mesa-item {
+  min-height: 190px;
+  border-top: 3px solid #23744f;
+}
+
+.mesa-item.mesa-ocupada { border-top-color: var(--color-rojo-tomate); }
+.mesa-item.mesa-reservada { border-top-color: var(--color-gris-oscuro); }
+
+.mesa-icono {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--color-gris);
+  border-radius: 5px;
+  color: var(--color-gris-oscuro);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.etiqueta-estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: #edf5ef;
+  color: #23744f;
+  font-size: 0.8rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.etiqueta-estado.ocupada { background: #faecea; color: var(--color-rojo-tomate); }
+.etiqueta-estado.reservada { background: #f1f1f1; color: var(--color-gris-oscuro); }
+
+.mesa-dato,
+.mesa-hora {
+  color: var(--color-gris-oscuro);
+  font-weight: 600;
+}
+
+.agregar-mesa > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.agregar-mesa .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.acciones-mesa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.formulario-reserva {
+  padding-top: 12px;
+  border-top: 1px solid #e4e4e4;
+}
+
+.formulario-reserva .form-label,
+.agregar-mesa .form-label {
+  color: var(--color-gris-oscuro);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.comanda-tarjeta {
+  border-top: 3px solid var(--salon-verde);
+}
+
+.etiqueta-tipo-pedido {
+  background: #eaf2ed;
+  color: #195a3c;
+}
+
+.etiqueta-tipo-pedido.delivery {
+  background: #fff2df;
+  color: #80500a;
+}
+

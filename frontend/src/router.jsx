@@ -7,10 +7,18 @@ import HomePage from './features/home/pages/HomePage';
 import { MenuPage, DetalleProductoPage } from './features/carta';
 import CarritoPage from './features/carrito/pages/CarritoPage';
 import ReservaPage from './features/reservas/pages/ReservaPage';
+<<<<<<< HEAD
 import ContactoPage from './features/contacto/pages/ContactoPage';
 import LoginPage from './features/iniciogestor/pages/login';
 import { protegerRuta, redirigirSiHaySesion } from './features/iniciogestor/service/inicioservice';
 import { StockPage } from './features/ingredientes';
+=======
+import LoginPage from './features/iniciogestor/pages/login';
+import { protegerRuta, redirigirSiHaySesion } from './features/iniciogestor/service/inicioservice';
+import SalonPage from './features/salon/pages/SalonPage';
+import ComandasPage from './features/comandas/pages/ComandasPage';
+import ComandaDetallePage from './features/comandas/pages/ComandaDetallePage';
+>>>>>>> origin/Integrante-2
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +26,7 @@ export const router = createBrowserRouter([
     element: <LayoutPublico />,
     errorElement: <NoEncontradaPage />,
     children: [
+<<<<<<< HEAD
       { index: true, element: <HomePage /> },           
       {path: '/menu',element: <MenuPage />},
       { path: '/menu/:id', element: <DetalleProductoPage />},           
@@ -25,12 +34,22 @@ export const router = createBrowserRouter([
       { path: 'reserva', element: <ReservaPage /> }, 
       { path: 'contacto', element: <ContactoPage /> } ,   
       { path: '*', element: <NoEncontradaPage /> }     
+=======
+      { index: true, element: <HomePage /> },
+      { path: 'menu', element: <MenuPage /> },
+      { path: 'carrito', element: <CarritoPage /> },
+      { path: 'reservar', element: <ReservaPage /> },
+      { path: '*', element: <NoEncontradaPage /> }
+>>>>>>> origin/Integrante-2
     ]
   },
 
   {
     path: '/login',
+<<<<<<< HEAD
     path: '/login',
+=======
+>>>>>>> origin/Integrante-2
 
     element: <LoginPage />,
     loader: redirigirSiHaySesion,
@@ -54,7 +73,12 @@ export const router = createBrowserRouter([
         )
       },
       {
+        path: 'salon',
+        element: <SalonPage />
+      },
+      {
         path: 'comandas',
+<<<<<<< HEAD
         element: (
           <div style={{ padding: '40px', textAlign: 'center' }}>
             <h2>Gestión de Salón y Comandas</h2>
@@ -65,6 +89,13 @@ export const router = createBrowserRouter([
       {
         path: 'stock',
         element: <StockPage />
+=======
+        element: <ComandasPage />
+      },
+      {
+        path: 'comandas/:comandaId',
+        element: <ComandaDetallePage />
+>>>>>>> origin/Integrante-2
       }
     ]
   }
