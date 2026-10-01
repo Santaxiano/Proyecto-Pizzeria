@@ -1,0 +1,22 @@
+[
+  {
+    "id": "reserva-inicial-mesa-3",
+    "mesasIds": [3],
+    "cliente": "",
+    "contacto": "",
+    "fecha": "",
+    "lugarMotivo": "",
+    "comensales": null,
+    "desde": "21:30"
+  },
+  {
+    "id": "reserva-inicial-mesa-7",
+    "mesasIds": [7],
+    "cliente": "",
+    "contacto": "",
+    "fecha": "",
+    "lugarMotivo": "",
+    "comensales": null,
+    "desde": "22:00"
+  }
+]

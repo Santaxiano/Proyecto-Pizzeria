@@ -84,6 +84,34 @@
   font-weight: 600;
 }
 
+.agregar-mesa > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.agregar-mesa .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.acciones-mesa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.formulario-reserva {
+  padding-top: 12px;
+  border-top: 1px solid #e4e4e4;
+}
+
+.formulario-reserva .form-label,
+.agregar-mesa .form-label {
+  color: var(--color-gris-oscuro);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .comanda-tarjeta {
   border-top: 3px solid var(--salon-verde);
 }
