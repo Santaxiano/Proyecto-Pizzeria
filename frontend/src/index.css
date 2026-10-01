@@ -245,30 +245,18 @@ footer.pie-pagina p {
   color: var(--color-gris);
 }
 
-<<<<<<< HEAD
 /* ==========================================================================
    6. ESTILOS DEL GESTOR (Aislados para no romper el Navbar público)
    ========================================================================== */
-=======
-/*  aca esta parte del uso del boostrap  */
-
->>>>>>> origin/Integrante-2
 .bg-sidebar {
   background-color: var(--color-negro);
 }
 
-<<<<<<< HEAD
 /* Al ponerle .bg-sidebar adelante, esto SOLO afecta al menú del Gestor */
 .bg-sidebar .nav-link.active {
   background-color: var(--color-rojo-tomate) !important;
   color: var(--color-blanco) !important;
   box-shadow: 0 4px 10px rgba(173, 26, 16, 0.4) !important;
-=======
-.nav-link.active {
-  background-color: var(--color-rojo-tomate) !important;
-  color: var(--color-blanco) !important;
-  box-shadow: 0 4px 10px rgba(173, 26, 16, 0.4);
->>>>>>> origin/Integrante-2
 }
 
 .btn-tomate {
@@ -282,7 +270,6 @@ footer.pie-pagina p {
   background-color: #8f150d;
   color: var(--color-blanco);
   box-shadow: 0 4px 15px rgba(173, 26, 16, 0.4);
-<<<<<<< HEAD
 }
 
 /* ==========================================================================
@@ -368,6 +355,4 @@ footer.pie-pagina p {
 
 .texto-rojo-tomate {
   color: var(--color-rojo-tomate);
-=======
->>>>>>> origin/Integrante-2
 }
