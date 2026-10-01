@@ -1,0 +1,167 @@
+[
+  {
+    "id": 1,
+    "nombre": "Muzzarella",
+    "activo": true
+  },
+  {
+    "id": 2,
+    "nombre": "Salsa de tomate",
+    "activo": true
+  },
+  {
+    "id": 3,
+    "nombre": "Aceitunas verdes",
+    "activo": true
+  },
+  {
+    "id": 4,
+    "nombre": "Orégano",
+    "activo": true
+  },
+  {
+    "id": 5,
+    "nombre": "Tomate en rodajas",
+    "activo": true
+  },
+  {
+    "id": 6,
+    "nombre": "Ajo",
+    "activo": true
+  },
+  {
+    "id": 7,
+    "nombre": "Parmesano",
+    "activo": true
+  },
+  {
+    "id": 8,
+    "nombre": "Albahaca fresca",
+    "activo": true
+  },
+  {
+    "id": 9,
+    "nombre": "Queso cremoso",
+    "activo": true
+  },
+  {
+    "id": 10,
+    "nombre": "Cebolla caramelizada",
+    "activo": true
+  },
+  {
+    "id": 11,
+    "nombre": "Longaniza calabresa",
+    "activo": true
+  },
+  {
+    "id": 12,
+    "nombre": "Aceitunas negras",
+    "activo": true
+  },
+  {
+    "id": 13,
+    "nombre": "Ají molido",
+    "activo": true
+  },
+  {
+    "id": 14,
+    "nombre": "Jamón cocido",
+    "activo": true
+  },
+  {
+    "id": 15,
+    "nombre": "Morrones asados",
+    "activo": true
+  },
+  {
+    "id": 16,
+    "nombre": "Roquefort",
+    "activo": false
+  },
+  {
+    "id": 17,
+    "nombre": "Cebolla",
+    "activo": true
+  },
+  {
+    "id": 18,
+    "nombre": "Jamón crudo",
+    "activo": true
+  },
+  {
+    "id": 19,
+    "nombre": "Rúcula",
+    "activo": true
+  },
+  {
+    "id": 20,
+    "nombre": "Tomates cherry",
+    "activo": true
+  },
+  {
+    "id": 21,
+    "nombre": "Filetes de anchoa",
+    "activo": true
+  },
+  {
+    "id": 22,
+    "nombre": "Alcaparras",
+    "activo": true
+  },
+  {
+    "id": 23,
+    "nombre": "Nueces",
+    "activo": true
+  },
+  {
+    "id": 24,
+    "nombre": "Cebolla de verdeo",
+    "activo": true
+  },
+  {
+    "id": 25,
+    "nombre": "Miel",
+    "activo": true
+  },
+  {
+    "id": 26,
+    "nombre": "Aceite de oliva",
+    "activo": true
+  },
+  {
+    "id": 27,
+    "nombre": "Provolone",
+    "activo": true
+  },
+  {
+    "id": 28,
+    "nombre": "Palmitos",
+    "activo": false
+  },
+  {
+    "id": 29,
+    "nombre": "Salsa golf",
+    "activo": true
+  },
+  {
+    "id": 30,
+    "nombre": "Huevo duro",
+    "activo": true
+  },
+  {
+    "id": 31,
+    "nombre": "Champignones",
+    "activo": true
+  },
+  {
+    "id": 32,
+    "nombre": "Salsa blanca",
+    "activo": true
+  },
+  {
+    "id": 33,
+    "nombre": "Pepperoni",
+    "activo": true
+  }
+]
