@@ -39,7 +39,7 @@ body {
 }
 
 /* ==========================================================================
-   1. NAVBAR (Integrado con Bootstrap y tus colores)
+   1. NAVBAR (Tus estilos originales con prioridad)
    ========================================================================== */
 .navbar {
   min-height: var(--alto-navbar);
@@ -59,15 +59,18 @@ body {
   font-size: 1.1rem;
   letter-spacing: 0.5px;
   transition: color 0.2s ease;
+  background-color: transparent !important; /* Forza tu diseño original */
 }
 
+/* Acá priorizamos que TU navbar solo cambie el color del texto */
 .navbar .nav-link:hover,
 .navbar .nav-link.active {
   color: var(--color-rojo-tomate) !important;
   font-weight: 700;
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
 
-/* Badge del carrito en el navbar */
 .badge-carrito {
   background-color: var(--color-rojo-tomate) !important;
   color: var(--color-blanco);
@@ -76,7 +79,7 @@ body {
 }
 
 /* ==========================================================================
-   2. HERO (Carrusel con degradado sobre las fotos)
+   2. HERO
    ========================================================================== */
 .hero-pantalla {
   position: relative;
@@ -122,9 +125,8 @@ body {
 
 .btn-pizza:hover {
   opacity: 0.9;
-  color: var(--color-negro);
+  color: var(--color-blanco);
   transform: translateY(-2px);
-  background-color: var(--color-gris);
 }
 
 /* ==========================================================================
@@ -179,7 +181,7 @@ body {
 }
 
 /* ==========================================================================
-   5. FOOTER
+   5. FOOTER & REDES SOCIALES
    ========================================================================== */
 footer.pie-pagina {
   background-color: var(--color-negro) !important;
@@ -226,4 +228,131 @@ footer.pie-pagina p {
 .btn-social:hover {
   color: var(--color-blanco);
   transform: translateY(-2px);
+}
+
+.redes-sociales-pie .boton-social:hover svg {
+  transform: scale(1.1);
+}
+
+.base-pie-pagina {
+  max-width: 1100px;
+  margin: 40px auto 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-gris-oscuro);
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-gris);
+}
+
+/* ==========================================================================
+   6. ESTILOS DEL GESTOR (Aislados para no romper el Navbar público)
+   ========================================================================== */
+.bg-sidebar {
+  background-color: var(--color-negro);
+}
+
+/* Al ponerle .bg-sidebar adelante, esto SOLO afecta al menú del Gestor */
+.bg-sidebar .nav-link.active {
+  background-color: var(--color-rojo-tomate) !important;
+  color: var(--color-blanco) !important;
+  box-shadow: 0 4px 10px rgba(173, 26, 16, 0.4) !important;
+}
+
+.btn-tomate {
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn-tomate:hover {
+  background-color: #8f150d;
+  color: var(--color-blanco);
+  box-shadow: 0 4px 15px rgba(173, 26, 16, 0.4);
+}
+
+/* ==========================================================================
+   7. INDICADOR DE PASOS (Reserva)
+   ========================================================================== */
+.indicador-pasos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.paso-item {
+  display: flex;
+  align-items: center;
+}
+
+.paso-circulo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  background-color: var(--color-blanco);
+  color: var(--color-gris-oscuro);
+  border: 1px solid var(--color-gris);
+}
+
+.paso-circulo.activo {
+  background-color: var(--color-rojo-tomate);
+  color: var(--color-blanco);
+  border-color: var(--color-rojo-tomate);
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.paso-circulo.completado {
+  background-color: #198754; 
+  color: var(--color-blanco);
+  border-color: #198754;
+}
+
+.paso-linea {
+  width: 36px;
+  height: 2px;
+  margin: 0 0.5rem;
+  background-color: var(--color-gris);
+  transition: background-color 0.3s ease;
+}
+
+.paso-linea.completada {
+  background-color: #198754;
+}
+
+/* ==========================================================================
+   8. CARRITO Y BOTÓN FLOTANTE
+   ========================================================================== */
+.espacio-inferior-menu {
+  padding-bottom: 100px;
+}
+
+.contenedor-boton-flotante {
+  z-index: 1030;
+  pointer-events: none; 
+}
+
+.boton-flotante-pedido {
+  max-width: 500px;
+  background-color: var(--color-rojo-tomate);
+  border-radius: 50px;
+  pointer-events: auto;
+  color: #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.boton-flotante-pedido:hover {
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+.texto-rojo-tomate {
+  color: var(--color-rojo-tomate);
 }
