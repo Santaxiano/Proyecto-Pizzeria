@@ -1,4 +1,4 @@
-export default function TablaMateriaPrima({ ingredientes, onToggle }) {
+export default function TablaMateriaPrima({ ingredientes, onToggle, onEditar, onEliminar }) {
   return (
     <div className="table-responsive shadow-sm bg-white rounded">
       <table className="table table-striped table-hover align-middle mb-0">
@@ -7,7 +7,7 @@ export default function TablaMateriaPrima({ ingredientes, onToggle }) {
             <th scope="col" className="px-3">#</th>
             <th scope="col">Ingrediente / Insumo</th>
             <th scope="col">Estado en Cocina</th>
-            <th scope="col" className="text-end px-3">Acción (Efecto Dominó)</th>
+            <th scope="col" className="text-end px-3">Acciones</th>
           </tr>
         </thead>
 
@@ -27,14 +27,20 @@ export default function TablaMateriaPrima({ ingredientes, onToggle }) {
               </td>
 
               <td className="text-end px-3">
-                <button
-                  className={`btn btn-sm ${
-                    ing.activo ? 'btn-outline-danger' : 'btn-dark'
-                  }`}
-                  onClick={() => onToggle(ing.id)}
-                >
-                  {ing.activo ? 'Declarar Sin Stock' : 'Reponer Stock'}
-                </button>
+                <div className="d-flex gap-2 justify-content-end align-items-center">
+                  <button
+                    className={`btn btn-sm ${ing.activo ? 'btn-outline-danger' : 'btn-dark'}`}
+                    onClick={() => onToggle(ing.id)}
+                  >
+                    {ing.activo ? 'Sin Stock' : 'Reponer'}
+                  </button>
+                  <button className="btn btn-sm btn-outline-primary" onClick={() => onEditar(ing)} title="Editar">
+                    ✏️
+                  </button>
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => onEliminar(ing.id)} title="Eliminar">
+                    🗑️
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

@@ -1,10 +1,32 @@
 [
-  { "id": 1, "estado": "Libre", "capacidad": 4 },
-  { "id": 2, "estado": "Ocupada", "capacidad": 4, "comensales": 3, "desde": "20:15" },
-  { "id": 3, "estado": "Reservada", "capacidad": 6, "desde": "21:30" },
-  { "id": 4, "estado": "Libre", "capacidad": 2 },
-  { "id": 5, "estado": "Ocupada", "capacidad": 6, "comensales": 5, "desde": "20:40" },
-  { "id": 6, "estado": "Libre", "capacidad": 4 },
-  { "id": 7, "estado": "Reservada", "capacidad": 2, "desde": "22:00" },
-  { "id": 8, "estado": "Libre", "capacidad": 4 }
+  {
+    "id": 1,
+    "capacidad": 2,
+    "estado": "Libre"
+  },
+  {
+    "id": 2,
+    "capacidad": 2,
+    "estado": "Libre"
+  },
+  {
+    "id": 3,
+    "capacidad": 4,
+    "estado": "Libre"
+  },
+  {
+    "id": 4,
+    "capacidad": 4,
+    "estado": "Libre"
+  },
+  {
+    "id": 5,
+    "capacidad": 6,
+    "estado": "Libre"
+  },
+  {
+    "id": 6,
+    "capacidad": 8,
+    "estado": "Libre"
+  }
 ]

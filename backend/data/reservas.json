@@ -1,22 +1,22 @@
 [
   {
-    "id": "reserva-inicial-mesa-3",
-    "mesasIds": [3],
-    "cliente": "",
-    "contacto": "",
-    "fecha": "",
-    "lugarMotivo": "",
-    "comensales": null,
-    "desde": "21:30"
+    "id": "reserva-1-2",
+    "mesasIds": [1, 2],
+    "cliente": "Martín Palermo",
+    "contacto": "5492664112233",
+    "fecha": "2026-10-15",
+    "desde": "21:30",
+    "comensales": 6,
+    "lugarMotivo": "Festejo de cumpleaños"
   },
   {
-    "id": "reserva-inicial-mesa-7",
-    "mesasIds": [7],
-    "cliente": "",
-    "contacto": "",
-    "fecha": "",
-    "lugarMotivo": "",
-    "comensales": null,
-    "desde": "22:00"
+    "id": "reserva-5",
+    "mesasIds": [5],
+    "cliente": "Sofía Vergara",
+    "contacto": "5492664998877",
+    "fecha": "2026-10-15",
+    "desde": "20:00",
+    "comensales": 2,
+    "lugarMotivo": "Salón principal"
   }
 ]

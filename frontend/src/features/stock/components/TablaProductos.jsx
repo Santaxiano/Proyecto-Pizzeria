@@ -1,4 +1,4 @@
-export default function TablaProductos({ productos, onToggle }) {
+export default function TablaProductos({ productos, onToggle, onEditar, onEliminar }) {
   return (
     <div className="table-responsive shadow-sm bg-white rounded">
       <table className="table table-striped table-hover align-middle mb-0">
@@ -8,7 +8,7 @@ export default function TablaProductos({ productos, onToggle }) {
             <th scope="col">Producto</th>
             <th scope="col">Categoría</th>
             <th scope="col">Estado en Menú</th>
-            <th scope="col" className="text-end px-3">Acción</th>
+            <th scope="col" className="text-end px-3">Acciones</th>
           </tr>
         </thead>
 
@@ -46,13 +46,20 @@ export default function TablaProductos({ productos, onToggle }) {
               </td>
 
               <td className="text-end px-3">
-                <button
-                  className={`btn btn-sm ${prod.disponible ? 'btn-outline-danger' : 'btn-dark'
-                    }`}
-                  onClick={() => onToggle(prod.id)}
-                >
-                  {prod.disponible ? 'Desactivar' : 'Activar'}
-                </button>
+                <div className="d-flex gap-2 justify-content-end align-items-center">
+                  <button
+                    className={`btn btn-sm ${prod.disponible ? 'btn-outline-danger' : 'btn-dark'}`}
+                    onClick={() => onToggle(prod.id)}
+                  >
+                    {prod.disponible ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button className="btn btn-sm btn-outline-primary" onClick={() => onEditar(prod)} title="Editar">
+                    ✏️
+                  </button>
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => onEliminar(prod.id)} title="Eliminar">
+                    🗑️
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

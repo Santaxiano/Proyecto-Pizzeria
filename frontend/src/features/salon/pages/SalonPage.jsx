@@ -1,321 +1,128 @@
-import '../../comandas/pages/salonComandas.css';
-import mesas from '../../../../../backend/data/mesas.json';
-import reservasIniciales from '../../../../../backend/data/reservas.json';
-import { useEffect, useState } from 'react';
-
-const estadoClase = {
-  Libre: 'libre',
-  Ocupada: 'ocupada',
-  Reservada: 'reservada'
-};
-
-function aplicarReservasIniciales(mesasBase) {
-  return mesasBase.map((mesa) => {
-    const reserva = reservasIniciales.find((dato) => dato.mesasIds.includes(mesa.id));
-    if (!reserva) return mesa;
-    return {
-      ...mesa,
-      reservaId: reserva.id,
-      estado: 'Reservada',
-      cliente: reserva.cliente,
-      contacto: reserva.contacto,
-      fecha: reserva.fecha,
-      lugarMotivo: reserva.lugarMotivo,
-      comensales: reserva.comensales ?? mesa.comensales,
-      desde: reserva.desde
-    };
-  });
-}
-
-function TarjetaMesa({ mesa, onCancelarReserva, onQuitar }) {
-  const estadoCss = estadoClase[mesa.estado];
-
-  return (
-    <article className="col">
-      <div className={`card h-100 mesa-item mesa-${estadoCss}`}>
-        <div className="card-body">
-          <div className="mesa-cabecera d-flex align-items-center justify-content-between">
-            <span className="mesa-icono" aria-hidden="true">{String(mesa.id).padStart(2, '0')}</span>
-            <span className={`badge etiqueta-estado ${estadoCss}`}>{mesa.estado}</span>
-          </div>
-          <h2 className="h5 mt-3 mb-1">Mesa {mesa.id}</h2>
-          <p className="mesa-dato mb-1">
-            {mesa.comensales ? `${mesa.comensales} comensales` : `Hasta ${mesa.capacidad} personas`}
-          </p>
-          <p className="mesa-hora mb-0">
-            {mesa.estado === 'Ocupada' ? `Desde ${mesa.desde}` : mesa.estado === 'Reservada' ? `Reserva ${mesa.desde}` : 'Disponible'}
-          </p>
-          {mesa.estado === 'Reservada' && mesa.cliente && <p className="mesa-dato mb-0">A nombre de {mesa.cliente}</p>}
-          {mesa.estado === 'Reservada' && mesa.fecha && <p className="mesa-dato mb-0">Fecha: {mesa.fecha}</p>}
-          {mesa.estado === 'Reservada' && mesa.contacto && <p className="mesa-dato mb-0">Contacto: {mesa.contacto}</p>}
-          {mesa.estado === 'Reservada' && mesa.lugarMotivo && <p className="mesa-dato mb-0">Lugar / motivo: {mesa.lugarMotivo}</p>}
-          {mesa.estado === 'Libre' && (
-            <div className="acciones-mesa mt-3">
-              <button className="btn btn-sm btn-outline-danger" type="button" onClick={() => onQuitar(mesa.id)} aria-label={`Quitar mesa ${mesa.id}`}>
-                Quitar
-              </button>
-            </div>
-          )}
-          {mesa.estado === 'Reservada' && (
-            <button className="btn btn-sm btn-outline-secondary mt-3" type="button" onClick={() => onCancelarReserva(mesa.id)}>
-              Cancelar reserva
-            </button>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-}
+import { useState } from 'react';
+import { useSalon } from '../hooks/useSalon';
+import TarjetaMesa from '../components/TarjetaMesa';
+import FormularioReserva from '../components/FormularioReserva';
+import AgendaReservas from '../components/AgendaReservas';
+import ModalConfirmacion from '../components/ModalConfirmacion';
 
 export default function SalonPage() {
-  const [mesasActuales, setMesasActuales] = useState(() => {
-    try {
-      const guardadas = localStorage.getItem('salon-mesas');
-      return aplicarReservasIniciales(guardadas ? JSON.parse(guardadas) : mesas);
-    } catch {
-      return aplicarReservasIniciales(mesas);
-    }
-  });
+  const { 
+    mesas, reservas, cargando, error, 
+    agregarMesa, quitarMesa, ocuparMesa, liberarMesa, 
+    agregarReserva, eliminarReserva, asignarReservaAMesa 
+  } = useSalon();
+
+  const hoyStr = new Date().toISOString().split('T')[0];
+  const [fechaFiltro, setFechaFiltro] = useState(hoyStr);
+  
   const [capacidadNueva, setCapacidadNueva] = useState(4);
   const [formReservaAbierto, setFormReservaAbierto] = useState(false);
-  const [reservasVisibles, setReservasVisibles] = useState(false);
-  const [mesasReservaIds, setMesasReservaIds] = useState([]);
-  const [errorReserva, setErrorReserva] = useState('');
+  const [alertaAccion, setAlertaAccion] = useState(null); 
 
-  useEffect(() => {
-    localStorage.setItem('salon-mesas', JSON.stringify(mesasActuales));
-  }, [mesasActuales]);
-
-  function agregarMesa(evento) {
-    evento.preventDefault();
-    const nuevoId = Math.max(0, ...mesasActuales.map((mesa) => mesa.id)) + 1;
-    setMesasActuales([...mesasActuales, { id: nuevoId, estado: 'Libre', capacidad: Number(capacidadNueva) }]);
-  }
-
-  function guardarReserva(evento) {
-    evento.preventDefault();
-    const datos = new FormData(evento.currentTarget);
-    const idsSeleccionados = datos.getAll('mesaIds').map(Number);
-    const mesasDisponiblesSeleccionadas = mesasLibres.filter((mesa) => idsSeleccionados.includes(mesa.id));
-
-    if (idsSeleccionados.length === 0 || mesasDisponiblesSeleccionadas.length !== idsSeleccionados.length) {
-      setErrorReserva('Selecciona al menos una mesa libre.');
-      return;
-    }
-
-    const capacidadSeleccionada = mesasDisponiblesSeleccionadas.reduce((total, mesa) => total + mesa.capacidad, 0);
-    const comensales = Number(datos.get('comensales'));
-    if (comensales > capacidadSeleccionada) {
-      setErrorReserva(`La capacidad de las mesas seleccionadas es de ${capacidadSeleccionada} personas.`);
-      return;
-    }
-
-    const reservaId = `reserva-${[...idsSeleccionados].sort((a, b) => a - b).join('-')}`;
-    const reserva = {
-      reservaId,
-      cliente: datos.get('cliente').trim(),
-      contacto: datos.get('contacto').trim(),
-      fecha: datos.get('fecha'),
-      lugarMotivo: datos.get('lugarMotivo'),
-      comensales,
-      desde: datos.get('desde'),
-      estado: 'Reservada'
-    };
-    setMesasActuales((actuales) => actuales.map((mesa) => (
-      idsSeleccionados.includes(mesa.id) ? { ...mesa, ...reserva } : mesa
-    )));
-    evento.currentTarget.reset();
-    setMesasReservaIds([]);
-    setErrorReserva('');
+  const handleReservaConfirmada = (nuevaReserva) => {
+    agregarReserva(nuevaReserva);
     setFormReservaAbierto(false);
-  }
+  };
 
-  function cancelarReserva(id) {
-    setMesasActuales((actuales) => {
-      const mesaReservada = actuales.find((mesa) => mesa.id === id);
-      if (!mesaReservada) return actuales;
+  if (cargando) return <div className="text-center py-5"><div className="spinner-border text-success" /></div>;
+  if (error) return <div className="alert alert-danger m-4 text-center">{error.message}</div>;
 
-      return actuales.map((mesa) => {
-        const perteneceAReserva = mesaReservada.reservaId
-          ? mesa.reservaId === mesaReservada.reservaId
-          : mesa.id === id;
-        if (!perteneceAReserva) return mesa;
-        return { id: mesa.id, capacidad: mesa.capacidad, estado: 'Libre' };
-      });
-    });
-  }
-
-  function quitarMesa(id) {
-    setMesasActuales((actuales) => actuales.filter((mesa) => mesa.id !== id));
-  }
-
-  const resumenActual = mesasActuales.reduce((conteo, mesa) => {
-    conteo[mesa.estado] += 1;
-    return conteo;
-  }, { Libre: 0, Ocupada: 0, Reservada: 0 });
-  const mesasLibres = mesasActuales.filter((mesa) => mesa.estado === 'Libre');
-  const reservasActuales = mesasActuales.filter((mesa) => mesa.estado === 'Reservada');
-  const reservasAgrupadas = reservasActuales.reduce((agrupadas, mesa) => {
-    const clave = mesa.reservaId ?? `mesa-${mesa.id}`;
-    const reserva = agrupadas.get(clave);
-    if (reserva) {
-      reserva.mesas.push(mesa.id);
-    } else {
-      agrupadas.set(clave, { ...mesa, mesas: [mesa.id] });
-    }
-    return agrupadas;
-  }, new Map());
-  const reservasLista = [...reservasAgrupadas.values()];
-  const capacidadSeleccionada = mesasLibres
-    .filter((mesa) => mesasReservaIds.includes(String(mesa.id)))
-    .reduce((total, mesa) => total + mesa.capacidad, 0);
+  const mesasLibres = mesas.filter(m => m.estado === 'Libre');
+  const reservasDelDia = reservas.filter(r => (r.fecha) === fechaFiltro);
 
   return (
-    <section className="salon-comandas container py-4">
-      <header className="vista-encabezado d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-3 mb-4">
+    <div className="container-fluid py-4 px-xl-5">
+      
+      <header className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 border-bottom pb-3">
         <div>
-          <p className="vista-ceja">OPERACIONES</p>
-          <h1>Salón</h1>
-          <p className="vista-descripcion">Distribución y disponibilidad de mesas</p>
+          <h1 className="h3 fw-bold mb-1" style={{ color: 'var(--color-negro)' }}>Gestión de Salón</h1>
+          <p className="text-muted mb-0">Controlá las mesas y asigná las reservas del día.</p>
         </div>
-        <div className="acciones-reservas d-flex flex-wrap gap-2">
-          <button className="btn btn-success" type="button" onClick={() => setFormReservaAbierto(!formReservaAbierto)} disabled={mesasLibres.length === 0}>
-            {formReservaAbierto ? 'Cerrar formulario' : 'Nueva reserva'}
-          </button>
-          <button className="btn btn-outline-dark" type="button" onClick={() => setReservasVisibles(!reservasVisibles)}>
-            {reservasVisibles ? 'Ocultar reservas' : `Ver reservas (${reservasLista.length})`}
-          </button>
-        </div>
+        <button className="btn btn-dark fw-bold mt-3 mt-md-0" onClick={() => setFormReservaAbierto(!formReservaAbierto)}>
+          {formReservaAbierto ? 'Cerrar formulario' : '+ Nueva Reserva'}
+        </button>
       </header>
 
+      {/* FORMULARIO DE RESERVA */}
       {formReservaAbierto && (
-        <form className="formulario-reserva mb-4" onSubmit={guardarReserva}>
-          <h2 className="h5 mb-3">Nueva reserva</h2>
-          <div className="row g-3">
-            <fieldset className="col-12 border-0 p-0 m-0">
-              <legend className="form-label">Mesas (puedes elegir varias)</legend>
-              <div className="lista-mesas-reserva d-flex flex-wrap gap-2">
-                {mesasLibres.map((mesa) => (
-                  <label className="opcion-mesa-reserva" key={mesa.id}>
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      name="mesaIds"
-                      value={mesa.id}
-                      checked={mesasReservaIds.includes(String(mesa.id))}
-                      onChange={(evento) => {
-                        setMesasReservaIds((actuales) => evento.target.checked
-                          ? [...actuales, evento.target.value]
-                          : actuales.filter((id) => id !== evento.target.value));
-                        setErrorReserva('');
-                      }}
-                    />
-                    <span>Mesa {mesa.id} · hasta {mesa.capacidad} personas</span>
-                  </label>
-                ))}
-              </div>
-              {errorReserva && <p className="text-danger mt-2 mb-0" role="alert">{errorReserva}</p>}
-            </fieldset>
-            <div className="col-12 col-md-6">
-              <label className="form-label" htmlFor="nombre-reserva">Nombre</label>
-              <input className="form-control" id="nombre-reserva" name="cliente" required maxLength="60" />
-            </div>
-            <div className="col-12 col-md-6">
-              <label className="form-label" htmlFor="contacto-reserva">Contacto</label>
-              <input className="form-control" id="contacto-reserva" name="contacto" type="tel" required maxLength="30" />
-            </div>
-            <div className="col-6 col-md-3">
-              <label className="form-label" htmlFor="fecha-reserva">Fecha</label>
-              <input className="form-control" id="fecha-reserva" name="fecha" type="date" required />
-            </div>
-            <div className="col-6 col-md-3">
-              <label className="form-label" htmlFor="hora-reserva">Horario</label>
-              <input className="form-control" id="hora-reserva" name="desde" type="time" required />
-            </div>
-            <div className="col-6 col-md-3">
-              <label className="form-label" htmlFor="personas-reserva">Personas</label>
-              <input className="form-control" id="personas-reserva" name="comensales" type="number" min="1" max={capacidadSeleccionada || 20} defaultValue="2" required />
-            </div>
-            <div className="col-12 col-md-6">
-              <label className="form-label" htmlFor="motivo-reserva">Lugar / motivo</label>
-              <select className="form-select" id="motivo-reserva" name="lugarMotivo" defaultValue="" required>
-                <option value="" disabled>Seleccionar opción</option>
-                <option value="Festejo de cumpleaños">Festejo de cumpleaños</option>
-                <option value="Reunión">Reunión</option>
-                <option value="Barra subsuelo">Barra subsuelo</option>
-                <option value="Salón principal">Salón principal</option>
-              </select>
-            </div>
+        <div className="card p-4 shadow-sm mb-4 border-dark bg-white mx-auto" style={{ maxWidth: '650px' }}>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h5 className="m-0 fw-bold">Crear Nueva Reserva</h5>
+            <button type="button" className="btn-close" onClick={() => setFormReservaAbierto(false)}></button>
           </div>
-          <button className="btn btn-dark mt-3" type="submit">Guardar reserva</button>
-        </form>
+          <FormularioReserva onReservaConfirmada={handleReservaConfirmada} />
+        </div>
       )}
 
-      {reservasVisibles && (
-        <section className="reservas-listado mb-4" aria-labelledby="titulo-reservas">
-          <h2 className="h5 mb-3" id="titulo-reservas">Reservas activas</h2>
-          {reservasActuales.length === 0 ? (
-            <p className="mb-0">No hay reservas cargadas.</p>
-          ) : (
-            <div className="table-responsive">
-              <table className="table table-sm align-middle mb-0">
-                <thead>
-                  <tr>
-                    <th scope="col">Fecha</th>
-                    <th scope="col">Hora</th>
-                    <th scope="col">Mesa</th>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Contacto</th>
-                    <th scope="col">Personas</th>
-                    <th scope="col">Lugar / motivo</th>
-                    <th scope="col"><span className="visually-hidden">Acciones</span></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reservasLista.map((reserva) => (
-                    <tr key={reserva.reservaId ?? reserva.id}>
-                      <td>{reserva.fecha || '—'}</td>
-                      <td>{reserva.desde || '—'}</td>
-                      <td>{reserva.mesas.map((id) => `Mesa ${id}`).join(', ')}</td>
-                      <td>{reserva.cliente || '—'}</td>
-                      <td>{reserva.contacto || '—'}</td>
-                      <td>{reserva.comensales || '—'}</td>
-                      <td>{reserva.lugarMotivo || '—'}</td>
-                      <td>
-                        <button className="btn btn-sm btn-outline-secondary" type="button" onClick={() => cancelarReserva(reserva.id)}>
-                          Cancelar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      {/* MODAL DE CONFIRMACIÓN */}
+      {alertaAccion && (
+        <ModalConfirmacion 
+          titulo={alertaAccion.titulo}
+          mensaje={alertaAccion.mensaje}
+          onCancelar={() => setAlertaAccion(null)}
+          onConfirmar={() => {
+            if (alertaAccion.tipo === 'mesa') {
+              quitarMesa(alertaAccion.id);
+            } else if (alertaAccion.tipo === 'reserva') {
+              eliminarReserva(alertaAccion.id);
+            }
+            setAlertaAccion(null);
+          }}
+        />
+      )}
+
+      <div className="row g-4">
+        
+        {/* PLANO DE MESAS */}
+        <div className="col-12 col-lg-8">
+          <div className="d-flex justify-content-between align-items-center mb-3 bg-light p-2 rounded border">
+            <div className="d-flex gap-3">
+              <span className="badge bg-success fs-6">Libres: {mesasLibres.length}</span>
+              <span className="badge bg-danger fs-6">Ocupadas: {mesas.filter(m=>m.estado==='Ocupada').length}</span>
+              <span className="badge bg-secondary fs-6">Reservadas: {mesas.filter(m=>m.estado==='Reservada').length}</span>
             </div>
-          )}
-        </section>
-      )}
+            <form className="d-flex align-items-center gap-2 m-0" onSubmit={(e) => { e.preventDefault(); agregarMesa(capacidadNueva); }}>
+              <input className="form-control form-control-sm" type="number" style={{width: '70px'}} min="1" value={capacidadNueva} onChange={(e) => setCapacidadNueva(e.target.value)} required />
+              <button className="btn btn-outline-dark btn-sm fw-bold" type="submit">+ Agregar Mesa</button>
+            </form>
+          </div>
 
-      <div className="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 py-3 my-3 border-top border-bottom">
-        <div className="resumen-mesas d-flex flex-wrap gap-4" aria-label="Resumen de mesas">
-          <span className="d-inline-flex align-items-center gap-2"><i className="punto-estado libre" /> Libres <strong>{resumenActual.Libre}</strong></span>
-          <span className="d-inline-flex align-items-center gap-2"><i className="punto-estado ocupada" /> Ocupadas <strong>{resumenActual.Ocupada}</strong></span>
-          <span className="d-inline-flex align-items-center gap-2"><i className="punto-estado reservada" /> Reservadas <strong>{resumenActual.Reservada}</strong></span>
+          <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+            {mesas.map((mesa) => (
+              <TarjetaMesa 
+                key={mesa.id} 
+                mesa={mesa} 
+                onOcupar={ocuparMesa} 
+                onLiberar={liberarMesa} 
+                onQuitar={() => setAlertaAccion({
+                  tipo: 'mesa',
+                  id: mesa.id,
+                  titulo: `¿Eliminar Mesa ${mesa.id}?`,
+                  mensaje: 'Esta acción quitará la mesa del plano físico de forma permanente.'
+                })} 
+              />
+            ))}
+          </div>
         </div>
 
-        <form className="agregar-mesa d-flex flex-nowrap align-items-end gap-2 mb-0" onSubmit={agregarMesa}>
-          <div>
-            <label className="form-label mb-1" htmlFor="capacidad-mesa">Capacidad de la nueva mesa</label>
-            <input className="form-control" id="capacidad-mesa" type="number" min="1" max="20" value={capacidadNueva} onChange={(evento) => setCapacidadNueva(evento.target.value)} required />
-          </div>
-          <button className="btn btn-dark" type="submit">Agregar mesa</button>
-        </form>
-      </div>
+        {/* AGENDA LATERAL AISLADA EN COMPONENTE */}
+        <div className="col-12 col-lg-4">
+          <AgendaReservas 
+            reservasDelDia={reservasDelDia}
+            mesas={mesas}
+            fechaFiltro={fechaFiltro}
+            setFechaFiltro={setFechaFiltro}
+            onAsignarReserva={asignarReservaAMesa}
+            onCancelarReserva={(idReserva, nombreCliente) => setAlertaAccion({
+              tipo: 'reserva',
+              id: idReserva,
+              titulo: `¿Cancelar reserva de ${nombreCliente}?`,
+              mensaje: 'Se eliminará la reserva de la agenda y se liberará la mesa asociada si estaba ocupada.'
+            })}
+          />
+        </div>
 
-      <div className="row row-cols-1 row-cols-sm-2 row-cols-xl-4 g-3">
-        {mesasActuales.map((mesa) => (
-          <TarjetaMesa key={mesa.id} mesa={mesa} onCancelarReserva={cancelarReserva} onQuitar={quitarMesa} />
-        ))}
       </div>
-    </section>
+    </div>
   );
 }
