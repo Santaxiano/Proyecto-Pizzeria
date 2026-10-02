@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
 import { Link, useOutletContext } from 'react-router';
 import BarraCategorias from '../components/BarraCategorias';
 import GrillaProductos from '../components/GrillaProductos';
 import ResumenPedidoLateral from '../../carrito/components/ResumenPedidoLateral';
 import { useFiltros } from '../hooks/useFiltros';
 import { obtenerProductos } from '../services/catalogoService';
+import { useFetch } from '../../../shared/hooks/useFetch'; 
 
 function MenuPage() {
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(null);
+  const { datos: productosBackend, error, cargando } = useFetch(obtenerProductos);
+
+  const productos = productosBackend || [];
 
   const contexto = useOutletContext() || {};
   const itemsCarrito = contexto.items || [];
@@ -20,13 +20,6 @@ function MenuPage() {
 
   const tasaServicio = subtotal > 0 ? Math.round(subtotal * 0.02) : 0;
   const total = subtotal + tasaServicio;
-
-  useEffect(() => {
-    obtenerProductos()
-      .then((datos) => setProductos(datos))
-      .catch((err) => setError(err.message))
-      .finally(() => setCargando(false));
-  }, []);
 
   const filtros = useFiltros(productos);
 
@@ -42,7 +35,7 @@ function MenuPage() {
   if (error) {
     return (
       <div className="alert alert-danger my-5 text-center" role="alert">
-        {error}
+        {error.message || 'Error al cargar los productos'}
       </div>
     );
   }

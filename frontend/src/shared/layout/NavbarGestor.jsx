@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
-import { cerrarSesion } from '../../features/iniciogestor/service/inicioservice';
+import { cerrarSesion } from '../../features/login/service/inicioservice';
 
 function NavbarGestor() {
     const navigate = useNavigate();

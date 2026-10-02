@@ -125,7 +125,8 @@ body {
 
 .btn-pizza:hover {
   opacity: 0.9;
-  color: var(--color-blanco);
+  color: var(--color-negro);
+  background-color: var(--color-gris);
   transform: translateY(-2px);
 }
 
@@ -350,7 +351,8 @@ footer.pie-pagina p {
 
 .boton-flotante-pedido:hover {
   transform: translateY(-2px);
-  color: #fff;
+  color: var(--color-negro);
+  background-color: var(--color-gris);
 }
 
 .texto-rojo-tomate {

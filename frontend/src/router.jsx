@@ -11,14 +11,14 @@ import ReservaPage from './features/reservas/pages/ReservaPage';
 import ContactoPage from './features/contacto/pages/ContactoPage';
 
 // --- Autenticación ---
-import LoginPage from './features/iniciogestor/pages/LoginPage';
-import { protegerRuta, redirigirSiHaySesion } from './features/iniciogestor/service/inicioservice';
+import LoginPage from './features/login/pages/LoginPage';
+import { protegerRuta, redirigirSiHaySesion } from './features/login/service/inicioservice';
 
 // --- Páginas del Gestor ---
-import { StockPage } from './features/ingredientes';
+import InicioGestorPage from './features/home/pages/InicioGestorPage'; 
+import { StockPage } from './features/stock';
 import SalonPage from './features/salon/pages/SalonPage';
 import ComandasPage from './features/comandas/pages/ComandasPage';
-import ComandaDetallePage from './features/comandas/pages/ComandaDetallePage';
 
 export const router = createBrowserRouter([
   {
@@ -47,31 +47,10 @@ export const router = createBrowserRouter([
     loader: protegerRuta,
     errorElement: <NoEncontradaPage />,
     children: [
-      {
-        index: true,
-        element: (
-          <div style={{ padding: '40px', textAlign: 'center' }}>
-            <h2>Panel de Inicio del Gestor</h2>
-            <p>Resumen de ventas y accesos rápidos (Integrante 3)</p>
-          </div>
-        )
-      },
-      {
-        path: 'salon',
-        element: <SalonPage />
-      },
-      {
-        path: 'comandas',
-        element: <ComandasPage />
-      },
-      {
-        path: 'comandas/:comandaId',
-        element: <ComandaDetallePage />
-      },
-      {
-        path: 'stock',
-        element: <StockPage />
-      }
+      { index: true, element: <InicioGestorPage /> },
+      { path: 'salon', element: <SalonPage /> },
+      { path: 'comandas', element: <ComandasPage /> },
+      { path: 'stock', element: <StockPage /> }
     ]
   }
 ]);
