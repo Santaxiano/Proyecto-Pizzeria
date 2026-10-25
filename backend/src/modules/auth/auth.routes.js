@@ -4,8 +4,8 @@ import { verificarToken } from '../middlewares/verificarToken.js';
 
 const router = Router();
 
-router.post('/registro', controller.registro); 
-router.post('/login', controller.login); 
-router.get('/perfil', verificarToken, controller.perfil); 
+router.post('/registro', verificarToken, controller.registro); 
+router.post('/login', controller.login);
+router.get('/perfil', verificarToken, controller.perfil);
 
 export default router;
