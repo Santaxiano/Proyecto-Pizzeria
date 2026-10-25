@@ -1,19 +1,93 @@
-# React + Vite
+# Proyecto Pizzeria
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web para la gestión y venta de una pizzería. El proyecto en esta etapa incluye un frontend en React para la parte pública del negocio y un panel de gestión interno, con datos almacenados en archivos JSON para facilitar la ejecución local sin requerir una base de datos externa.
 
-Currently, two official plugins are available:
+## Funcionalidades principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Catálogo de productos con detalle por item
+- Carrito de compras
+- Reservas de mesas
+- Sección de contacto
+- Inicio de sesión para el gestor
+- Panel del gestor con acceso a:
+  - salón
+  - comandas
+  - stock
 
-## React Compiler
+## Tecnologías utilizadas
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- React
+- Vite
+- React Router
+- Bootstrap
+- JavaScript
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+## Requisitos previos
 
-## Expanding the ESLint configuration
+Antes de ejecutar el proyecto, debes tener instalado:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Node.js 
+- npm
+
+## Estructura del proyecto
+
+Proyecto-Pizzeria/
+├── backend/
+│   └── data/
+│       ├── ingrediente.json
+│       ├── mesas.json
+│       ├── pedidos.json
+│       ├── producto_ingrediente.json
+│       ├── productos.json
+│       ├── reservas.json
+│       └── usuarios.json
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   └── ...
+├── README.md
+└── ...
+
+
+La carpeta `backend/data` se sirve automáticamente desde Vite para que la app pueda consumir los JSON sin necesidad de un backend separado.
+
+## Instalación y ejecución para usar
+
+1. Abre una terminal en la carpeta raíz del proyecto.
+2. Entra a la carpeta `frontend`:
+
+cd frontend
+
+3. Instala las dependencias:
+
+npm install
+
+4. Inicia el proyecto en modo desarrollo:
+
+npm run dev 
+
+5. Abre el navegador en:
+
+http://localhost:5173
+
+## Acceso al panel del gestor
+
+La aplicación incluye un usuario de prueba para ingresar al sistema:
+
+- Email: `admin@maspizza.com`
+- Contraseña: `admin123`
+
+Luego puede acceder a la ruta:
+
+http://localhost:5173/login
+
+o si ya inició sesión, directamente al panel:
+
+http://localhost:5173/gestor
+
+## Autor
+
+Proyecto desarrollado para la materia de laboratorio de tecnología por Javier Mateo Sanchez Garis, Santiago Alaniz Cornejo y Samir Paez.
