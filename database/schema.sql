@@ -6,6 +6,7 @@ CREATE TABLE Usuarios (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    rol VARCHAR(50) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
 
@@ -14,10 +15,10 @@ CREATE TABLE Productos (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
     precio INT NOT NULL,
-    categoria VARCHAR(255) NOT NULL,
+    categoria VARCHAR(100) NOT NULL,
     tamanos TEXT[], 
     permiteMitad BOOLEAN,
-    stock BOOLEAN,
+    stock INT,
     destacado BOOLEAN,
     imagen VARCHAR(255),
     descripcion VARCHAR(255)
@@ -44,11 +45,11 @@ CREATE TABLE Pedidos (
     cliente VARCHAR(255) NOT NULL,
     telefono VARCHAR(255) NOT NULL,
     tipo VARCHAR(255) NOT NULL,
-    direccionMesa VARCHAR(255),
+    direccionMesa VARCHAR(50),
     total INT NOT NULL,
     detalle VARCHAR(255),
     usuario_id INT,
-    estado VARCHAR(255) NOT NULL,
+    estado VARCHAR(50) NOT NULL,
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id)
 );
 
@@ -68,8 +69,9 @@ CREATE TABLE Reservas (
     cliente VARCHAR(255) NOT NULL,
     contacto VARCHAR(255) NOT NULL,
     fecha DATE NOT NULL,
-    desde TIME NOT NULL,
+    hora TIME NOT NULL,
     comensales INT NOT NULL,
+    lugar VARCHAR(50) NOT NULL,
     usuario_id INT,
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id)
 );
@@ -78,7 +80,7 @@ CREATE TABLE Reservas (
 CREATE TABLE Mesas (
     id INT PRIMARY KEY,
     capacidad INT NOT NULL,
-    estado VARCHAR(255) NOT NULL
+    estado VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE Reserva_Mesa (
