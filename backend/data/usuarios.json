@@ -6,4 +6,11 @@
         "password": "admin123",
         "rol": "admin"
     }
+    ,{
+        "id": 2,
+        "nombre": "Empleado 1",
+        "email": "empleado1@maspizza.com",
+        "password": "empleado123",
+        "rol": "empleado"
+    }
 ]

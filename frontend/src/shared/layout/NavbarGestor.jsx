@@ -1,15 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
-import { cerrarSesion } from '../../features/login/service/inicioservice';
+import { cerrarSesion, obtenerSesion } from '../../features/login/service/inicioservice';
 
 function NavbarGestor() {
     const navigate = useNavigate();
     const [menuAbierto, setMenuAbierto] = useState(false);
+    const [rolUsuario, setRolUsuario] = useState('');
+
+    useEffect(() => {
+        const sesion = obtenerSesion();
+        if (sesion && sesion.rol) {
+            setRolUsuario(sesion.rol);
+        }
+    }, []);
 
     const cerrarMenu = () => setMenuAbierto(false);
 
     const handleLogout = () => {
-        cerrarSesion();
+        cerrarSesion(); 
         cerrarMenu();
         navigate('/login', { replace: true });
     };
@@ -26,7 +34,6 @@ function NavbarGestor() {
                         type="button"
                         aria-controls="menu-gestor"
                         aria-expanded={menuAbierto}
-                        aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
                         onClick={() => setMenuAbierto(!menuAbierto)}
                     >
                         <span className="navbar-toggler-icon" />
@@ -47,6 +54,12 @@ function NavbarGestor() {
                         <NavLink to="/gestor/stock" onClick={cerrarMenu} className="nav-link text-white rounded px-3 py-2 fw-semibold">
                             Gestión de Stock
                         </NavLink>
+
+                        {rolUsuario === 'admin' && (
+                            <NavLink to="/gestor/empleados" onClick={cerrarMenu} className="nav-link text-white rounded px-3 py-2 fw-semibold">
+                                Registrar Personal
+                            </NavLink>
+                        )}
                     </div>
 
                     <button onClick={handleLogout} className="btn btn-tomate w-100 mt-4 fw-bold">
