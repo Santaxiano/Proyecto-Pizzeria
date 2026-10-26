@@ -19,6 +19,7 @@ import InicioGestorPage from './features/home/pages/InicioGestorPage';
 import { StockPage } from './features/stock';
 import SalonPage from './features/salon/pages/SalonPage';
 import ComandasPage from './features/comandas/pages/ComandasPage';
+import EmpleadoPage from './features/empleados/pages/EmpleadoPage';
 
 export const router = createBrowserRouter([
   {
@@ -50,7 +51,8 @@ export const router = createBrowserRouter([
       { index: true, element: <InicioGestorPage /> },
       { path: 'salon', element: <SalonPage /> },
       { path: 'comandas', element: <ComandasPage /> },
-      { path: 'stock', element: <StockPage /> }
+      { path: 'stock', element: <StockPage /> },
+      { path: 'empleados', element: <EmpleadoPage /> }
     ]
   }
 ]);
