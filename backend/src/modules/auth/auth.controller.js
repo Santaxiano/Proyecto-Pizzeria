@@ -21,9 +21,6 @@ export const registro = async (req, res, next) => {
     if (!ROLES_VALIDOS.includes(rol)) {
       return res.status(400).json({ error: 'El rol debe ser empleado o administrador' });
     }
-    if (rol === 'administrador' && req.usuario?.rol !== 'administrador') {
-      return res.status(403).json({ error: 'Solo un administrador puede crear otro administrador' });
-    }
 
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
