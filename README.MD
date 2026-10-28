@@ -77,85 +77,40 @@ Editar Producto (PUT): Hacé clic en "Editar", modificá el precio o nombre y gu
 
 Eliminar Producto (DELETE): Hacé clic en "Eliminar" sobre un producto de prueba para removerlo del sistema.
 
-Parte 2: Pruebas de la API REST (Postman / cURL)
-1. Obtener Token JWT (Login)
-Método: POST
+Parte 2:  Guía de Uso de la Colección de Postman (+PIZZA)
 
-URL: http://localhost:3000/api/auth/login
+La colección está diseñada para probar de forma automatizada y ordenada todos los endpoints del backend que no están integrados directamente con el front-end (y también los de autenticación), cumpliendo con el requisito R6 del proyecto.
 
-Headers: Content-Type: application/json
+1. Importación y Configuración Inicial
+  1- Abrí Postman.
 
-Body:
+  2- Hacé clic en el botón Import (Importar) y arrastrá el archivo MasPizza.postman_collection.json (o buscalo desde la compu).
 
-JSON
-{
-  "email": "admin@maspizza.com",
-  "password": "admin123"
-}
-Respuesta (200 OK): Retorna el token JWT en formato texto y los datos del usuario logueado.
-
-2. Prueba de Seguridad y Middlewares
-Acceso denegado sin Token (verificarToken)
-Método: GET
-
-URL: http://localhost:3000/api/ingredientes
-
-Respuesta (401 Unauthorized): { "error": "Falta el token" }
-
-Petición Autorizada con Bearer Token
-Método: GET
-
-URL: http://localhost:3000/api/ingredientes
-
-Headers: Authorization: Bearer PEGA_ACA_TU_TOKEN
-
-Respuesta (200 OK): Retorna el listado de insumos de materia prima.
-
-3. Validaciones Sintácticas y Middlewares Propios
-Middleware validarId (Sintaxis de URL)
-Método: GET
-
-URL: http://localhost:3000/api/productos/abc
-
-Respuesta (400 Bad Request): { "error": "El ID proporcionado no es un número válido" }
-
-Middleware validarProducto (Payload Inválido)
-Método: POST
-
-URL: http://localhost:3000/api/productos
-
-Headers:
-
-Authorization: Bearer PEGA_ACA_TU_TOKEN
-
-Content-Type: application/json
-
-Body:
-
-JSON
-{
-  "nombre": "",
-  "precio": -100,
-  "categoria": "pizzas"
-}
-Respuesta (400 Bad Request): { "error": "El campo 'nombre' es obligatorio" }
-
-Actualización Completa de Mesas (PUT)
-Método: PUT
-
-URL: http://localhost:3000/api/mesas/1
-
-Headers:
-
-Authorization: Bearer PEGA_ACA_TU_TOKEN
-
-Content-Type: application/json
-
-Body:
-
-JSON
-{
-  "capacidad": 4,
-  "estado": "ocupada"
-}
-Respuesta (200 OK): Retorna el objeto de la mesa actualizado en PostgreSQL.
+  3- La colección ya viene configurada con Variables de Colección, por lo que no tenés que modificar ninguna petición manualmente:baseUrl: 
+      Configurada por defecto en http://localhost:3000/api.   
+      token, tokenEmpleado, productoId, etc.: Se autocompletan solos a medida que vas ejecutando las peticiones gracias a los scripts de prueba (tests) que incorporamos.   
+  2. Cómo Ejecutar la Colección Completa (Recomendado)
+  Para correr todas las pruebas de punta a punta de forma automática:
+  
+    1- Hacé clic en los tres puntos (...) al lado del nombre de la colección +PIZZA API en el panel izquierdo de Postman.
+    2- Seleccioná Run collection (Ejecutar colección).
+    3- Asegurate de que el backend esté levantado localmente (npm run dev en la carpeta backend) y la base de datos Pizzeria cargada con el schema.sql y el seed.sql.
+    4- Hacé clic en el botón azul Run +PIZZA API.
+        ¿Por qué funciona solo? Porque la primera carpeta es auth y el primer request es "Login admin", el cual valida el login y guarda automáticamente el token JWT en la variable de colección para que el resto de las carpetas (Privado) puedan autenticarse solas.   
+  3. Estructura y Casos que Incluye la Colección
+  La colección está dividida en tres grandes carpetas para organizar los recursos:
+  
+    A. Carpeta auth (Autenticación y Roles)
+        -Login admin: Autentica al administrador con admin@maspizza.com / admin123 y guarda el token global.   
+        -Login con credenciales inválidas: Prueba el caso de error enviando una contraseña incorrecta (espera un código 401 Unauthorized).   
+        -Registro sin token / Registro con datos faltantes: Verifica las restricciones de seguridad y validación de campos obligatorios (espera códigos 401 y 400).  
+        -Registro de empleado: Utiliza un script previo (Pre-request script) para generar un email único por timestamp, permitiendo correr la prueba múltiples veces sin chocar con errores de duplicado (espera un código 201 Created y valida que nunca devuelva la contraseña).   
+        -Registro con email repetido: Prueba el conflicto al intentar registrar un correo ya existente (espera un código 409 Conflict).   
+        -Registro con token de empleado: Evalúa el middleware de roles (verificarRol). Inicia sesión como empleado e intenta registrar a otro usuario; como no es admin, el sistema rechaza la petición con un 403 Forbidden.   
+      B. Carpeta Publico (Sin Token)
+        - Productos (Listar, Obtener por ID, Producto inexistente 404, ID inválido 400): Verifica el comportamiento de las rutas públicas del catálogo y cómo reacciona el backend ante errores de sintaxis en el parámetro :id (gestionado por nuestro middleware validarId).   
+      C. Carpeta Privado (Requieren Token Bearer)
+        -Productos: Incluye casos de éxito y error para Crear producto (guarda el ID devuelto en una variable), Crear sin token (401), Crear con datos inválidos / precio negativo (400), Actualizar (PUT) y Eliminar (204 / 404).   
+        -Ingredientes: Permite administrar el stock de materia prima probando listar, obtener, crear, actualizar estados (activo: false) y eliminar insumos, además de validar restricciones cuando faltan datos obligatorios.   
+        -Mesas: Prueba la gestión completa del salón (crear mesa con capacidad y estado, listar, actualizar su estado a "Ocupada", eliminar y controlar mesas inexistentes).   
+        -Pedidos: Evalúa el acceso al listado de comandas tanto de forma autorizada como bloqueada sin token. 
