@@ -62,26 +62,18 @@ export const actualizar = async (req, res, next) => {
   const id = parseId(req.params.id);
   if (id === null) return res.status(400).json({ error: 'El id debe ser un entero positivo' });
 
-  const body = req.body ?? {};
-  const campos = Object.keys(camposIngrediente).filter((campo) => body[campo] !== undefined);
-  if (campos.length === 0) {
-    return res.status(400).json({ error: 'Debe enviar nombre o activo para actualizar' });
+  const { nombre, activo } = req.body;
+  if (!camposIngrediente.nombre.validar(nombre)) {
+    return res.status(400).json({ error: 'El nombre es obligatorio' });
   }
-  for (const campo of campos) {
-    if (!camposIngrediente[campo].validar(body[campo])) {
-      return res.status(400).json({ error: camposIngrediente[campo].error });
-    }
+  if (!camposIngrediente.activo.validar(activo)) {
+    return res.status(400).json({ error: 'El campo activo debe ser booleano' });
   }
 
   try {
-    const values = campos.map((campo) => (
-      typeof body[campo] === 'string' ? body[campo].trim() : body[campo]
-    ));
-    const sets = campos.map((campo, index) => `${campo} = $${index + 1}`);
-    values.push(id);
     const { rows } = await pool.query(
-      `UPDATE ingredientes SET ${sets.join(', ')} WHERE id = $${values.length} RETURNING *`,
-      values
+      'UPDATE ingredientes SET nombre = $1, activo = $2 WHERE id = $3 RETURNING *',
+      [nombre.trim(), activo, id]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Ingrediente no encontrado' });
     res.json(rows[0]);

@@ -572,6 +572,50 @@
               }
             },
             {
+              "name": "Crear producto sin token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Sin Token\",\n  \"precio\": 1000,\n  \"categoria\": \"pizzas\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
               "name": "Crear producto con datos inválidos",
               "event": [
                 {
@@ -744,6 +788,36 @@
               }
             },
             {
+              "name": "Listar ingredientes sin token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
               "name": "Obtener ingrediente 1",
               "event": [
                 {
@@ -855,20 +929,63 @@
               }
             },
             {
-              "name": "Desactivar ingrediente",
+              "name": "Actualizar ingrediente",
               "event": [
                 {
                   "listen": "test",
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Quedó desactivado', () => pm.expect(pm.response.json().activo).to.eql(false));"
                     ]
                   }
                 }
               ],
               "request": {
-                "method": "PATCH",
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{ingredienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{ingredienteId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Ingrediente de prueba Postman\",\n  \"activo\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Actualizar ingrediente sin nombre",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
                 "header": [
                   {
                     "key": "Content-Type",
@@ -893,7 +1010,8 @@
                       "language": "json"
                     }
                   }
-                }
+                },
+                "description": "PUT exige el recurso completo: sin nombre responde 400."
               }
             },
             {
@@ -981,6 +1099,36 @@
                   "path": [
                     "mesas"
                   ]
+                }
+              }
+            },
+            {
+              "name": "Listar mesas sin token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/mesas",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "mesas"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
                 }
               }
             },
@@ -1221,6 +1369,36 @@
                   "path": [
                     "pedidos"
                   ]
+                }
+              }
+            },
+            {
+              "name": "Listar pedidos sin token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
                 }
               }
             }
