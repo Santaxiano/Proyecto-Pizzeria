@@ -1,7 +1,0 @@
-$kind: collection
-description: Endpoints que no requieren token.
-auth:
-  - id: ""
-    type: noauth
-    name: No Auth
-order: 2000

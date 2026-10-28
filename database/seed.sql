@@ -161,5 +161,10 @@ SELECT setval(
   COALESCE(MAX(id), 1),
   MAX(id) IS NOT NULL
 ) FROM ingredientes;
+SELECT setval(
+  pg_get_serial_sequence('mesas', 'id'),
+  COALESCE(MAX(id), 1),
+  MAX(id) IS NOT NULL
+) FROM mesas;
 
 COMMIT;

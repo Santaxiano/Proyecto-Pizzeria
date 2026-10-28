@@ -78,7 +78,7 @@ CREATE TABLE Reservas (
 
 
 CREATE TABLE Mesas (
-    id INT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     capacidad INT NOT NULL,
     estado VARCHAR(50) NOT NULL
 );
