@@ -1,0 +1,3 @@
+$kind: collection
+description: Endpoints que requieren token. Heredan Bearer {{token}} de la colección.
+order: 3000

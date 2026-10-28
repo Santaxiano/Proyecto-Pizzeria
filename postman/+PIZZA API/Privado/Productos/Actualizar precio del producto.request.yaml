@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/productos/{{productoId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "precio": 9500
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 200', () => pm.response.to.have.status(200));
+      pm.test('El precio quedó en 9500', () => pm.expect(pm.response.json().precio).to.eql(9500));
+    language: text/javascript
+order: 3000

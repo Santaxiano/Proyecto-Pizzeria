@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/mesas"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "id": 1,
+      "capacidad": 2,
+      "estado": "Libre"
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('Responde 409', () => pm.response.to.have.status(409));
+    language: text/javascript
+order: 4000

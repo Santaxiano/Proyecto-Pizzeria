@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/productos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nombre": "Pizza de prueba Postman",
+      "precio": 9000,
+      "categoria": "pizzas",
+      "tamanos": [
+        "4 porciones",
+        "8 porciones"
+      ],
+      "permiteMitad": true,
+      "stock": 10,
+      "destacado": false,
+      "imagen": "/IMG_2169.jpeg",
+      "descripcion": "Producto creado desde la colección de Postman"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 201', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('productoId', pm.response.json().id);
+    language: text/javascript
+order: 1000

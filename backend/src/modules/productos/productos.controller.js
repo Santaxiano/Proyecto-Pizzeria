@@ -75,29 +75,31 @@ export const actualizar = async (req, res, next) => {
   if (id === null) return res.status(400).json({ error: 'El id debe ser un entero positivo' });
 
   const body = req.body ?? {};
-  const camposActualizables = Object.keys(camposProducto).filter((campo) => body[campo] !== undefined);
-  if (camposActualizables.length === 0) {
-    return res.status(400).json({ error: 'Debe enviar al menos un campo para actualizar' });
-  }
-  for (const campo of camposActualizables) {
-    const valor = body[campo];
-    const regla = camposProducto[campo];
-    if (valor === null && regla.requerido) {
-      return res.status(400).json({ error: `El campo ${campo} no puede ser nulo` });
-    }
-    if (!regla.validar(valor)) {
-      return res.status(400).json({ error: `El campo ${campo} tiene un formato inválido` });
+
+  for (const [campo, regla] of Object.entries(camposProducto)) {
+    const value = body[campo] ?? (regla.requerido ? undefined : null);
+    if ((regla.requerido && value === undefined) || !regla.validar(value)) {
+      return res.status(400).json({ error: `El campo ${campo} es obligatorio o inválido para un PUT` });
     }
   }
 
   try {
-    const values = camposActualizables.map((campo) => body[campo]);
-    const sets = camposActualizables.map((campo, index) => `${campo} = $${index + 1}`);
-    values.push(id);
+    const values = [
+      body.nombre.trim(), body.precio, body.categoria.trim(),
+      body.tamanos ?? null, body.permiteMitad ?? null,
+      body.stock ?? null, body.destacado ?? null,
+      body.imagen ?? null, body.descripcion ?? null,
+      id
+    ];
+
     const { rows } = await pool.query(
-      `UPDATE productos SET ${sets.join(', ')} WHERE id = $${values.length} RETURNING *`,
+      `UPDATE productos 
+       SET nombre = $1, precio = $2, categoria = $3, tamanos = $4, permitemitad = $5, stock = $6, destacado = $7, imagen = $8, descripcion = $9 
+       WHERE id = $10 
+       RETURNING *`,
       values
     );
+
     if (rows.length === 0) return res.status(404).json({ error: 'Producto no encontrado' });
     res.json(rows[0]);
   } catch (err) {

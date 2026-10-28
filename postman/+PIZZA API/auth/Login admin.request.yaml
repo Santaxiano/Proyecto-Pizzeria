@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "admin@maspizza.com",
+      "password": "admin123"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Responde 200', () => pm.response.to.have.status(200));
+      pm.test('Devuelve un token', () => pm.expect(pm.response.json()).to.have.property('token'));
+      pm.collectionVariables.set('token', pm.response.json().token);
+    language: text/javascript
+order: 1000
