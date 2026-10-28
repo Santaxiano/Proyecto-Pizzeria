@@ -1,7 +1,7 @@
-const URL_BASE = '/backend/data';
+const URL_BASE = 'http://localhost:3000/api';
 
 export async function obtenerProductos() {
-  const respuesta = await fetch(`${URL_BASE}/productos.json`);
+  const respuesta = await fetch(`${URL_BASE}/productos`);
   if (!respuesta.ok) {
     throw new Error('No se pudieron obtener los productos');
   }
@@ -9,12 +9,11 @@ export async function obtenerProductos() {
 }
 
 export async function obtenerProductoPorId(id) {
-  const productos = await obtenerProductos();
-  const producto = productos.find((p) => p.id === Number(id));
-  if (!producto) {
-    throw new Error('El producto que buscás no existe');
+  const respuesta = await fetch(`${URL_BASE}/productos/${id}`);
+  if (!respuesta.ok) {
+    throw new Error('El producto que buscás no existe o fue retirado');
   }
-  return producto;
+  return respuesta.json();
 }
 
 export async function obtenerDestacados() {

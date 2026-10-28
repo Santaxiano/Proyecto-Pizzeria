@@ -1,21 +1,5 @@
 import { pool } from '../../config/db.js';
 
-const parseId = (value) => {
-  const id = Number(value);
-  return Number.isSafeInteger(id) && id > 0 ? id : null;
-};
-
-const camposIngrediente = {
-  nombre: {
-    validar: (value) => typeof value === 'string' && value.trim() !== '',
-    error: 'El nombre no puede estar vacío',
-  },
-  activo: {
-    validar: (value) => typeof value === 'boolean',
-    error: 'El campo activo debe ser booleano',
-  },
-};
-
 export const listar = async (_req, res, next) => {
   try {
     const { rows } = await pool.query('SELECT * FROM ingredientes ORDER BY id');
@@ -26,11 +10,8 @@ export const listar = async (_req, res, next) => {
 };
 
 export const obtener = async (req, res, next) => {
-  const id = parseId(req.params.id);
-  if (id === null) return res.status(400).json({ error: 'El id debe ser un entero positivo' });
-
   try {
-    const { rows } = await pool.query('SELECT * FROM ingredientes WHERE id = $1', [id]);
+    const { rows } = await pool.query('SELECT * FROM ingredientes WHERE id = $1', [req.idParseado]);
     if (rows.length === 0) return res.status(404).json({ error: 'Ingrediente no encontrado' });
     res.json(rows[0]);
   } catch (err) {
@@ -40,12 +21,6 @@ export const obtener = async (req, res, next) => {
 
 export const crear = async (req, res, next) => {
   const { nombre, activo } = req.body;
-  if (typeof nombre !== 'string' || nombre.trim() === '') {
-    return res.status(400).json({ error: 'El nombre es obligatorio' });
-  }
-  if (typeof activo !== 'boolean') {
-    return res.status(400).json({ error: 'El campo activo debe ser booleano' });
-  }
 
   try {
     const { rows } = await pool.query(
@@ -59,29 +34,12 @@ export const crear = async (req, res, next) => {
 };
 
 export const actualizar = async (req, res, next) => {
-  const id = parseId(req.params.id);
-  if (id === null) return res.status(400).json({ error: 'El id debe ser un entero positivo' });
-
-  const body = req.body ?? {};
-  const campos = Object.keys(camposIngrediente).filter((campo) => body[campo] !== undefined);
-  if (campos.length === 0) {
-    return res.status(400).json({ error: 'Debe enviar nombre o activo para actualizar' });
-  }
-  for (const campo of campos) {
-    if (!camposIngrediente[campo].validar(body[campo])) {
-      return res.status(400).json({ error: camposIngrediente[campo].error });
-    }
-  }
+  const { nombre, activo } = req.body;
 
   try {
-    const values = campos.map((campo) => (
-      typeof body[campo] === 'string' ? body[campo].trim() : body[campo]
-    ));
-    const sets = campos.map((campo, index) => `${campo} = $${index + 1}`);
-    values.push(id);
     const { rows } = await pool.query(
-      `UPDATE ingredientes SET ${sets.join(', ')} WHERE id = $${values.length} RETURNING *`,
-      values
+      'UPDATE ingredientes SET nombre = $1, activo = $2 WHERE id = $3 RETURNING *',
+      [nombre.trim(), activo, req.idParseado]
     );
     if (rows.length === 0) return res.status(404).json({ error: 'Ingrediente no encontrado' });
     res.json(rows[0]);
@@ -91,11 +49,8 @@ export const actualizar = async (req, res, next) => {
 };
 
 export const eliminar = async (req, res, next) => {
-  const id = parseId(req.params.id);
-  if (id === null) return res.status(400).json({ error: 'El id debe ser un entero positivo' });
-
   try {
-    const { rowCount } = await pool.query('DELETE FROM ingredientes WHERE id = $1', [id]);
+    const { rowCount } = await pool.query('DELETE FROM ingredientes WHERE id = $1', [req.idParseado]);
     if (rowCount === 0) return res.status(404).json({ error: 'Ingrediente no encontrado' });
     res.status(204).end();
   } catch (err) {

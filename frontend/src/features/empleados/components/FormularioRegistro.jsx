@@ -82,7 +82,7 @@ function FormularioRegistro({ onRegistrar }) {
                     value={valores.rol} onChange={handleChange} disabled={enviando}
                 >
                     <option value="empleado">Empleado</option>
-                    <option value="admin">Administrador</option>
+                    <option value="administrador">Administrador</option>
                 </select>
                 {errores.rol && <div className="invalid-feedback fw-bold">{errores.rol}</div>}
             </div>

@@ -1,12 +1,38 @@
-export async function registrarEmpleado(datosUsuario) {
-    // Simulamos una demora de conexión de 1 segundo
-    await new Promise(resolve => setTimeout(resolve, 1000));
+const URL_BASE = 'http://localhost:3000/api';
 
-    // Validamos que no falte nada crítico por las dudas
-    if (!datosUsuario.email || !datosUsuario.password || !datosUsuario.rol) {
-        throw new Error('Faltan datos obligatorios para el registro.');
-    }
-    
-    console.log("Empleado registrado:", datosUsuario);
-    return true; 
+function obtenerToken() {
+  const sesion = JSON.parse(sessionStorage.getItem('pizzeria:sesion'));
+  return sesion ? sesion.token : null;
+}
+
+export async function registrarEmpleado(datosUsuario) {
+  const token = obtenerToken();
+
+  if (!token) {
+    throw new Error('No tenés permisos para realizar esta acción. Iniciá sesión.');
+  }
+
+  const rolNormalizado = datosUsuario.rol === 'admin' ? 'administrador' : datosUsuario.rol;
+
+  const respuesta = await fetch(`${URL_BASE}/auth/registro`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}` 
+    },
+    body: JSON.stringify({
+      nombre: datosUsuario.nombre,
+      email: datosUsuario.email,
+      password: datosUsuario.password,
+      rol: rolNormalizado
+    })
+  });
+
+  const data = await respuesta.json();
+
+  if (!respuesta.ok) {
+    throw new Error(data.error || 'No se pudo registrar al empleado');
+  }
+
+  return data; 
 }

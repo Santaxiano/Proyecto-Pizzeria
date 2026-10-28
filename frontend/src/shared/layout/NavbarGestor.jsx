@@ -55,7 +55,7 @@ function NavbarGestor() {
                             Gestión de Stock
                         </NavLink>
 
-                        {rolUsuario === 'admin' && (
+                        {rolUsuario === 'administrador' && (
                             <NavLink to="/gestor/empleados" onClick={cerrarMenu} className="nav-link text-white rounded px-3 py-2 fw-semibold">
                                 Registrar Personal
                             </NavLink>
