@@ -4,7 +4,7 @@
 -- Los valores base se corresponden con los JSON de backend/data.
 
 BEGIN;
-
+SET client_encoding = 'UTF8';
 INSERT INTO usuarios (id, nombre, email, rol, password) VALUES
   (1, 'Administrador', 'admin@maspizza.com', 'administrador', '$2b$10$VbffhZSRpWESiAbJMtOau.IFOdpdG3iZtMixD/LKeDhw3yWy8FJyq')
 ON CONFLICT (id) DO UPDATE SET
