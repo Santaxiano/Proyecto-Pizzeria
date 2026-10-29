@@ -4,7 +4,6 @@ const CLAVE_SESION = 'pizzeria:sesion';
 const URL_BASE = 'http://localhost:3000/api'; 
 
 export async function iniciarSesion(email, password) {
-    // Le pegamos directo a tu API real con PostgreSQL
     const respuesta = await fetch(`${URL_BASE}/auth/login`, {
         method: 'POST',
         headers: {
@@ -18,7 +17,6 @@ export async function iniciarSesion(email, password) {
 
 if (!respuesta.ok) {
         const errorData = await respuesta.json().catch(() => ({}));
-        
         throw new Error(errorData.error);
     }
 
