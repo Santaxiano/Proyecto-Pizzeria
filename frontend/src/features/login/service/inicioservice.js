@@ -16,8 +16,10 @@ export async function iniciarSesion(email, password) {
         })
     });
 
-    if (!respuesta.ok) {
-        throw new Error('Email o contraseña incorrectos.');
+if (!respuesta.ok) {
+        const errorData = await respuesta.json().catch(() => ({}));
+        
+        throw new Error(errorData.error);
     }
 
     const data = await respuesta.json();
