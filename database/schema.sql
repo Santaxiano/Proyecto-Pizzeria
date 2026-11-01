@@ -41,7 +41,7 @@ CREATE TABLE Producto_Ingrediente (
 
 
 CREATE TABLE Pedidos (
-    id VARCHAR(255) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     cliente VARCHAR(255) NOT NULL,
     telefono VARCHAR(255) NOT NULL,
     tipo VARCHAR(255) NOT NULL,
@@ -55,7 +55,7 @@ CREATE TABLE Pedidos (
 
 
 CREATE TABLE Detalle_Pedido (
-    pedido_id VARCHAR(255),
+    pedido_id INT,
     producto_id INT,
     cantidad INT NOT NULL DEFAULT 1,
     PRIMARY KEY (pedido_id, producto_id),
@@ -65,7 +65,7 @@ CREATE TABLE Detalle_Pedido (
 
 
 CREATE TABLE Reservas (
-    id VARCHAR(255) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     cliente VARCHAR(255) NOT NULL,
     contacto VARCHAR(255) NOT NULL,
     fecha DATE NOT NULL,
@@ -84,7 +84,7 @@ CREATE TABLE Mesas (
 );
 
 CREATE TABLE Reserva_Mesa (
-    reserva_id VARCHAR(255),
+    reserva_id INT,
     mesa_id INT,
     PRIMARY KEY (reserva_id, mesa_id),
     FOREIGN KEY (reserva_id) REFERENCES Reservas(id),

@@ -87,8 +87,8 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO pedidos
   (id, cliente, telefono, tipo, direccionmesa, total, detalle, usuario_id, estado)
 VALUES
-  ('cmd-100', 'Marta Gómez', '5492664112233', 'delivery', 'Av. Lafinur 500', 14500, '1x Pizza Especial, 1x Cerveza Andes', NULL, 'Pendiente'),
-  ('cmd-101', 'Carlos Ruiz', '5492664998877', 'retiro', 'Pasa a buscar 21:30hs', 9000, '1x Pizza Muzzarella', NULL, 'Confirmada')
+  (1, 'Marta Gómez', '5492664112233', 'delivery', 'Av. Lafinur 500', 14500, '1x Pizza Especial, 1x Cerveza Andes', NULL, 'Pendiente'),
+  (2, 'Carlos Ruiz', '5492664998877', 'retiro', 'Pasa a buscar 21:30hs', 9000, '1x Pizza Muzzarella', NULL, 'Confirmada')
 ON CONFLICT (id) DO UPDATE SET
   cliente = EXCLUDED.cliente,
   telefono = EXCLUDED.telefono,
@@ -102,8 +102,8 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO reservas
   (id, cliente, contacto, fecha, hora, comensales, lugar, usuario_id)
 VALUES
-  ('reserva-1-2', 'Martín Palermo', '5492664112233', DATE '2026-10-15', TIME '21:30', 6, 'Festejo de cumpleaños', NULL),
-  ('reserva-5', 'Sofía Vergara', '5492664998877', DATE '2026-10-15', TIME '20:00', 2, 'Salón principal', NULL)
+  (1, 'Martín Palermo', '5492664112233', DATE '2026-10-15', TIME '21:30', 6, 'Festejo de cumpleaños', NULL),
+  (2, 'Sofía Vergara', '5492664998877', DATE '2026-10-15', TIME '20:00', 2, 'Salón principal', NULL)
 ON CONFLICT (id) DO UPDATE SET
   cliente = EXCLUDED.cliente,
   contacto = EXCLUDED.contacto,
@@ -134,18 +134,17 @@ ON CONFLICT (producto_id, ingrediente_id) DO NOTHING;
 -- La fuente JSON de pedidos solo trae el texto detalle; estas lineas de
 -- detalle_pedido son relaciones de ejemplo para poder probar esa tabla.
 INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad) VALUES
-  ('cmd-100', 2, 1),
-  ('cmd-100', 7, 1),
-  ('cmd-101', 1, 1)
+  (1, 2, 1),
+  (1, 7, 1),
+  (2, 1, 1)
 ON CONFLICT (pedido_id, producto_id) DO UPDATE SET
   cantidad = EXCLUDED.cantidad;
 
 INSERT INTO reserva_mesa (reserva_id, mesa_id) VALUES
-  ('reserva-1-2', 1),
-  ('reserva-1-2', 2),
-  ('reserva-5', 5)
+  (1, 1),
+  (1, 2),
+  (2, 5)
 ON CONFLICT (reserva_id, mesa_id) DO NOTHING;
-
 SELECT setval(
   pg_get_serial_sequence('usuarios', 'id'),
   COALESCE(MAX(id), 1),
@@ -166,5 +165,15 @@ SELECT setval(
   COALESCE(MAX(id), 1),
   MAX(id) IS NOT NULL
 ) FROM mesas;
+SELECT setval(
+  pg_get_serial_sequence('pedidos', 'id'),
+  COALESCE(MAX(id), 1),
+  MAX(id) IS NOT NULL
+) FROM pedidos;
+SELECT setval(
+  pg_get_serial_sequence('reservas', 'id'),
+  COALESCE(MAX(id), 1),
+  MAX(id) IS NOT NULL
+) FROM reservas;
 
 COMMIT;

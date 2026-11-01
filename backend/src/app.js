@@ -7,6 +7,7 @@ import mesasRoutes from './modules/Mesas/mesas.routes.js';
 import pedidosRoutes from './modules/pedidos/pedidos.routes.js';
 import productosRoutes from './modules/productos/productos.routes.js';
 import usuariosRoutes from './modules/usuarios/usuarios.routes.js'; 
+import reservasRoutes from './modules/reservas/reservas.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFound } from './middlewares/notFound.js';
 
@@ -25,6 +26,7 @@ app.use('/api/mesas', mesasRoutes);
 app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/usuarios', usuariosRoutes); 
+app.use('/api/reservas', reservasRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
