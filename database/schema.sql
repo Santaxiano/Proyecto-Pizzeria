@@ -59,7 +59,7 @@ CREATE TABLE Detalle_Pedido (
     producto_id INT,
     cantidad INT NOT NULL DEFAULT 1,
     PRIMARY KEY (pedido_id, producto_id),
-    FOREIGN KEY (pedido_id) REFERENCES Pedidos(id),
+    FOREIGN KEY (pedido_id) REFERENCES Pedidos(id) ON DELETE CASCADE,
     FOREIGN KEY (producto_id) REFERENCES Productos(id)
 );
 
