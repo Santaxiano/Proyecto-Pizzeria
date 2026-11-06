@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { Link, useOutletContext } from 'react-router';
+import { Link, useOutletContext } from 'react-router'; // Asumo react-router-dom
 import ItemCarrito from '../components/ItemCarrito';
 import ResumenCarrito from '../components/ResumenCarrito';
 import FormularioPedido from '../components/FormularioPedido';
 import { verificarDisponibilidadInmediata, estaEnZonaDeEnvio } from '../../../shared/utils/pedidosUtils';
+import { generarLinkMercadoPago } from '../../../shared/services/pagos.service.js';
 
 function CarritoPage() {
-  // 1. Lectura SEGURA del contexto (evita que la página explote)
   const contexto = useOutletContext() || {};
   const items = contexto.items || [];
   const cantidadTotal = contexto.cantidadTotal || 0;
@@ -28,10 +28,11 @@ function CarritoPage() {
     calleNumero: '',
     pisoDepto: '',
     indicaciones: '',
-    formaPago: 'efectivo',
+    formaPago: 'efectivo', // Valor por defecto
   });
   
   const [errores, setErrores] = useState({});
+  const [procesandoPago, setProcesandoPago] = useState(false); // Estado para el botón de carga
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,7 +59,7 @@ function CarritoPage() {
     }
   };
 
-  function handleFinalizar(e) {
+  async function handleFinalizar(e) {
     e.preventDefault();
     const nuevosErrores = {};
 
@@ -78,6 +79,47 @@ function CarritoPage() {
       return;
     }
 
+    setProcesandoPago(true);
+
+    // Si la forma de pago es Mercado Pago
+    if (datosCliente.formaPago === 'transferencia') {
+      try {
+        const itemsParaMP = items.map(item => ({
+          title: `${item.nombre} ${item.tamanoElegido ? `(${item.tamanoElegido})` : ''}`,
+          unit_price: Number(item.precio),
+          quantity: item.cantidad,
+          currency_id: 'ARS'
+        }));
+
+        const ENVIO_GRATIS_DESDE = 15000;
+        if (tipoEntrega === 'delivery' && subtotal < ENVIO_GRATIS_DESDE) {
+           itemsParaMP.push({ title: 'Costo de Envío', unit_price: 1500, quantity: 1, currency_id: 'ARS' });
+        }
+        
+        if (subtotal > 0) {
+           itemsParaMP.push({ title: 'Tasa de Servicio', unit_price: Math.round(subtotal * 0.02), quantity: 1, currency_id: 'ARS' });
+        }
+
+        // Llamada única y limpia a tu servicio
+        const data = await generarLinkMercadoPago(itemsParaMP, `pedido-${Date.now()}`);
+
+        if (data.init_point) {
+          window.location.href = data.init_point;
+          return;
+        } else {
+          alert('Hubo un error al generar el link de pago.');
+          setProcesandoPago(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Error conectando con Mercado Pago:", error);
+        alert('Servicio de pago no disponible temporalmente.');
+        setProcesandoPago(false);
+        return;
+      }
+    }
+
+    // Flujo normal para Efectivo
     const pedidoFinal = {
       tipoEntrega,
       horario: modalidadHorario === 'inmediato' ? 'Lo antes posible' : `${fechaProgramada} a las ${horaProgramada} hs`,
@@ -85,6 +127,7 @@ function CarritoPage() {
     };
 
     vaciarCarrito();
+    setProcesandoPago(false);
     setCompraConfirmada(pedidoFinal);
   }
 
@@ -121,6 +164,7 @@ function CarritoPage() {
       <div className="row g-4">
         <div className="col-lg-8">
           
+          {/* Le pasamos procesandoPago al form si queremos deshabilitar el botón */}
           <FormularioPedido 
             tipoEntrega={tipoEntrega}
             setTipoEntrega={setTipoEntrega}
@@ -137,6 +181,7 @@ function CarritoPage() {
             onSimularGeolocalizacion={handleSimularGeolocalizacion}
             onSubmit={handleFinalizar}
           />
+          {procesandoPago && <p className="text-center text-primary mt-2">⏳ Redirigiendo a Mercado Pago...</p>}
 
           <h2 className="h5 fw-bold mt-4 mb-3">Productos seleccionados</h2>
           <ul className="list-group shadow-sm">

@@ -11,9 +11,14 @@ export const env = {
 
   JWT_SECRET: process.env.JWT_SECRET, 
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN ?? '1h',
-};
 
+  MERCADOPAGO_ACCESS_TOKEN: process.env.MERCADOPAGO_ACCESS_TOKEN,
+};
 
 if (!env.JWT_SECRET) {
   throw new Error('Falta JWT_SECRET en el archivo .env');
+}
+
+if (!env.MERCADOPAGO_ACCESS_TOKEN) {
+  console.warn('⚠️ Falta MERCADOPAGO_ACCESS_TOKEN en el archivo .env. Los pagos online fallarán.');
 }

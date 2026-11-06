@@ -10,6 +10,7 @@ import usuariosRoutes from './modules/usuarios/usuarios.routes.js';
 import reservasRoutes from './modules/reservas/reservas.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFound } from './middlewares/notFound.js';
+import pagosRoutes from './modules/pagos/pagos.routes.js';
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use('/api/pedidos', pedidosRoutes);
 app.use('/api/productos', productosRoutes);
 app.use('/api/usuarios', usuariosRoutes); 
 app.use('/api/reservas', reservasRoutes);
+app.use('/api/pagos', pagosRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
