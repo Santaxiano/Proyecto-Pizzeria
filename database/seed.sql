@@ -102,8 +102,8 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO reservas
   (id, cliente, contacto, fecha, hora, comensales, lugar, usuario_id)
 VALUES
-  (1, 'Martín Palermo', '5492664112233', DATE '2026-10-15', TIME '21:30', 6, 'Festejo de cumpleaños', NULL),
-  (2, 'Sofía Vergara', '5492664998877', DATE '2026-10-15', TIME '20:00', 2, 'Salón principal', NULL)
+  (1, 'Martín Palermo', '5492664112233', CURRENT_DATE + 7, TIME '21:30', 6, 'Festejo de cumpleaños', NULL),
+  (2, 'Sofía Vergara', '5492664998877', CURRENT_DATE + 14, TIME '20:00', 2, 'Salón principal', NULL)
 ON CONFLICT (id) DO UPDATE SET
   cliente = EXCLUDED.cliente,
   contacto = EXCLUDED.contacto,

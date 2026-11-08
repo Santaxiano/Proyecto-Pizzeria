@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { validarDatosReserva } from '../../reservas/services/reservaService';
 
 const HORARIOS_DISPONIBLES = [
   '12:30', '13:30', '14:30',
@@ -17,6 +18,8 @@ export default function FormularioReserva({ onReservaConfirmada }) {
   });
 
   const [errores, setErrores] = useState({});
+  const [enviando, setEnviando] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState('');
 
   const actualizarCampo = (campo, valor) => {
     setDatos((prev) => ({ ...prev, [campo]: valor }));
@@ -25,30 +28,28 @@ export default function FormularioReserva({ onReservaConfirmada }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const nuevosErrores = {};
-
-    if (!datos.fecha) nuevosErrores.fecha = 'Seleccioná la fecha.';
-    if (!datos.hora) nuevosErrores.hora = 'Seleccioná un horario.';
-    if (!datos.nombre.trim()) nuevosErrores.nombre = 'Ingresá el nombre completo.';
-    if (!datos.whatsapp.trim() || datos.whatsapp.trim().length < 8) {
-      nuevosErrores.whatsapp = 'Ingresá un WhatsApp válido.';
-    }
+    const nuevosErrores = validarDatosReserva(datos);
 
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
       return;
     }
 
-    const reservaFinal = {
-      ...datos,
-      id: `res-${Date.now()}`,
-      estado: 'pendiente'
-    };
-
-    if (onReservaConfirmada) {
-      onReservaConfirmada(reservaFinal);
+    setEnviando(true);
+    setErrorEnvio('');
+    try {
+      await onReservaConfirmada?.(datos);
+    } catch (error) {
+      if (error.campos) {
+        setErrores(error.campos);
+        setErrorEnvio('');
+      } else {
+        setErrorEnvio(error.message || 'No se pudo guardar la reserva. Intentá nuevamente.');
+      }
+    } finally {
+      setEnviando(false);
     }
   };
 
@@ -62,6 +63,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
           <input
             type="text"
             placeholder="Ej: Sofía Gómez"
+            maxLength={255}
             className={`form-control ${errores.nombre ? 'is-invalid' : ''}`}
             value={datos.nombre}
             onChange={(e) => actualizarCampo('nombre', e.target.value)}
@@ -74,6 +76,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
           <input
             type="tel"
             placeholder="Ej: 2664123456"
+            maxLength={255}
             className={`form-control ${errores.whatsapp ? 'is-invalid' : ''}`}
             value={datos.whatsapp}
             onChange={(e) => actualizarCampo('whatsapp', e.target.value)}
@@ -107,7 +110,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
             </button>
             <input
               type="number"
-              className="form-control text-center fw-bold"
+              className={`form-control text-center fw-bold ${errores.personas ? 'is-invalid' : ''}`}
               value={datos.personas}
               onChange={(e) => actualizarCampo('personas', Number(e.target.value))}
               min="1"
@@ -121,6 +124,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
               +
             </button>
           </div>
+          {errores.personas && <div className="text-danger small mt-1">{errores.personas}</div>}
         </div>
 
         {/* Horarios Disponibles */}
@@ -148,7 +152,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
         <div className="col-md-6">
           <label className="form-label small fw-bold">Sector / Motivo</label>
           <select
-            className="form-select"
+            className={`form-select ${errores.motivo ? 'is-invalid' : ''}`}
             value={datos.motivo}
             onChange={(e) => actualizarCampo('motivo', e.target.value)}
           >
@@ -157,6 +161,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
             <option value="Cumpleaños">Festejo de Cumpleaños</option>
             <option value="Reunión familiar/amigos">Reunión familiar o amigos</option>
           </select>
+          {errores.motivo && <div className="invalid-feedback">{errores.motivo}</div>}
         </div>
 
         {/* Comentarios */}
@@ -173,8 +178,10 @@ export default function FormularioReserva({ onReservaConfirmada }) {
 
       </div>
 
-      <button type="submit" className="btn btn-success w-100 py-2 fw-bold mt-4">
-        Guardar Reserva en la Agenda
+      {errorEnvio && <div className="alert alert-danger mt-3" role="alert">{errorEnvio}</div>}
+
+      <button type="submit" className="btn btn-success w-100 py-2 fw-bold mt-4" disabled={enviando}>
+        {enviando ? 'Guardando reserva...' : 'Guardar Reserva en la Agenda'}
       </button>
     </form>
   );

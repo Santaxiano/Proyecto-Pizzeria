@@ -1,9 +1,8 @@
 import FormularioReserva from '../components/FormularioReserva'; // Importación de tu formulario
+import { crearReserva } from '../services/reservaService';
 
 function ReservaPage() {
-  const handleNuevaReserva = (reserva) => {
-    console.log('Nueva reserva enviada para confirmación:', reserva);
-  };
+  const handleNuevaReserva = (reserva) => crearReserva(reserva);
 
   return (
     <div className="container py-5" style={{ maxWidth: '680px' }}>

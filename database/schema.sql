@@ -1,6 +1,6 @@
--- Crea la base y la tabla de productos.
--- Ejecutar con: psql -U postgres -f database/schema.sql
-CREATE DATABASE "Pizzeria";
+-- Crear la base por separado y ejecutar este archivo conectado a Pizzeria:
+-- createdb -U postgres Pizzeria
+-- psql -U postgres -d Pizzeria -v ON_ERROR_STOP=1 -f database/schema.sql
 
 CREATE TABLE Usuarios (
     id SERIAL PRIMARY KEY,

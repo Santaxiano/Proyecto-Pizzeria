@@ -1,4 +1,4 @@
-export default function TarjetaMesa({ mesa, onOcupar, onLiberar, onQuitar }) {
+export default function TarjetaMesa({ mesa, onOcupar, onLiberar, onQuitar, procesando = false }) {
   const colorCss = mesa.estado === 'Libre' ? 'success' : mesa.estado === 'Ocupada' ? 'danger' : 'secondary';
 
   return (
@@ -30,17 +30,22 @@ export default function TarjetaMesa({ mesa, onOcupar, onLiberar, onQuitar }) {
           {/* Botonera de control manual */}
           <div className="mt-auto d-flex flex-column gap-2">
             {mesa.estado === 'Libre' && (
-              <button className="btn btn-danger btn-sm fw-bold" onClick={() => onOcupar(mesa.id)}>
+              <button className="btn btn-danger btn-sm fw-bold" onClick={() => onOcupar(mesa.id)} disabled={procesando}>
                 Ocupar ahora
               </button>
             )}
-            {mesa.estado !== 'Libre' && (
-              <button className="btn btn-success btn-sm fw-bold" onClick={() => onLiberar(mesa.id)}>
+            {mesa.estado === 'Ocupada' && (
+              <button className="btn btn-success btn-sm fw-bold" onClick={() => onLiberar(mesa.id)} disabled={procesando}>
                 Liberar mesa
               </button>
             )}
+            {mesa.estado === 'Reservada' && (
+              <span className="small text-muted text-center">
+                Gestioná esta mesa desde la agenda de reservas.
+              </span>
+            )}
             {mesa.estado === 'Libre' && (
-              <button className="btn btn-outline-secondary btn-sm" onClick={() => onQuitar(mesa.id)}>
+              <button className="btn btn-outline-secondary btn-sm" onClick={() => onQuitar(mesa.id)} disabled={procesando}>
                 Quitar del plano
               </button>
             )}

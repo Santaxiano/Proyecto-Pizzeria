@@ -12,16 +12,64 @@ export default function SalonPage() {
     agregarReserva, eliminarReserva, asignarReservaAMesa 
   } = useSalon();
 
-  const hoyStr = new Date().toISOString().split('T')[0];
+  const hoy = new Date();
+  const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
   const [fechaFiltro, setFechaFiltro] = useState(hoyStr);
   
   const [capacidadNueva, setCapacidadNueva] = useState(4);
   const [formReservaAbierto, setFormReservaAbierto] = useState(false);
   const [alertaAccion, setAlertaAccion] = useState(null); 
+  const [errorAccion, setErrorAccion] = useState('');
+  const [procesandoAccion, setProcesandoAccion] = useState(false);
+  const [errorMesas, setErrorMesas] = useState('');
+  const [mesaEnProceso, setMesaEnProceso] = useState(null);
+  const [creandoMesa, setCreandoMesa] = useState(false);
 
-  const handleReservaConfirmada = (nuevaReserva) => {
-    agregarReserva(nuevaReserva);
+  const handleReservaConfirmada = async (nuevaReserva) => {
+    await agregarReserva(nuevaReserva);
     setFormReservaAbierto(false);
+  };
+
+  const confirmarAccion = async () => {
+    setProcesandoAccion(true);
+    setErrorAccion('');
+    try {
+      if (alertaAccion.tipo === 'mesa') {
+        await quitarMesa(alertaAccion.id);
+      } else {
+        await eliminarReserva(alertaAccion.id);
+      }
+      setAlertaAccion(null);
+    } catch (error) {
+      setErrorAccion(error.message || 'No se pudo completar la acción.');
+    } finally {
+      setProcesandoAccion(false);
+    }
+  };
+
+  const ejecutarAccionMesa = async (accion, id) => {
+    setMesaEnProceso(id);
+    setErrorMesas('');
+    try {
+      await accion(id);
+    } catch (error) {
+      setErrorMesas(error.message || 'No se pudo actualizar la mesa.');
+    } finally {
+      setMesaEnProceso(null);
+    }
+  };
+
+  const handleAgregarMesa = async (event) => {
+    event.preventDefault();
+    setCreandoMesa(true);
+    setErrorMesas('');
+    try {
+      await agregarMesa(capacidadNueva);
+    } catch (error) {
+      setErrorMesas(error.message || 'No se pudo crear la mesa.');
+    } finally {
+      setCreandoMesa(false);
+    }
   };
 
   if (cargando) return <div className="text-center py-5"><div className="spinner-border text-success" /></div>;
@@ -29,6 +77,11 @@ export default function SalonPage() {
 
   const mesasLibres = mesas.filter(m => m.estado === 'Libre');
   const reservasDelDia = reservas.filter(r => (r.fecha) === fechaFiltro);
+  const fechasProximas = [...new Set(
+    reservas
+      .map((reserva) => reserva.fecha)
+      .filter((fecha) => fecha >= hoyStr)
+  )].sort();
 
   return (
     <div className="container-fluid py-4 px-xl-5">
@@ -59,15 +112,13 @@ export default function SalonPage() {
         <ModalConfirmacion 
           titulo={alertaAccion.titulo}
           mensaje={alertaAccion.mensaje}
-          onCancelar={() => setAlertaAccion(null)}
-          onConfirmar={() => {
-            if (alertaAccion.tipo === 'mesa') {
-              quitarMesa(alertaAccion.id);
-            } else if (alertaAccion.tipo === 'reserva') {
-              eliminarReserva(alertaAccion.id);
-            }
+          error={errorAccion}
+          procesando={procesandoAccion}
+          onCancelar={() => {
+            setErrorAccion('');
             setAlertaAccion(null);
           }}
+          onConfirmar={confirmarAccion}
         />
       )}
 
@@ -75,15 +126,18 @@ export default function SalonPage() {
         
         {/* PLANO DE MESAS */}
         <div className="col-12 col-lg-8">
+          {errorMesas && <div className="alert alert-danger" role="alert">{errorMesas}</div>}
           <div className="d-flex justify-content-between align-items-center mb-3 bg-light p-2 rounded border">
             <div className="d-flex gap-3">
               <span className="badge bg-success fs-6">Libres: {mesasLibres.length}</span>
               <span className="badge bg-danger fs-6">Ocupadas: {mesas.filter(m=>m.estado==='Ocupada').length}</span>
               <span className="badge bg-secondary fs-6">Reservadas: {mesas.filter(m=>m.estado==='Reservada').length}</span>
             </div>
-            <form className="d-flex align-items-center gap-2 m-0" onSubmit={(e) => { e.preventDefault(); agregarMesa(capacidadNueva); }}>
+            <form className="d-flex align-items-center gap-2 m-0" onSubmit={handleAgregarMesa}>
               <input className="form-control form-control-sm" type="number" style={{width: '70px'}} min="1" value={capacidadNueva} onChange={(e) => setCapacidadNueva(e.target.value)} required />
-              <button className="btn btn-outline-dark btn-sm fw-bold" type="submit">+ Agregar Mesa</button>
+              <button className="btn btn-outline-dark btn-sm fw-bold" type="submit" disabled={creandoMesa}>
+                {creandoMesa ? 'Guardando...' : '+ Agregar Mesa'}
+              </button>
             </form>
           </div>
 
@@ -92,14 +146,19 @@ export default function SalonPage() {
               <TarjetaMesa 
                 key={mesa.id} 
                 mesa={mesa} 
-                onOcupar={ocuparMesa} 
-                onLiberar={liberarMesa} 
-                onQuitar={() => setAlertaAccion({
-                  tipo: 'mesa',
-                  id: mesa.id,
-                  titulo: `¿Eliminar Mesa ${mesa.id}?`,
-                  mensaje: 'Esta acción quitará la mesa del plano físico de forma permanente.'
-                })} 
+                procesando={mesaEnProceso === mesa.id}
+                onOcupar={(id) => ejecutarAccionMesa(ocuparMesa, id)}
+                onLiberar={(id) => ejecutarAccionMesa(liberarMesa, id)}
+                onQuitar={() => {
+                  setErrorMesas('');
+                  setErrorAccion('');
+                  setAlertaAccion({
+                    tipo: 'mesa',
+                    id: mesa.id,
+                    titulo: `¿Eliminar Mesa ${mesa.id}?`,
+                    mensaje: 'Esta acción quitará la mesa del plano físico de forma permanente.'
+                  });
+                }}
               />
             ))}
           </div>
@@ -109,16 +168,21 @@ export default function SalonPage() {
         <div className="col-12 col-lg-4">
           <AgendaReservas 
             reservasDelDia={reservasDelDia}
+            reservas={reservas}
+            fechasProximas={fechasProximas}
             mesas={mesas}
             fechaFiltro={fechaFiltro}
             setFechaFiltro={setFechaFiltro}
             onAsignarReserva={asignarReservaAMesa}
-            onCancelarReserva={(idReserva, nombreCliente) => setAlertaAccion({
-              tipo: 'reserva',
-              id: idReserva,
-              titulo: `¿Cancelar reserva de ${nombreCliente}?`,
-              mensaje: 'Se eliminará la reserva de la agenda y se liberará la mesa asociada si estaba ocupada.'
-            })}
+            onCancelarReserva={(idReserva, nombreCliente) => {
+              setErrorAccion('');
+              setAlertaAccion({
+                tipo: 'reserva',
+                id: idReserva,
+                titulo: `¿Cancelar reserva de ${nombreCliente}?`,
+                mensaje: 'Se eliminará la reserva de la agenda y se liberarán las mesas asociadas.'
+              });
+            }}
           />
         </div>
 

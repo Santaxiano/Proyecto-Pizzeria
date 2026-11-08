@@ -1,17 +1,8 @@
-const URL_BASE = '/backend/data';
+import { listarReservas } from '../../reservas/services/reservaService';
+import { listarMesas } from './mesaService';
 
 export async function obtenerDatosSalon() {
-  const [respMesas, respReservas] = await Promise.all([
-    fetch(`${URL_BASE}/mesas.json`),
-    fetch(`${URL_BASE}/reservas.json`)
-  ]);
-
-  if (!respMesas.ok || !respReservas.ok) {
-    throw new Error('Error al cargar la base de datos del salón');
-  }
-
-  const mesas = await respMesas.json();
-  const reservas = await respReservas.json();
+  const [mesas, reservas] = await Promise.all([listarMesas(), listarReservas()]);
 
   return { mesas, reservas };
 }

@@ -1,81 +1,127 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { obtenerDatosSalon } from '../services/salonService';
 import { useFetch } from '../../../shared/hooks/useFetch';
+import {
+  actualizarMesa,
+  crearMesa as crearMesaAPI,
+  eliminarMesa as eliminarMesaAPI,
+} from '../services/mesaService';
+import {
+  actualizarReserva,
+  crearReserva,
+  eliminarReserva as eliminarReservaAPI,
+} from '../../reservas/services/reservaService';
+
+const RESERVAS_VACIAS = [];
+const MESAS_VACIAS = [];
+const VENTANA_RESERVA_MS = 30 * 60 * 1000;
+
+function reservaEnVentana(reserva, ahora) {
+  const inicio = new Date(`${reserva.fecha}T${reserva.hora}`).getTime();
+  return Number.isFinite(inicio) && Math.abs(ahora - inicio) <= VENTANA_RESERVA_MS;
+}
 
 export function useSalon() {
   const { datos, cargando, error } = useFetch(obtenerDatosSalon);
-  
-  const [mesas, setMesas] = useState(() => {
-    const guardadas = localStorage.getItem('salon-mesas-v3');
-    return guardadas ? JSON.parse(guardadas) : [];
-  });
 
-  const [reservas, setReservas] = useState(() => {
-    const guardadas = localStorage.getItem('salon-reservas-v3');
-    return guardadas ? JSON.parse(guardadas) : [];
-  });
+  const [mesasOverride, setMesasOverride] = useState(null);
+  const [reservasOverride, setReservasOverride] = useState(null);
+  const [ahora, setAhora] = useState(Date.now);
+  const reservas = reservasOverride ?? datos?.reservas ?? RESERVAS_VACIAS;
+  const mesasBase = mesasOverride ?? datos?.mesas ?? MESAS_VACIAS;
 
   useEffect(() => {
-    if (datos && !localStorage.getItem('salon-mesas-v3')) {
-      setMesas(datos.mesas);
-      setReservas(datos.reservas);
+    const intervalo = setInterval(() => setAhora(Date.now()), 30_000);
+    return () => clearInterval(intervalo);
+  }, []);
+
+  const mesas = useMemo(() => mesasBase.map((mesa) => {
+    const reserva = reservas.find((item) => (
+      item.mesasIds.includes(Number(mesa.id)) && reservaEnVentana(item, ahora)
+    ));
+
+    if (reserva) {
+      return {
+        ...mesa,
+        estado: 'Reservada',
+        reservaId: reserva.id,
+        cliente: reserva.cliente,
+        comensales: reserva.comensales,
+        desde: reserva.hora,
+      };
     }
-  }, [datos]);
 
-  useEffect(() => {
-    if (mesas.length > 0) localStorage.setItem('salon-mesas-v3', JSON.stringify(mesas));
-    if (reservas.length > 0) localStorage.setItem('salon-reservas-v3', JSON.stringify(reservas));
-  }, [mesas, reservas]);
+    if (mesa.estado === 'Reservada') {
+      return { ...mesa, estado: 'Libre', reservaId: null, cliente: null, comensales: null, desde: null };
+    }
 
-  const agregarMesa = (capacidad) => {
-    const nuevoId = mesas.length > 0 ? Math.max(...mesas.map(m => m.id)) + 1 : 1;
-    setMesas([...mesas, { id: nuevoId, estado: 'Libre', capacidad: Number(capacidad) }]);
+    return mesa;
+  }), [mesasBase, reservas, ahora]);
+
+  const actualizarEstadoLocal = (mesaActualizada) => {
+    setMesasOverride((mesasActuales) => {
+      const base = mesasActuales ?? datos?.mesas ?? [];
+      return base.map((mesa) => mesa.id === mesaActualizada.id ? mesaActualizada : mesa);
+    });
   };
 
-  const quitarMesa = (id) => setMesas(mesas.filter(m => m.id !== id));
-
-  const ocuparMesa = (id) => {
-    setMesas(mesas.map(m => m.id === id ? { ...m, estado: 'Ocupada', reservaId: null } : m));
+  const agregarMesa = async (capacidad) => {
+    const mesaCreada = await crearMesaAPI(capacidad);
+    setMesasOverride((mesasActuales) => [...(mesasActuales ?? datos?.mesas ?? []), mesaCreada]);
   };
 
-  const liberarMesa = (id) => {
-    setMesas(mesas.map(m => m.id === id ? { id: m.id, capacidad: m.capacidad, estado: 'Libre', reservaId: null, cliente: null } : m));
+  const quitarMesa = async (id) => {
+    await eliminarMesaAPI(id);
+    setMesasOverride((mesasActuales) => (
+      (mesasActuales ?? datos?.mesas ?? []).filter((mesa) => mesa.id !== id)
+    ));
   };
 
-  const agregarReserva = (nuevaReserva) => {
-    setReservas([...reservas, { ...nuevaReserva, id: `res-${Date.now()}` }]);
+  const ocuparMesa = async (id) => {
+    const mesa = mesas.find((item) => item.id === id);
+    if (!mesa) throw new Error('No se encontró la mesa seleccionada');
+    const mesaActualizada = await actualizarMesa(mesa, 'Ocupada');
+    actualizarEstadoLocal(mesaActualizada);
   };
 
-  const eliminarReserva = (idReserva) => {
-    setReservas(reservas.filter(r => r.id !== idReserva));
-    setMesas(mesas.map(m => m.reservaId === idReserva ? { id: m.id, capacidad: m.capacidad, estado: 'Libre', reservaId: null } : m));
+  const liberarMesa = async (id) => {
+    const mesa = mesas.find((item) => item.id === id);
+    if (!mesa) throw new Error('No se encontró la mesa seleccionada');
+    if (mesa.estado === 'Reservada') {
+      throw new Error('La mesa está asignada a una reserva; liberala desde la agenda');
+    }
+    const mesaActualizada = await actualizarMesa(mesa, 'Libre');
+    actualizarEstadoLocal(mesaActualizada);
   };
 
-  const asignarReservaAMesa = (idReserva, idMesa) => {
+  const agregarReserva = async (nuevaReserva) => {
+    const reservaCreada = await crearReserva(nuevaReserva);
+    setReservasOverride([...reservas, reservaCreada]);
+    return reservaCreada;
+  };
+
+  const eliminarReserva = async (idReserva) => {
+    const reserva = reservas.find((item) => item.id === String(idReserva));
+    await eliminarReservaAPI(idReserva);
+    setReservasOverride(reservas.filter((reserva) => reserva.id !== String(idReserva)));
+    if (reserva?.mesasIds.length) {
+      const mesasLiberadas = new Set(reserva.mesasIds);
+      setMesasOverride(mesasBase.map((mesa) => (
+        mesasLiberadas.has(mesa.id) ? { ...mesa, estado: 'Libre' } : mesa
+      )));
+    }
+  };
+
+  const asignarReservaAMesa = async (idReserva, mesasIds) => {
     const reserva = reservas.find(r => r.id === idReserva);
-    if (!reserva) return;
+    if (!reserva) throw new Error('No se encontró la reserva seleccionada');
 
-    const horaReserva = reserva.desde || reserva.hora;
-
-    setMesas(mesas.map(m => {
-      if (m.id === Number(idMesa)) {
-        // Validación de turnos: Si ya tiene una reserva en otro horario, evitamos pisarla sin querer
-        if (m.estado === 'Reservada' && m.desde && m.desde !== horaReserva) {
-          alert(`⚠️ La Mesa ${idMesa} ya está reservada para el turno de las ${m.desde} hs. Elegí otra mesa o libera esta primero.`);
-          return m;
-        }
-
-        return {
-          ...m,
-          estado: 'Reservada',
-          reservaId: reserva.id,
-          cliente: reserva.cliente || reserva.nombre,
-          comensales: reserva.comensales || reserva.personas,
-          desde: horaReserva
-        };
-      }
-      return m;
-    }));
+    const reservaActualizada = await actualizarReserva(idReserva, {
+      mesaIds: mesasIds.map(Number),
+    });
+    setReservasOverride(reservas.map((item) => (
+      item.id === reservaActualizada.id ? reservaActualizada : item
+    )));
   };
 
   return {

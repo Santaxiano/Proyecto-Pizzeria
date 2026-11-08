@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import IndicadorPasos from './IndicadorPasos'; 
+import { validarDatosReserva } from '../services/reservaService';
 
 const HORARIOS_DISPONIBLES = [
   '12:30', '13:30', '14:30',
@@ -9,6 +10,8 @@ const HORARIOS_DISPONIBLES = [
 function FormularioReserva({ onReservaConfirmada }) {
   const [paso, setPaso] = useState(1);
   const [reservaEnviada, setReservaEnviada] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState('');
 
   const [datos, setDatos] = useState({
     fecha: '',
@@ -47,31 +50,32 @@ function FormularioReserva({ onReservaConfirmada }) {
     setPaso(3);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const nuevosErrores = {};
-
-    if (!datos.nombre.trim()) nuevosErrores.nombre = 'Ingresá tu nombre completo.';
-    if (!datos.whatsapp.trim() || datos.whatsapp.trim().length < 8) {
-      nuevosErrores.whatsapp = 'Ingresá un número de WhatsApp válido.';
-    }
+    const nuevosErrores = validarDatosReserva(datos);
 
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);
+      if (nuevosErrores.fecha) setPaso(1);
+      else if (nuevosErrores.hora || nuevosErrores.personas) setPaso(2);
       return;
     }
 
-    const reservaFinal = {
-      ...datos,
-      id: Date.now(),
-      estado: 'pendiente'
-    };
-
-    if (onReservaConfirmada) {
-      onReservaConfirmada(reservaFinal);
+    setEnviando(true);
+    setErrorEnvio('');
+    try {
+      await onReservaConfirmada?.(datos);
+      setReservaEnviada(true);
+    } catch (error) {
+      if (error.campos) {
+        setErrores(error.campos);
+        setErrorEnvio('');
+      } else {
+        setErrorEnvio(error.message || 'No se pudo enviar la reserva. Intentá nuevamente.');
+      }
+    } finally {
+      setEnviando(false);
     }
-
-    setReservaEnviada(true);
   };
 
   const reiniciar = () => {
@@ -86,6 +90,7 @@ function FormularioReserva({ onReservaConfirmada }) {
     });
     setPaso(1);
     setReservaEnviada(false);
+    setErrorEnvio('');
   };
 
   if (reservaEnviada) {
@@ -181,6 +186,7 @@ function FormularioReserva({ onReservaConfirmada }) {
               </button>
             </div>
           </div>
+          {errores.personas && <div className="text-danger small mb-3">{errores.personas}</div>}
 
           <label className="form-label fw-semibold">Turnos disponibles:</label>
           <div className="row row-cols-3 g-2 mb-4">
@@ -231,6 +237,7 @@ function FormularioReserva({ onReservaConfirmada }) {
               id="nombreReserva"
               type="text"
               placeholder="Ej: Sofía Gómez"
+              maxLength={255}
               className={`form-control ${errores.nombre ? 'is-invalid' : ''}`}
               value={datos.nombre}
               onChange={(e) => actualizarCampo('nombre', e.target.value)}
@@ -244,6 +251,7 @@ function FormularioReserva({ onReservaConfirmada }) {
               id="wppReserva"
               type="tel"
               placeholder="Ej: 2664123456"
+              maxLength={255}
               className={`form-control ${errores.whatsapp ? 'is-invalid' : ''}`}
               value={datos.whatsapp}
               onChange={(e) => actualizarCampo('whatsapp', e.target.value)}
@@ -255,7 +263,7 @@ function FormularioReserva({ onReservaConfirmada }) {
             <label htmlFor="sectorSelect" className="form-label small fw-bold">Sector / Motivo</label>
             <select
               id="sectorSelect"
-              className="form-select"
+              className={`form-select ${errores.motivo ? 'is-invalid' : ''}`}
               value={datos.motivo}
               onChange={(e) => actualizarCampo('motivo', e.target.value)}
             >
@@ -264,6 +272,7 @@ function FormularioReserva({ onReservaConfirmada }) {
               <option value="Cumpleaños">Festejo de Cumpleaños</option>
               <option value="Reunión familiar/amigos">Reunión familiar o amigos</option>
             </select>
+            {errores.motivo && <div className="invalid-feedback">{errores.motivo}</div>}
           </div>
 
           <div className="mb-4">
@@ -278,8 +287,10 @@ function FormularioReserva({ onReservaConfirmada }) {
             ></textarea>
           </div>
 
-          <button type="submit" className="btn btn-danger w-100 py-2 fw-bold">
-            Confirmar Reserva
+          {errorEnvio && <div className="alert alert-danger" role="alert">{errorEnvio}</div>}
+
+          <button type="submit" className="btn btn-danger w-100 py-2 fw-bold" disabled={enviando}>
+            {enviando ? 'Enviando reserva...' : 'Confirmar Reserva'}
           </button>
         </form>
       )}

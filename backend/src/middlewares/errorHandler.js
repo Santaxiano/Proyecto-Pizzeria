@@ -22,7 +22,7 @@ export function errorHandler(error, _req, res, next) {
     error: status >= 500
       ? 'Error interno del servidor'
       : status === 409
-        ? 'El registro entra en conflicto con datos existentes'
+        ? error.publicMessage || 'El registro entra en conflicto con datos existentes'
         : status === 400 && error.code
           ? 'Los datos enviados no son válidos'
           : error.message,

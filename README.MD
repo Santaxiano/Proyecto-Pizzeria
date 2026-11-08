@@ -1,20 +1,21 @@
 Cómo Ejecutar el Proyecto e Integración (+PIZZA)
 Asegurate de tener PostgreSQL corriendo en tu equipo antes de empezar.
 
-1. Configuración de la Base de Datos (Ejecutar una sola vez)
-Abrí una terminal en la raíz del proyecto y ejecutá estos comandos para crear la estructura y cargar los datos de prueba:
+1. Configuración de la Base de Datos
+Para recrear la base de desarrollo desde cero, abrí una terminal en la raíz del proyecto y ejecutá:
 
 Bash
 dropdb -U postgres --if-exists Pizzeria
 createdb -U postgres Pizzeria
-psql -U postgres -d Pizzeria -f database/schema.sql
-psql -U postgres -d Pizzeria -f database/seed.sql
+psql -U postgres -d Pizzeria -v ON_ERROR_STOP=1 -f database/schema.sql
+psql -U postgres -d Pizzeria -v ON_ERROR_STOP=1 -f database/seed.sql
 (Nota: Si tu usuario local de PostgreSQL no es postgres, reemplazalo por el tuyo).
+Estos comandos eliminan todos los datos existentes en `Pizzeria`. `schema.sql` crea las tablas en la base seleccionada y `seed.sql` carga los datos de prueba.
 
 2. Iniciar el Backend (Terminal 1)
 En la carpeta backend/, copiá el archivo .env.example y nombralo .env.
 
-Completá las variables de entorno (asegurate de poner tu PGPASSWORD, el nombre DB_NAME=Pizzeria y tu JWT_SECRET).
+Completá las variables de entorno (asegurate de poner tu PGPASSWORD, `PGDATABASE=Pizzeria` y tu JWT_SECRET).
 
 En la primera terminal, ejecutá:
 
