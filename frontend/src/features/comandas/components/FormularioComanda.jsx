@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { obtenerProductos } from '../../carta/services/catalogoService';
 import { useFetch } from '../../../shared/hooks/useFetch';
 
-export default function FormularioComanda({ comandaAEditar, onGuardar, onCancelar }) {
+// Misma regla de envío que aplica el backend al crear el pedido (pedidos.controller.js).
+const ENVIO_GRATIS_DESDE = 15000;
+const COSTO_ENVIO = 1500;
+
+export default function FormularioComanda({ onGuardar, onCancelar }) {
   const { datos: productosBackend, cargando: cargandoProductos } = useFetch(obtenerProductos);
   const productos = productosBackend || [];
 
@@ -10,28 +14,12 @@ export default function FormularioComanda({ comandaAEditar, onGuardar, onCancela
     cliente: '',
     telefono: '',
     tipo: 'delivery',
-    direccionMesa: '',
-    costoEnvio: 1500
+    direccionMesa: ''
   });
 
   const [items, setItems] = useState([]);
   const [prodSeleccionado, setProdSeleccionado] = useState('');
   const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
-
-  useEffect(() => {
-    if (comandaAEditar) {
-      setValores({
-        cliente: comandaAEditar.cliente,
-        telefono: comandaAEditar.telefono,
-        tipo: comandaAEditar.tipo,
-        direccionMesa: comandaAEditar.direccionMesa,
-        costoEnvio: comandaAEditar.costoEnvio || 1500
-      });
-      if (comandaAEditar.items) {
-        setItems(comandaAEditar.items);
-      }
-    }
-  }, [comandaAEditar]);
 
   const handleChange = (e) => {
     setValores({ ...valores, [e.target.name]: e.target.value });
@@ -86,7 +74,7 @@ export default function FormularioComanda({ comandaAEditar, onGuardar, onCancela
 
   const subtotalProductos = items.reduce((acc, item) => acc + item.subtotal, 0);
   const aplicaEnvio = valores.tipo === 'delivery';
-  const costoEnvioActual = aplicaEnvio ? Number(valores.costoEnvio) : 0;
+  const costoEnvioActual = aplicaEnvio && subtotalProductos < ENVIO_GRATIS_DESDE ? COSTO_ENVIO : 0;
   const totalFinal = subtotalProductos + costoEnvioActual;
   const detalleGenerado = items.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
 
@@ -97,18 +85,14 @@ export default function FormularioComanda({ comandaAEditar, onGuardar, onCancela
       return;
     }
 
-    onGuardar({
-      ...valores,
-      items,
-      detalle: detalleGenerado,
-      total: totalFinal
-    });
+    // El total y el detalle de pantalla son solo una vista previa: el backend los recalcula.
+    onGuardar({ ...valores, items });
   };
 
   return (
     <div className="card shadow-sm mb-4 border-0">
       <div className="card-header bg-dark text-white">
-        <h3 className="h5 mb-0">{comandaAEditar ? 'Editar Pedido' : 'Nuevo Pedido'}</h3>
+        <h3 className="h5 mb-0">Nuevo Pedido</h3>
       </div>
       <div className="card-body">
         <form onSubmit={handleSubmit}>
@@ -139,7 +123,8 @@ export default function FormularioComanda({ comandaAEditar, onGuardar, onCancela
             {aplicaEnvio && (
               <div className="col-md-4">
                 <label className="form-label fw-bold small text-danger">Costo Envío ($)</label>
-                <input type="number" className="form-control border-danger" name="costoEnvio" value={valores.costoEnvio} onChange={handleChange} min="0" required />
+                <input type="text" className="form-control bg-light border-danger" value={`$ ${costoEnvioActual}`} readOnly />
+                <span className="small text-muted d-block mt-1">Gratis desde ${ENVIO_GRATIS_DESDE}</span>
               </div>
             )}
           </div>

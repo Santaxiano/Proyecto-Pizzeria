@@ -2,17 +2,15 @@ import { formatearPrecio } from '../../../shared/utils/formato'
 
 const ENVIO_GRATIS_DESDE = 15000;
 const COSTO_ENVIO = 1500;
-const TASA_SERVICIO = 0.02; // 2% de tasa de servicio
-
+// Misma regla que aplica el backend (backend/src/modules/pedidos/pedidos.controller.js).
+// Sin tasa de servicio: el total que ve el cliente es el mismo que se guarda en el pedido.
 function ResumenCarrito({ cantidadTotal, subtotal, tipoEntrega, onVaciar }) {
-  const tasaServicioCalculada = subtotal > 0 ? subtotal * TASA_SERVICIO : 0;
-  
   let envio = 0;
   if (tipoEntrega === 'delivery') {
       envio = subtotal >= ENVIO_GRATIS_DESDE ? 0 : COSTO_ENVIO;
   }
 
-  const total = subtotal + tasaServicioCalculada + envio;
+  const total = subtotal + envio;
   const faltaParaEnvioGratis = ENVIO_GRATIS_DESDE - subtotal;
 
   return (
@@ -24,9 +22,7 @@ function ResumenCarrito({ cantidadTotal, subtotal, tipoEntrega, onVaciar }) {
         <dl className="row mb-0">
           <dt className="col-7 fw-normal">Subtotal ({cantidadTotal})</dt>
           <dd className="col-5 text-end">{formatearPrecio(subtotal)}</dd>
-          
-          <dt className="col-7 fw-normal">Tasa de servicio</dt>
-          <dd className="col-5 text-end">{formatearPrecio(tasaServicioCalculada)}</dd>
+
 
           {tipoEntrega === 'delivery' && (
              <>

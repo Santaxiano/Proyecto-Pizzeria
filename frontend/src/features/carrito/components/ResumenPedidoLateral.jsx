@@ -2,8 +2,8 @@ import { Link } from 'react-router';
 
 function ResumenPedidoLateral({ items, onModificarCantidad, onEliminar, modoCheckout = false }) {
   const subtotal = items.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
-  const tasaServicio = subtotal > 0 ? Math.round(subtotal * 0.02) : 0;
-  const total = subtotal + tasaServicio;
+  // Sin tasa de servicio: el total coincide con el que guarda el backend (el envío se suma en el checkout)
+  const total = subtotal;
 
   return (
     <div 
@@ -68,13 +68,9 @@ function ResumenPedidoLateral({ items, onModificarCantidad, onEliminar, modoChec
           </div>
 
           <div className="border-top pt-2 mb-3 small">
-            <div className="d-flex justify-content-between mb-1">
+            <div className="d-flex justify-content-between mb-2">
               <span className="text-secondary">Subtotal</span>
               <span>${subtotal.toLocaleString('es-AR')}</span>
-            </div>
-            <div className="d-flex justify-content-between mb-2">
-              <span className="text-secondary">Tasa de servicio</span>
-              <span>${tasaServicio.toLocaleString('es-AR')}</span>
             </div>
             <div className="d-flex justify-content-between fs-5 fw-bold text-dark pt-2 border-top">
               <span>Total</span>

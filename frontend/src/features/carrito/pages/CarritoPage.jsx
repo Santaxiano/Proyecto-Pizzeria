@@ -5,6 +5,8 @@ import ResumenCarrito from '../components/ResumenCarrito';
 import FormularioPedido from '../components/FormularioPedido';
 import { verificarDisponibilidadInmediata, estaEnZonaDeEnvio } from '../../../shared/utils/pedidosUtils';
 import { generarLinkMercadoPago } from '../../../shared/services/pagos.service.js';
+import { formatearPrecio } from '../../../shared/utils/formato';
+import { crearPedido } from '../services/pedidoService';
 
 function CarritoPage() {
   const contexto = useOutletContext() || {};
@@ -81,64 +83,65 @@ function CarritoPage() {
 
     setProcesandoPago(true);
 
-    // Si la forma de pago es Mercado Pago
+    const horario = modalidadHorario === 'inmediato' ? 'Lo antes posible' : `${fechaProgramada} a las ${horaProgramada} hs`;
+
+    // 1. Primero se registra el pedido en el backend (para efectivo y Mercado Pago).
+    //    Si falla (ej. un producto sin disponibilidad) el carrito queda intacto para corregirlo.
+    let pedido;
+    try {
+      pedido = await crearPedido({ items, tipoEntrega, datosCliente, horario });
+    } catch (error) {
+      alert('No pudimos registrar tu pedido: ' + error.message);
+      setProcesandoPago(false);
+      return;
+    }
+
+    const confirmacion = { horario, cliente: datosCliente, numero: pedido.id, total: pedido.total };
+
+    // 2. Mercado Pago: se cobra con los precios que calculó el backend y el pedido como referencia
     if (datosCliente.formaPago === 'transferencia') {
       try {
-        const itemsParaMP = items.map(item => ({
-          title: `${item.nombre} ${item.tamanoElegido ? `(${item.tamanoElegido})` : ''}`,
-          unit_price: Number(item.precio),
+        const itemsParaMP = pedido.items.map(item => ({
+          title: `${item.nombre}${item.tamano ? ` (${item.tamano})` : ''}`,
+          unit_price: item.precioUnitario,
           quantity: item.cantidad,
           currency_id: 'ARS'
         }));
 
-        const ENVIO_GRATIS_DESDE = 15000;
-        if (tipoEntrega === 'delivery' && subtotal < ENVIO_GRATIS_DESDE) {
-           itemsParaMP.push({ title: 'Costo de Envío', unit_price: 1500, quantity: 1, currency_id: 'ARS' });
-        }
-        
-        if (subtotal > 0) {
-           itemsParaMP.push({ title: 'Tasa de Servicio', unit_price: Math.round(subtotal * 0.02), quantity: 1, currency_id: 'ARS' });
+        if (pedido.costoEnvio > 0) {
+          itemsParaMP.push({ title: 'Costo de Envío', unit_price: pedido.costoEnvio, quantity: 1, currency_id: 'ARS' });
         }
 
-        // Llamada única y limpia a tu servicio
-        const data = await generarLinkMercadoPago(itemsParaMP, `pedido-${Date.now()}`);
+        const data = await generarLinkMercadoPago(itemsParaMP, String(pedido.id));
 
         if (data.init_point) {
+          vaciarCarrito();
           window.location.href = data.init_point;
           return;
-        } else {
-          alert('Hubo un error al generar el link de pago.');
-          setProcesandoPago(false);
-          return;
         }
+        throw new Error('Mercado Pago no devolvió el link de pago');
       } catch (error) {
+        // El pedido ya quedó registrado: no se pierde, se paga al recibirlo
         console.error("Error conectando con Mercado Pago:", error);
-        alert('Servicio de pago no disponible temporalmente.');
-        setProcesandoPago(false);
-        return;
+        alert(`Tu pedido #${pedido.id} quedó registrado, pero Mercado Pago no está disponible en este momento. Podés abonarlo al recibirlo.`);
       }
     }
 
-    // Flujo normal para Efectivo
-    const pedidoFinal = {
-      tipoEntrega,
-      horario: modalidadHorario === 'inmediato' ? 'Lo antes posible' : `${fechaProgramada} a las ${horaProgramada} hs`,
-      cliente: datosCliente,
-    };
-
+    // 3. Efectivo (o Mercado Pago que no se pudo abrir): confirmación con el número de pedido
     vaciarCarrito();
     setProcesandoPago(false);
-    setCompraConfirmada(pedidoFinal);
+    setCompraConfirmada(confirmacion);
   }
 
   if (compraConfirmada) {
     return (
       <div className="container py-5 text-center">
         <div className="display-4 text-success mb-3">✓</div>
-        <h2 className="h4 fw-bold">¡Pedido tomado con éxito!</h2>
-        <p className="text-secondary mt-2 mb-4">
+        <h2 className="h4 fw-bold">¡Pedido #{compraConfirmada.numero} tomado con éxito!</h2>
+        <p className="text-secondary mt-2 mb-1">
           Hemos recibido el pedido de <strong>{compraConfirmada.cliente.nombre}</strong> para <strong>{compraConfirmada.horario}</strong>.
         </p>
+        <p className="fw-bold mb-4">Total: {formatearPrecio(compraConfirmada.total)}</p>
         <Link to="/menu" className="btn btn-dark">
           Volver a la carta
         </Link>
@@ -181,7 +184,7 @@ function CarritoPage() {
             onSimularGeolocalizacion={handleSimularGeolocalizacion}
             onSubmit={handleFinalizar}
           />
-          {procesandoPago && <p className="text-center text-primary mt-2">⏳ Redirigiendo a Mercado Pago...</p>}
+          {procesandoPago && <p className="text-center text-primary mt-2">⏳ Registrando tu pedido...</p>}
 
           <h2 className="h5 fw-bold mt-4 mb-3">Productos seleccionados</h2>
           <ul className="list-group shadow-sm">
