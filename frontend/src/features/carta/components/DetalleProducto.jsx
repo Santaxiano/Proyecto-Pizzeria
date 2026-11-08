@@ -9,10 +9,14 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
   const [cantidad, setCantidad] = useState(1);
   const [agregado, setAgregado] = useState(false);
 
-  const sinStock = producto.stock === 0;
+  // "disponible" lo calcula el backend: hay stock Y ningún ingrediente desactivado (efecto dominó).
+  // Si no viniera, se usa el stock como antes.
+  const sinStock = !(producto.disponible ?? producto.stock > 0);
   const esPizza = producto.categoria === 'pizzas';
   // Solo permite mitad y mitad si eligió 8 porciones y la pizza lo habilita
-  const puedeMitad = esPizza && producto.permiteMitad && tamano === '8 porciones';
+  // El backend devuelve la columna en minúscula ("permitemitad")
+  const permiteMitad = producto.permitemitad ?? producto.permiteMitad;
+  const puedeMitad = esPizza && permiteMitad && tamano === '8 porciones';
 
   // 2. Validación para habilitar el botón
   // No hay stock, o no eligió tamaño, o pidió mitad/mitad y todavía no eligió el segundo sabor
@@ -38,11 +42,15 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
   function handleAgregar() {
     if (botonDeshabilitado) return;
 
+    // El select guarda el id de la 2da mitad (el backend lo necesita); el nombre se usa para mostrarla.
+    const pizzaSegundoSabor = esMitad ? todasLasPizzas.find((p) => p.id === Number(segundoSabor)) : null;
+
     const itemCarrito = {
       ...producto,
       tamanoElegido: tamano,
       esMitadYMitad: esMitad,
-      segundoSabor: esMitad ? segundoSabor : null,
+      segundoSabor: pizzaSegundoSabor ? pizzaSegundoSabor.nombre : null,
+      segundoSaborId: pizzaSegundoSabor ? pizzaSegundoSabor.id : null,
       precioUnitario: precioFinal,
       cantidad
     };
@@ -143,9 +151,10 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
                 >
                   <option value="">-- Seleccionar otro sabor --</option>
                   {todasLasPizzas
-                    .filter((p) => p.id !== producto.id)
+                    // Solo pizzas que permiten mitad y están disponibles (el backend rechaza el resto)
+                    .filter((p) => p.id !== producto.id && (p.permitemitad ?? p.permiteMitad) && p.disponible !== false)
                     .map((p) => (
-                      <option key={p.id} value={p.nombre}>
+                      <option key={p.id} value={p.id}>
                         Mitad: {p.nombre}
                       </option>
                     ))}

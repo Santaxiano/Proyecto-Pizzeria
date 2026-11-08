@@ -45,22 +45,31 @@ CREATE TABLE Pedidos (
     cliente VARCHAR(255) NOT NULL,
     telefono VARCHAR(255) NOT NULL,
     tipo VARCHAR(255) NOT NULL,
-    direccionMesa VARCHAR(50),
+    direccionMesa VARCHAR(255),
     total INT NOT NULL,
     detalle VARCHAR(255),
     usuario_id INT,
     estado VARCHAR(50) NOT NULL,
+    horario VARCHAR(100),                              -- "Lo antes posible" o fecha y hora programada
+    notas VARCHAR(255),                                -- piso/depto e indicaciones de entrega
+    forma_pago VARCHAR(20) NOT NULL DEFAULT 'efectivo', -- efectivo | mercadopago
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id)
 );
 
 
+-- Cada línea del pedido. Tiene id propio para que un mismo producto pueda
+-- aparecer varias veces (ej. una Muzzarella de 8 porciones y otra de 4).
 CREATE TABLE Detalle_Pedido (
-    pedido_id INT,
-    producto_id INT,
+    id SERIAL PRIMARY KEY,
+    pedido_id INT NOT NULL,
+    producto_id INT NOT NULL,
     cantidad INT NOT NULL DEFAULT 1,
-    PRIMARY KEY (pedido_id, producto_id),
+    tamano VARCHAR(50),                 -- "4 porciones" / "8 porciones" (NULL si no aplica)
+    segundo_sabor_id INT,               -- otra mitad en una pizza mitad y mitad
+    precio_unitario INT NOT NULL,       -- precio al momento de la venta
     FOREIGN KEY (pedido_id) REFERENCES Pedidos(id) ON DELETE CASCADE,
-    FOREIGN KEY (producto_id) REFERENCES Productos(id)
+    FOREIGN KEY (producto_id) REFERENCES Productos(id),
+    FOREIGN KEY (segundo_sabor_id) REFERENCES Productos(id)
 );
 
 

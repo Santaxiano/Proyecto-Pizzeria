@@ -1,7 +1,9 @@
 import { Link } from 'react-router';
 
 function TarjetaProducto({ producto }) {
-  const sinStock = producto.stock === 0;
+  // "disponible" lo calcula el backend: hay stock Y ningún ingrediente desactivado (efecto dominó).
+  // Si no viniera, se usa el stock como antes.
+  const sinStock = !(producto.disponible ?? producto.stock > 0);
 
   return (
     <article className="card h-100 shadow-sm tarjeta-pizza">

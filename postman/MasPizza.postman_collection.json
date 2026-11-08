@@ -521,6 +521,616 @@
               }
             }
           ]
+        },
+        {
+          "name": "Pedidos",
+          "item": [
+            {
+              "name": "Crear pedido delivery sin token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                      "const p = pm.response.json();",
+                      "const subtotal = p.items.reduce((acc, i) => acc + i.subtotal, 0);",
+                      "const envioEsperado = p.tipo === 'delivery' && subtotal < 15000 ? 1500 : 0;",
+                      "pm.test('El envío sigue la regla del carrito', () => pm.expect(p.costoEnvio).to.eql(envioEsperado));",
+                      "pm.test('El total lo calcula el backend', () => pm.expect(p.total).to.eql(subtotal + envioEsperado));",
+                      "pm.test('Ignora el total y el estado que manda el cliente', () => { pm.expect(p.total).to.not.eql(1); pm.expect(p.estado).to.eql('Pendiente'); });",
+                      "pm.test('No queda asociado a un usuario', () => pm.expect(p.usuario_id).to.eql(null));",
+                      "pm.test('Trae 2 items y el detalle armado', () => { pm.expect(p.items).to.have.lengthOf(2); pm.expect(p.detalle).to.include('1x'); });",
+                      "pm.collectionVariables.set('pedidoId', p.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"delivery\",\n  \"direccionMesa\": \"Av. Illia 123\",\n  \"total\": 1,\n  \"estado\": \"Finalizada\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    },\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido retiro con producto repetido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                      "const p = pm.response.json();",
+                      "const subtotal = p.items.reduce((acc, i) => acc + i.subtotal, 0);",
+                      "const envioEsperado = p.tipo === 'delivery' && subtotal < 15000 ? 1500 : 0;",
+                      "pm.test('El envío sigue la regla del carrito', () => pm.expect(p.costoEnvio).to.eql(envioEsperado));",
+                      "pm.test('El total lo calcula el backend', () => pm.expect(p.total).to.eql(subtotal + envioEsperado));",
+                      "pm.test('Suma las cantidades del producto repetido', () => { pm.expect(p.items).to.have.lengthOf(1); pm.expect(p.items[0].cantidad).to.eql(3); });",
+                      "pm.test('Retiro no paga envío', () => pm.expect(p.costoEnvio).to.eql(0));",
+                      "pm.collectionVariables.set('pedidoRetiroId', p.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    },\n    {\n      \"productoId\": 1,\n      \"cantidad\": 2\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido con tamaños y mitad y mitad",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                      "const p = pm.response.json();",
+                      "pm.test('El mismo producto en distintas variantes queda en 3 líneas', () => pm.expect(p.items).to.have.lengthOf(3));",
+                      "const chica = p.items.find((i) => i.tamano === '4 porciones');",
+                      "const entera = p.items.find((i) => i.tamano === '8 porciones' && !i.segundoSaborId);",
+                      "const mitad = p.items.find((i) => i.segundoSaborId === 2);",
+                      "pm.test('4 porciones cobra el 60%', () => pm.expect(chica.precioUnitario).to.eql(Math.round(entera.precioUnitario * 0.6)));",
+                      "pm.test('La mitad y mitad cobra el precio del primer sabor', () => pm.expect(mitad.precioUnitario).to.eql(entera.precioUnitario));",
+                      "pm.test('El nombre muestra los dos sabores', () => pm.expect(mitad.nombre).to.include(' / '));",
+                      "pm.test('El detalle incluye el tamaño', () => pm.expect(p.detalle).to.include('(4 porciones)'));",
+                      "pm.test('Guarda horario, notas y forma de pago', () => { pm.expect(p.horario).to.eql('2026-11-10 a las 21:30 hs'); pm.expect(p.notas).to.eql('Piso 3 B · timbre roto'); pm.expect(p.forma_pago).to.eql('mercadopago'); });",
+                      "pm.test('El total es la suma de las líneas (retiro sin envío)', () => pm.expect(p.total).to.eql(p.items.reduce((a, i) => a + i.subtotal, 0)));",
+                      "pm.collectionVariables.set('pedidoTamanosId', p.id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"horario\": \"2026-11-10 a las 21:30 hs\",\n  \"notas\": \"Piso 3 B · timbre roto\",\n  \"formaPago\": \"mercadopago\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"4 porciones\"\n    },\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"8 porciones\",\n      \"segundoSaborId\": 2\n    },\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"8 porciones\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido sin forma de pago queda en efectivo",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                      "pm.test('forma_pago es efectivo', () => pm.expect(pm.response.json().forma_pago).to.eql('efectivo'));",
+                      "pm.collectionVariables.set('pedidoEfectivoId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido mitad y mitad en 4 porciones",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"4 porciones\",\n      \"segundoSaborId\": 2\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido mitad y mitad con un producto que no es pizza",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"8 porciones\",\n      \"segundoSaborId\": 8\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido con un tamaño que el producto no tiene",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                      "pm.test('El mensaje nombra el tamaño', () => pm.expect(pm.response.json().error).to.include('4 porciones'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1,\n      \"tamano\": \"4 porciones\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido con forma de pago inválida",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"formaPago\": \"bitcoin\",\n  \"items\": [\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido delivery sin dirección",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"delivery\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido con tipo inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retirar\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido sin productos",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido con cantidad inválida",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 0\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear pedido con producto inexistente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                      "pm.test('El mensaje indica el id', () => pm.expect(pm.response.json().error).to.include('999999'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 999999,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -2277,11 +2887,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
-                      "const pedidos = pm.response.json();",
-                      "if (pedidos.length > 0) {",
-                      "  pm.collectionVariables.set('pedidoId', pedidos[pedidos.length - 1].id);",
-                      "}"
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));"
                     ]
                   }
                 }
@@ -2327,6 +2933,121 @@
                 },
                 "auth": {
                   "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Crear producto sin stock (para pedido)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('productoSinStockId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Producto sin stock Postman\",\n  \"precio\": 1000,\n  \"categoria\": \"comidas\",\n  \"stock\": 0\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Crear pedido con producto no disponible",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Nombra el producto sin disponibilidad', () => pm.expect(pm.response.json().error).to.include('Producto sin stock Postman'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [{ \"productoId\": {{productoSinStockId}}, \"cantidad\": 1 }]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Eliminar producto sin stock",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/{{productoSinStockId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "{{productoSinStockId}}"
+                  ]
                 }
               }
             },
@@ -2399,6 +3120,90 @@
                   ]
                 }
               }
+            },
+            {
+              "name": "Eliminar pedido retiro de prueba",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos/{{pedidoRetiroId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos",
+                    "{{pedidoRetiroId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Eliminar pedido con tamaños de prueba",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos/{{pedidoTamanosId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos",
+                    "{{pedidoTamanosId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Eliminar pedido en efectivo de prueba",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/pedidos/{{pedidoEfectivoId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pedidos",
+                    "{{pedidoEfectivoId}}"
+                  ]
+                }
+              }
             }
           ]
         }
@@ -2458,6 +3263,26 @@
     },
     {
       "key": "recetaIngredienteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pedidoRetiroId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "productoSinStockId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pedidoTamanosId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "pedidoEfectivoId",
       "value": "",
       "type": "string"
     }

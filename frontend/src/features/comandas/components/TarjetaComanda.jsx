@@ -1,4 +1,4 @@
-export default function TarjetaComanda({ comanda, onEditar, onEliminar, onConfirmarWpp, onCambiarEstado }) {
+export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, onCambiarEstado }) {
   // Colores dinámicos según el estado
   const colorEstado = 
     comanda.estado === 'Finalizada' ? 'bg-success' : 
@@ -20,7 +20,12 @@ export default function TarjetaComanda({ comanda, onEditar, onEliminar, onConfir
             <h3 className="h5 fw-bold mb-0">{comanda.cliente}</h3>
             <span className="fw-bold text-success">${comanda.total}</span>
           </div>
-          <p className="text-muted small mb-3">📍 {comanda.direccionMesa}</p>
+          {comanda.direccionMesa && <p className="text-muted small mb-1">📍 {comanda.direccionMesa}</p>}
+          {comanda.horario && <p className="text-muted small mb-1">🕒 {comanda.horario}</p>}
+          {comanda.notas && <p className="text-muted small mb-1">📝 {comanda.notas}</p>}
+          <p className="text-muted small mb-3">
+            {comanda.formaPago === 'mercadopago' ? '💳 Mercado Pago' : '💵 Efectivo'}
+          </p>
           
           <div className="bg-light p-2 rounded mb-3 flex-grow-1">
             <p className="small mb-0 fw-semibold">Detalle:</p>
@@ -46,9 +51,12 @@ export default function TarjetaComanda({ comanda, onEditar, onEliminar, onConfir
             )}
             
             <div className="d-flex gap-2 mt-1">
-              <button className="btn btn-outline-dark btn-sm w-50" onClick={onEditar} disabled={comanda.estado === 'Finalizada'}>
-                Editar
-              </button>
+              {/* El backend solo permite cambiar el estado de un pedido, no editarlo completo */}
+              <span className="w-50" title="Para cambiar el pedido, eliminalo y crealo de nuevo">
+                <button className="btn btn-outline-dark btn-sm w-100" disabled>
+                  Editar
+                </button>
+              </span>
               <button className="btn btn-outline-danger btn-sm w-50" onClick={onEliminar}>
                 Eliminar
               </button>
