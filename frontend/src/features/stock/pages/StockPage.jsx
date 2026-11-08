@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useStock } from '../hooks/useStock';
 import TablaProductos from '../components/TablaProductos';
 import TablaMateriaPrima from '../components/TablaMateriaPrima';
 import ModalFormularioStock from '../components/ModalFormularioStock';
 import ModalConfirmacion from '../components/ModalConfirmacion';
+
+// Misma función normalizadora
+const normalizarTexto = (texto) => {
+  if (!texto) return '';
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
 
 export default function StockPage() {
   const { 
@@ -17,19 +23,18 @@ export default function StockPage() {
 
   const [tabActiva, setTabActiva] = useState('productos');
   const [modalFormAbierto, setModalFormAbierto] = useState(false);
-  const [tipoForm, setTipoForm] = useState('producto'); // 'producto' o 'ingrediente'
+  const [tipoForm, setTipoForm] = useState('producto'); 
   const [itemAEditar, setItemAEditar] = useState(null);
-  // Acción pendiente de confirmar: eliminar producto/ingrediente o dejar un ingrediente sin stock
   const [alertaConfirmacion, setAlertaConfirmacion] = useState(null);
+  const [busquedaTabla, setBusquedaTabla] = useState('');
 
   if (cargando) return <div className="text-center py-5"><div className="spinner-border text-danger" /></div>;
   if (error) return <div className="alert alert-danger m-4 text-center">{error.message}</div>;
 
   const abrirCreacion = (tipo) => {
     setTipoForm(tipo);
-    // Si es producto, le inyectamos los ingredientes seleccionados actuales si editamos
     if (tipo === 'producto') {
-      setItemAEditar({ nombre: '', descripcion: '', precio: '', categoria: 'pizzas', ingredientesIds: [] });
+      setItemAEditar({ nombre: '', descripcion: '', precio: '', categoria: 'pizzas', imagen: '', ingredientesIds: [] });
     } else {
       setItemAEditar({ nombre: '' });
     }
@@ -49,8 +54,6 @@ export default function StockPage() {
     setModalFormAbierto(true);
   };
 
-  // Efecto dominó: antes de dejar un ingrediente sin stock, avisamos qué productos se pausan.
-  // Reponerlo no necesita confirmación.
   const pedirToggleIngrediente = async (id) => {
     const ing = ingredientes.find(i => i.id === id);
     if (!ing) return;
@@ -68,30 +71,54 @@ export default function StockPage() {
     });
   };
 
+  // --- FILTROS DE TABLAS SIN ACENTOS ---
+  const productosFiltrados = useMemo(() => {
+    const busquedaNormalizada = normalizarTexto(busquedaTabla);
+    return productos.filter(p => normalizarTexto(p.nombre).includes(busquedaNormalizada));
+  }, [productos, busquedaTabla]);
+
+  const ingredientesFiltrados = useMemo(() => {
+    const busquedaNormalizada = normalizarTexto(busquedaTabla);
+    return ingredientes.filter(i => normalizarTexto(i.nombre).includes(busquedaNormalizada));
+  }, [ingredientes, busquedaTabla]);
+
+  // Lista de nombres actuales 100% normalizada para pasarle al Modal y evitar duplicados
+  const listaActualNombres = tipoForm === 'producto' 
+    ? productos.map(p => normalizarTexto(p.nombre)) 
+    : ingredientes.map(i => normalizarTexto(i.nombre));
+
   return (
     <div className="container py-4">
-      <header className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+      <header className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 border-bottom pb-3">
         <div>
-          <h1 className="h3 fw-bold text-dark">Control de Menú e Insumos</h1>
+          <h1 className="h3 fw-bold text-dark mb-1">Control de Menú e Insumos</h1>
           <p className="text-muted mb-0">Administrá productos, materia prima y el efecto dominó en cadena.</p>
         </div>
-        <div>
-          <button className="btn btn-dark fw-bold" onClick={() => abrirCreacion(tabActiva === 'productos' ? 'producto' : 'ingrediente')}>
+        <div className="mt-3 mt-md-0 d-flex gap-2">
+          <div className="input-group">
+            <span className="input-group-text bg-white">🔍</span>
+            <input 
+              type="text" 
+              className="form-control" 
+              placeholder={`Buscar ${tabActiva}...`} 
+              value={busquedaTabla}
+              onChange={(e) => setBusquedaTabla(e.target.value)}
+            />
+          </div>
+          <button className="btn btn-dark fw-bold text-nowrap" onClick={() => abrirCreacion(tabActiva === 'productos' ? 'producto' : 'ingrediente')}>
             {tabActiva === 'productos' ? '+ Nuevo Producto' : '+ Nuevo Ingrediente'}
           </button>
         </div>
       </header>
 
-      {/* MODAL FORMULARIO */}
       {modalFormAbierto && (
         <ModalFormularioStock 
           tipo={tipoForm}
           itemAEditar={itemAEditar}
           listaIngredientesDisponibles={ingredientes}
+          listaActualNombres={listaActualNombres} 
           onGuardar={(valores) => {
             if (tipoForm === 'producto') {
-              // El formulario solo trae algunos campos: el resto (imagen, stock, destacado...)
-              // se toma del producto original para no pisarlo al editar.
               guardarProducto({ ...itemAEditar, ...valores }, itemAEditar?.id);
             } else {
               guardarIngrediente(valores, itemAEditar?.id);
@@ -102,7 +129,6 @@ export default function StockPage() {
         />
       )}
 
-      {/* MODAL CONFIRMACIÓN (eliminar / dejar ingrediente sin stock) */}
       {alertaConfirmacion && (
         <ModalConfirmacion
           titulo={alertaConfirmacion.titulo}
@@ -117,24 +143,22 @@ export default function StockPage() {
         />
       )}
 
-      {/* PESTAÑAS */}
       <ul className="nav nav-tabs mb-4">
         <li className="nav-item">
-          <button className={`nav-link ${tabActiva === 'productos' ? 'active fw-bold text-danger' : 'text-dark'}`} onClick={() => setTabActiva('productos')}>
+          <button className={`nav-link ${tabActiva === 'productos' ? 'active fw-bold text-danger' : 'text-dark'}`} onClick={() => { setTabActiva('productos'); setBusquedaTabla(''); }}>
             🍕 Menú Final y Bebidas
           </button>
         </li>
         <li className="nav-item">
-          <button className={`nav-link ${tabActiva === 'ingredientes' ? 'active fw-bold text-danger' : 'text-dark'}`} onClick={() => setTabActiva('ingredientes')}>
+          <button className={`nav-link ${tabActiva === 'ingredientes' ? 'active fw-bold text-danger' : 'text-dark'}`} onClick={() => { setTabActiva('ingredientes'); setBusquedaTabla(''); }}>
             🍅 Materia Prima
           </button>
         </li>
       </ul>
 
-      {/* TABLAS */}
       {tabActiva === 'productos' ? (
         <TablaProductos 
-          productos={productos} 
+          productos={productosFiltrados} 
           onToggle={toggleProducto}
           onEditar={abrirEdicionProducto}
           onEliminar={(id) => setAlertaConfirmacion({
@@ -146,7 +170,7 @@ export default function StockPage() {
         />
       ) : (
         <TablaMateriaPrima 
-          ingredientes={ingredientes} 
+          ingredientes={ingredientesFiltrados} 
           onToggle={pedirToggleIngrediente}
           onEditar={abrirEdicionIngrediente}
           onEliminar={(id) => setAlertaConfirmacion({

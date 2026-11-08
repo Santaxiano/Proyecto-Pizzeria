@@ -17,19 +17,14 @@ async function lanzarErrorDeRespuesta(respuesta, mensajePorDefecto) {
   throw new Error(errorData.error || mensajePorDefecto);
 }
 
-// Cada producto ya trae del backend sus "ingredientes" y "disponible" (efecto dominó incluido).
 export async function obtenerDatosCompletos() {
   const [respProductos, respIngredientes] = await Promise.all([
     fetch(`${URL_BASE}/productos`),
     fetch(`${URL_BASE}/ingredientes`, { headers: headersConToken() }),
   ]);
 
-  if (!respProductos.ok) {
-    await lanzarErrorDeRespuesta(respProductos, 'Error al cargar los productos desde la base de datos');
-  }
-  if (!respIngredientes.ok) {
-    await lanzarErrorDeRespuesta(respIngredientes, 'Error al cargar los ingredientes desde la base de datos');
-  }
+  if (!respProductos.ok) await lanzarErrorDeRespuesta(respProductos, 'Error al cargar los productos');
+  if (!respIngredientes.ok) await lanzarErrorDeRespuesta(respIngredientes, 'Error al cargar los ingredientes');
 
   return {
     productos: await respProductos.json(),
@@ -37,10 +32,9 @@ export async function obtenerDatosCompletos() {
   };
 }
 
-// "producto" puede ser uno existente (trae sus valores reales) o uno nuevo desde el formulario.
-// Los valores por defecto se usan solo cuando el producto no los tiene.
 export async function guardarProductoAPI(producto, idEditar = null) {
   const esPizza = producto.categoria === 'pizzas';
+  const esBebida = producto.categoria === 'bebidas';
 
   const body = {
     nombre: producto.nombre,
@@ -50,12 +44,14 @@ export async function guardarProductoAPI(producto, idEditar = null) {
     permiteMitad: producto.permitemitad ?? producto.permiteMitad ?? esPizza,
     stock: producto.stock !== undefined ? producto.stock : 100,
     destacado: producto.destacado !== undefined ? producto.destacado : true,
-    imagen: producto.imagen ?? null,
+    // Aseguramos la imagen por defecto por si falla algo en el frontend
+    imagen: producto.imagen || '/noimagen.jpg', 
     descripcion: producto.descripcion ?? null,
   };
 
-  // Solo se manda la receta si viene del formulario; si no, el backend la deja como está.
-  if (Array.isArray(producto.ingredientesIds)) {
+  if (esBebida) {
+    body.ingredientesIds = [];
+  } else if (Array.isArray(producto.ingredientesIds)) {
     body.ingredientesIds = producto.ingredientesIds;
   }
 
@@ -65,7 +61,7 @@ export async function guardarProductoAPI(producto, idEditar = null) {
     body: JSON.stringify(body),
   });
 
-  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error en el servidor');
+  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error en el servidor al guardar el producto');
   return respuesta.json();
 }
 
@@ -74,7 +70,6 @@ export async function eliminarProductoAPI(id) {
     method: 'DELETE',
     headers: headersConToken(),
   });
-
   if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error en el servidor');
   return true;
 }
@@ -88,27 +83,21 @@ export async function guardarIngredienteAPI(ingrediente, idEditar = null) {
       activo: ingrediente.activo,
     }),
   });
-
-  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error en el servidor');
+  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error en el servidor al guardar ingrediente');
   return respuesta.json();
 }
 
-// Si el ingrediente lo usa algún producto, el backend responde 409 con un mensaje que nombra esos productos.
 export async function eliminarIngredienteAPI(id) {
   const respuesta = await fetch(`${URL_BASE}/ingredientes/${id}`, {
     method: 'DELETE',
     headers: headersConToken(),
   });
-
-  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error en el servidor');
+  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error en el servidor al eliminar ingrediente');
   return true;
 }
 
 export async function obtenerProductosDeIngrediente(id) {
-  const respuesta = await fetch(`${URL_BASE}/ingredientes/${id}/productos`, {
-    headers: headersConToken(),
-  });
-
-  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'No se pudieron obtener los productos del ingrediente');
+  const respuesta = await fetch(`${URL_BASE}/ingredientes/${id}/productos`, { headers: headersConToken() });
+  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'No se pudieron obtener los productos');
   return respuesta.json();
 }

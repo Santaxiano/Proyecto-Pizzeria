@@ -2,30 +2,22 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 
 function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
-  // 1. Arranca en null para que ninguna opción aparezca marcada por defecto
   const [tamano, setTamano] = useState(null);
   const [esMitad, setEsMitad] = useState(false);
   const [segundoSabor, setSegundoSabor] = useState('');
   const [cantidad, setCantidad] = useState(1);
   const [agregado, setAgregado] = useState(false);
 
-  // "disponible" lo calcula el backend: hay stock Y ningún ingrediente desactivado (efecto dominó).
-  // Si no viniera, se usa el stock como antes.
   const sinStock = !(producto.disponible ?? producto.stock > 0);
   const esPizza = producto.categoria === 'pizzas';
-  // Solo permite mitad y mitad si eligió 8 porciones y la pizza lo habilita
-  // El backend devuelve la columna en minúscula ("permitemitad")
   const permiteMitad = producto.permitemitad ?? producto.permiteMitad;
   const puedeMitad = esPizza && permiteMitad && tamano === '8 porciones';
 
-  // 2. Validación para habilitar el botón
-  // No hay stock, o no eligió tamaño, o pidió mitad/mitad y todavía no eligió el segundo sabor
   const botonDeshabilitado = 
     sinStock || 
     !tamano || 
     (esMitad && !segundoSabor);
 
-  // 3. Texto dinámico para guiar a la persona usuaria
   let textoBoton = 'Agregar al Pedido';
   if (sinStock) {
     textoBoton = 'Sin Stock';
@@ -35,14 +27,17 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
     textoBoton = 'Seleccioná la 2da mitad';
   }
 
-  // 4. Cálculo dinámico del precio según tamaño (si aún no eligió, muestra el precio base)
   const multiplicadorPrecio = tamano === '4 porciones' ? 0.6 : 1;
   const precioFinal = producto.precio * multiplicadorPrecio;
+
+  // Fallback seguro de la imagen
+  const imagenSegura = (producto.imagen && producto.imagen.trim() !== '') 
+    ? producto.imagen 
+    : '/noimagen.jpg';
 
   function handleAgregar() {
     if (botonDeshabilitado) return;
 
-    // El select guarda el id de la 2da mitad (el backend lo necesita); el nombre se usa para mostrarla.
     const pizzaSegundoSabor = esMitad ? todasLasPizzas.find((p) => p.id === Number(segundoSabor)) : null;
 
     const itemCarrito = {
@@ -65,7 +60,7 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
     <div className="row g-4 g-lg-5 align-items-center">
       <div className="col-md-6">
         <img 
-          src={producto.imagen} 
+          src={imagenSegura} 
           alt={producto.nombre} 
           className="img-fluid rounded-4 shadow-sm w-100" 
           style={{ maxHeight: '450px', objectFit: 'cover' }}
@@ -91,7 +86,6 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
         </p>
         <p className="text-secondary">{producto.descripcion}</p>
 
-        {/* Selector de Tamaño */}
         <h6 className="fw-bold mt-4">
           {esPizza ? 'Tamaño (Porciones):' : 'Presentación:'}
         </h6>
@@ -119,7 +113,6 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
           })}
         </div>
 
-        {/* Panel de Mitad y Mitad (solo si eligió 8 porciones) */}
         {puedeMitad && (
           <div className="p-3 bg-light rounded-3 border mb-4">
             <div className="form-check form-switch mb-2">
@@ -151,7 +144,6 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
                 >
                   <option value="">-- Seleccionar otro sabor --</option>
                   {todasLasPizzas
-                    // Solo pizzas que permiten mitad y están disponibles (el backend rechaza el resto)
                     .filter((p) => p.id !== producto.id && (p.permitemitad ?? p.permiteMitad) && p.disponible !== false)
                     .map((p) => (
                       <option key={p.id} value={p.id}>
@@ -164,7 +156,6 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
           </div>
         )}
 
-        {/* Cantidad y Botón de Pedido */}
         <div className="d-flex align-items-center gap-3 mb-4">
           <div className="input-group" style={{ width: '130px' }}>
             <button

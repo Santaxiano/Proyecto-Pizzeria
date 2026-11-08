@@ -5,11 +5,16 @@ function TarjetaProducto({ producto }) {
   // Si no viniera, se usa el stock como antes.
   const sinStock = !(producto.disponible ?? producto.stock > 0);
 
+  // Fallback seguro de la imagen por si no tiene, viene null o vacío
+  const imagenSegura = (producto.imagen && producto.imagen.trim() !== '') 
+    ? producto.imagen 
+    : '/noimagen.jpg';
+
   return (
     <article className="card h-100 shadow-sm tarjeta-pizza">
       <Link to={`/menu/${producto.id}`}>
         <img 
-          src={producto.imagen} 
+          src={imagenSegura} 
           className="card-img-top" 
           alt={producto.nombre} 
           style={{ height: '220px', objectFit: 'cover' }}
