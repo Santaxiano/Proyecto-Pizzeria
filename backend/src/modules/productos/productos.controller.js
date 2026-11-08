@@ -62,6 +62,13 @@ const valoresProducto = (body) => [
   body.descripcion ?? null,
 ];
 
+// El archivo ya lo guardó el middleware subirImagen en backend/uploads/productos.
+// Devolvemos la URL completa porque el front corre en otro puerto que el backend.
+export const subirImagen = (req, res) => {
+  const ruta = `${req.protocol}://${req.get('host')}/uploads/productos/${req.file.filename}`;
+  res.status(201).json({ ruta });
+};
+
 export const listar = async (_req, res, next) => {
   try {
     const { rows } = await pool.query(`${SELECT_PRODUCTOS} GROUP BY p.id ORDER BY p.id`);

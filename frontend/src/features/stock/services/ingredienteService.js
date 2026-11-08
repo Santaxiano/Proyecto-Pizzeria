@@ -32,7 +32,30 @@ export async function obtenerDatosCompletos() {
   };
 }
 
+// Sube la imagen al backend (backend/uploads/productos) y devuelve la URL para guardar en la base
+export async function subirImagenProductoAPI(archivo) {
+  const formData = new FormData();
+  formData.append('imagen', archivo);
+
+  // Sin Content-Type: el navegador lo arma solo con el boundary del multipart
+  const respuesta = await fetch(`${URL_BASE}/productos/imagen`, {
+    method: 'POST',
+    headers: headersConToken(),
+    body: formData,
+  });
+
+  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'Error al subir la imagen');
+  const { ruta } = await respuesta.json();
+  return ruta;
+}
+
 export async function guardarProductoAPI(producto, idEditar = null) {
+  // Si viene un archivo nuevo, primero se sube y su ruta pasa a ser la imagen del producto
+  if (producto.archivoImagen) {
+    const ruta = await subirImagenProductoAPI(producto.archivoImagen);
+    producto = { ...producto, imagen: ruta };
+  }
+
   const esPizza = producto.categoria === 'pizzas';
   const esBebida = producto.categoria === 'bebidas';
 

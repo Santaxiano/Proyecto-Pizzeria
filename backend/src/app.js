@@ -11,11 +11,14 @@ import reservasRoutes from './modules/reservas/reservas.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFound } from './middlewares/notFound.js';
 import pagosRoutes from './modules/pagos/pagos.routes.js';
+import { CARPETA_UPLOADS } from './middlewares/subirImagen.js';
 
 const app = express();
 
 app.use(cors(corsOptions));
 app.use(express.json());
+// Imágenes subidas desde el panel (ej. /uploads/productos/123-abcd.jpg)
+app.use('/uploads', express.static(CARPETA_UPLOADS));
 app.use((req, _res, next) => {
   if (req.body == null) req.body = {};
   next();

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import SelectorImagen from './SelectorImagen';
 
 // Función mágica para quitar acentos y pasar todo a minúsculas
 const normalizarTexto = (texto) => {
@@ -23,6 +24,8 @@ export default function ModalFormularioStock({
     ingredientesIds: []
   });
 
+  // Archivo elegido en el selector; se sube recién al guardar
+  const [archivoImagen, setArchivoImagen] = useState(null);
   const [busquedaIngrediente, setBusquedaIngrediente] = useState('');
   const [errorNombre, setErrorNombre] = useState('');
 
@@ -75,8 +78,11 @@ export default function ModalFormularioStock({
     const valoresFinales = { ...valores };
 
     if (tipo === 'producto') {
-      // 1. Asignamos la imagen por defecto si la dejaron vacía
-      if (!valoresFinales.imagen || valoresFinales.imagen.trim() === '') {
+      // 1. Si eligieron un archivo, el service lo sube y reemplaza "imagen" por la ruta.
+      //    Si no, asignamos la imagen por defecto si la dejaron vacía
+      if (archivoImagen) {
+        valoresFinales.archivoImagen = archivoImagen;
+      } else if (!valoresFinales.imagen || valoresFinales.imagen.trim() === '') {
         valoresFinales.imagen = '/noimagen.jpg';
       }
       
@@ -150,14 +156,12 @@ export default function ModalFormularioStock({
                     </div>
 
                     <div className="col-12">
-                      <label className="form-label fw-bold small">URL de la Imagen (opcional)</label>
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        name="imagen" 
-                        placeholder="Dejá en blanco para usar la imagen por defecto..."
-                        value={valores.imagen} 
-                        onChange={handleChange} 
+                      <label className="form-label fw-bold small">Imagen (opcional)</label>
+                      <SelectorImagen
+                        imagenActual={valores.imagen}
+                        archivo={archivoImagen}
+                        onCambiarArchivo={setArchivoImagen}
+                        onQuitarImagenActual={() => setValores({ ...valores, imagen: '' })}
                       />
                     </div>
 
