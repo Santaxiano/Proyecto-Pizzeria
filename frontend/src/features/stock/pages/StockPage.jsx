@@ -5,10 +5,14 @@ import TablaMateriaPrima from '../components/TablaMateriaPrima';
 import ModalFormularioStock from '../components/ModalFormularioStock';
 import ModalConfirmacion from '../components/ModalConfirmacion';
 
-// Misma función normalizadora
 const normalizarTexto = (texto) => {
   if (!texto) return '';
-  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+};
+
+// Genera un token estricto (sin NINGÚN espacio)
+const crearTokenEstricto = (texto) => {
+  return normalizarTexto(texto).replace(/\s+/g, "");
 };
 
 export default function StockPage() {
@@ -71,8 +75,8 @@ export default function StockPage() {
     });
   };
 
-  // --- FILTROS DE TABLAS SIN ACENTOS ---
   const productosFiltrados = useMemo(() => {
+    // Al buscar usamos normalizarTexto (que mantiene espacios simples) para que puedan buscar "Pizza de jamon"
     const busquedaNormalizada = normalizarTexto(busquedaTabla);
     return productos.filter(p => normalizarTexto(p.nombre).includes(busquedaNormalizada));
   }, [productos, busquedaTabla]);
@@ -82,10 +86,10 @@ export default function StockPage() {
     return ingredientes.filter(i => normalizarTexto(i.nombre).includes(busquedaNormalizada));
   }, [ingredientes, busquedaTabla]);
 
-  // Lista de nombres actuales 100% normalizada para pasarle al Modal y evitar duplicados
-  const listaActualNombres = tipoForm === 'producto' 
-    ? productos.map(p => normalizarTexto(p.nombre)) 
-    : ingredientes.map(i => normalizarTexto(i.nombre));
+  // Lista de tokens estrictos (sin NINGÚN espacio) para evitar duplicados en el Modal
+  const listaActualTokens = tipoForm === 'producto' 
+    ? productos.map(p => crearTokenEstricto(p.nombre)) 
+    : ingredientes.map(i => crearTokenEstricto(i.nombre));
 
   return (
     <div className="container py-4">
@@ -116,7 +120,7 @@ export default function StockPage() {
           tipo={tipoForm}
           itemAEditar={itemAEditar}
           listaIngredientesDisponibles={ingredientes}
-          listaActualNombres={listaActualNombres} 
+          listaActualNombres={listaActualTokens} // Pasamos la lista estricta
           onGuardar={(valores) => {
             if (tipoForm === 'producto') {
               guardarProducto({ ...itemAEditar, ...valores }, itemAEditar?.id);

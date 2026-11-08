@@ -1,17 +1,22 @@
 import { useState, useEffect, useMemo } from 'react';
 import SelectorImagen from './SelectorImagen';
 
-// Función mágica para quitar acentos y pasar todo a minúsculas
+// Quita acentos, minúsculas y elimina espacios extras en los extremos
 const normalizarTexto = (texto) => {
   if (!texto) return '';
-  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+};
+
+// Genera un token estricto (sin NINGÚN espacio) para evitar que "Pizza de Jamón" y "Pizza  de jamón  " pasen como distintas
+const crearTokenEstricto = (texto) => {
+  return normalizarTexto(texto).replace(/\s+/g, "");
 };
 
 export default function ModalFormularioStock({ 
   tipo, 
   itemAEditar, 
   listaIngredientesDisponibles, 
-  listaActualNombres, 
+  listaActualNombres, // Esta lista ahora debe contener los tokens estrictos
   onGuardar, 
   onCancelar 
 }) {
@@ -24,7 +29,6 @@ export default function ModalFormularioStock({
     ingredientesIds: []
   });
 
-  // Archivo elegido en el selector; se sube recién al guardar
   const [archivoImagen, setArchivoImagen] = useState(null);
   const [busquedaIngrediente, setBusquedaIngrediente] = useState('');
   const [errorNombre, setErrorNombre] = useState('');
@@ -44,14 +48,19 @@ export default function ModalFormularioStock({
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setValores({ ...valores, [name]: value });
     
-    // Validación en tiempo real (sin importar acentos ni mayúsculas)
+    // Forzamos a que no puedan empezar el nombre con un espacio
+    const valorLimpio = name === 'nombre' && value.startsWith(' ') ? value.trimStart() : value;
+    
+    setValores({ ...valores, [name]: valorLimpio });
+    
+    // Validación estricta en tiempo real (sin acentos, sin mayúsculas, sin espacios extra)
     if (name === 'nombre') {
-      const nombreNormalizado = normalizarTexto(value);
-      const esMismoItem = itemAEditar && normalizarTexto(itemAEditar.nombre) === nombreNormalizado;
+      const tokenIngresado = crearTokenEstricto(valorLimpio);
+      const esMismoItem = itemAEditar && crearTokenEstricto(itemAEditar.nombre) === tokenIngresado;
       
-      if (!esMismoItem && listaActualNombres.includes(nombreNormalizado)) {
+      // Chequeamos contra la lista estricta
+      if (!esMismoItem && listaActualNombres.includes(tokenIngresado)) {
         setErrorNombre(`Ya existe un ${tipo} con este nombre.`);
       } else {
         setErrorNombre('');
@@ -70,23 +79,23 @@ export default function ModalFormularioStock({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (errorNombre) {
-      alert("Por favor corregí los errores antes de guardar.");
+    if (errorNombre || valores.nombre.trim() === '') {
+      alert("Por favor ingresá un nombre válido y sin duplicados.");
       return;
     }
     
-    const valoresFinales = { ...valores };
+    const valoresFinales = { 
+      ...valores,
+      nombre: valores.nombre.trim().replace(/\s+/g, ' ') // Guarda el nombre limpio (1 solo espacio entre palabras)
+    };
 
     if (tipo === 'producto') {
-      // 1. Si eligieron un archivo, el service lo sube y reemplaza "imagen" por la ruta.
-      //    Si no, asignamos la imagen por defecto si la dejaron vacía
       if (archivoImagen) {
         valoresFinales.archivoImagen = archivoImagen;
       } else if (!valoresFinales.imagen || valoresFinales.imagen.trim() === '') {
         valoresFinales.imagen = '/noimagen.jpg';
       }
       
-      // 2. Si es bebida, forzamos a que no envíe ingredientes
       if (valoresFinales.categoria === 'bebidas') {
         valoresFinales.ingredientesIds = [];
       }
@@ -95,7 +104,6 @@ export default function ModalFormularioStock({
     onGuardar(valoresFinales);
   };
 
-  // Buscador de ingredientes inteligente (sin acentos)
   const ingredientesFiltrados = useMemo(() => {
     const busquedaNormalizada = normalizarTexto(busquedaIngrediente);
     return listaIngredientesDisponibles.filter(ing => 
