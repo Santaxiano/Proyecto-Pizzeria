@@ -19,12 +19,11 @@ export function useFiltros(productos) {
   const productosFiltrados = lista.filter((p) => {
     const coincideCategoria = categoria === 'todas' || p.categoria === categoria;
     
-    // Normalizamos el nombre y descripción del producto antes de buscar
+    // Normalizamos el nombre del producto
     const nombreNormalizado = normalizarTexto(p.nombre);
-    const descripcionNormalizada = normalizarTexto(p.descripcion);
 
-    const coincideBusqueda = nombreNormalizado.includes(textoBuscado) ||
-                             descripcionNormalizada.includes(textoBuscado);
+    // Verificamos coincidencia ÚNICAMENTE en el nombre
+    const coincideBusqueda = nombreNormalizado.includes(textoBuscado);
                              
     return coincideCategoria && coincideBusqueda;
   });

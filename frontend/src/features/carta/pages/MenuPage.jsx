@@ -62,7 +62,7 @@ function MenuPage() {
             <input
               type="search"
               className="form-control form-control-lg rounded-pill px-4 shadow-sm"
-              placeholder="Buscar por nombre o ingrediente..."
+              placeholder="Buscar por nombre..." 
               value={filtros.busqueda}
               onChange={(e) => filtros.setBusqueda(e.target.value)}
             />
