@@ -1,16 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { validarDatosReserva } from '../../reservas/services/reservaService';
-
-const HORARIOS_DISPONIBLES = [
-  '12:30', '13:30', '14:30',
-  '20:00', '21:00', '22:00', '23:00'
-];
 
 export default function FormularioReserva({ onReservaConfirmada }) {
   const [datos, setDatos] = useState({
     fecha: new Date().toISOString().split('T')[0],
     personas: 2,
-    hora: '20:00',
+    hora: '', // Iniciamos vacío para obligar a seleccionar
     nombre: '',
     whatsapp: '',
     motivo: 'Salón Principal',
@@ -20,6 +15,39 @@ export default function FormularioReserva({ onReservaConfirmada }) {
   const [errores, setErrores] = useState({});
   const [enviando, setEnviando] = useState(false);
   const [errorEnvio, setErrorEnvio] = useState('');
+
+  // Generación dinámica de horarios (misma lógica que el cliente)
+  const horariosDisponibles = useMemo(() => {
+    if (!datos.fecha) return [];
+    const [anio, mes, dia] = datos.fecha.split('-');
+    const fechaObj = new Date(anio, mes - 1, dia);
+    const esDomingo = fechaObj.getDay() === 0;
+
+    let horarios = [];
+    
+    // De Lunes a Sábado habilitamos el mediodía
+    if (!esDomingo) {
+      horarios.push('12:00', '12:30', '13:00', '13:30', '14:00');
+    }
+    // Todos los días habilitamos la noche
+    horarios.push('19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30');
+
+    // Filtramos los horarios que ya pasaron si la reserva es para HOY
+    const hoy = new Date();
+    const esHoy = hoy.getFullYear() === fechaObj.getFullYear() &&
+                  hoy.getMonth() === fechaObj.getMonth() &&
+                  hoy.getDate() === fechaObj.getDate();
+
+    if (esHoy) {
+      const horaActual = hoy.getHours() * 60 + hoy.getMinutes();
+      horarios = horarios.filter(h => {
+        const [hh, mm] = h.split(':').map(Number);
+        return (hh * 60 + mm) > horaActual; // Solo deja los horarios futuros
+      });
+    }
+
+    return horarios;
+  }, [datos.fecha]);
 
   const actualizarCampo = (campo, valor) => {
     setDatos((prev) => ({ ...prev, [campo]: valor }));
@@ -92,7 +120,10 @@ export default function FormularioReserva({ onReservaConfirmada }) {
             className={`form-control ${errores.fecha ? 'is-invalid' : ''}`}
             value={datos.fecha}
             min={new Date().toISOString().split('T')[0]}
-            onChange={(e) => actualizarCampo('fecha', e.target.value)}
+            onChange={(e) => {
+              actualizarCampo('fecha', e.target.value);
+              actualizarCampo('hora', ''); // Resetea la hora si cambian el día
+            }}
           />
           {errores.fecha && <div className="invalid-feedback">{errores.fecha}</div>}
         </div>
@@ -130,22 +161,23 @@ export default function FormularioReserva({ onReservaConfirmada }) {
         {/* Horarios Disponibles */}
         <div className="col-12">
           <label className="form-label small fw-bold">Turno / Horario *</label>
-          <div className="d-flex flex-wrap gap-2">
-            {HORARIOS_DISPONIBLES.map((hora) => {
-              const activo = datos.hora === hora;
-              return (
-                <button
-                  type="button"
-                  key={hora}
-                  className={`btn btn-sm ${activo ? 'btn-danger fw-bold' : 'btn-outline-secondary'}`}
-                  onClick={() => actualizarCampo('hora', hora)}
-                >
-                  {hora} hs
-                </button>
-              );
-            })}
-          </div>
-          {errores.hora && <div className="text-danger small mt-1">{errores.hora}</div>}
+          {horariosDisponibles.length > 0 ? (
+            <select
+              className={`form-select ${errores.hora ? 'is-invalid' : ''}`}
+              value={datos.hora}
+              onChange={(e) => actualizarCampo('hora', e.target.value)}
+            >
+              <option value="">Seleccioná un horario...</option>
+              {horariosDisponibles.map((hora) => (
+                <option key={hora} value={hora}>{hora} hs</option>
+              ))}
+            </select>
+          ) : (
+            <div className="alert alert-warning p-2 small m-0">
+              No quedan turnos disponibles para la fecha seleccionada.
+            </div>
+          )}
+          {errores.hora && <div className="invalid-feedback d-block mt-1">{errores.hora}</div>}
         </div>
 
         {/* Sector / Motivo */}
@@ -180,7 +212,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
 
       {errorEnvio && <div className="alert alert-danger mt-3" role="alert">{errorEnvio}</div>}
 
-      <button type="submit" className="btn btn-success w-100 py-2 fw-bold mt-4" disabled={enviando}>
+      <button type="submit" className="btn btn-success w-100 py-2 fw-bold mt-4" disabled={enviando || horariosDisponibles.length === 0}>
         {enviando ? 'Guardando reserva...' : 'Guardar Reserva en la Agenda'}
       </button>
     </form>

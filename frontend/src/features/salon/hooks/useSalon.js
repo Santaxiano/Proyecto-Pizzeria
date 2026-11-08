@@ -1,24 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { obtenerDatosSalon } from '../services/salonService';
 import { useFetch } from '../../../shared/hooks/useFetch';
-import {
-  actualizarMesa,
-  crearMesa as crearMesaAPI,
-  eliminarMesa as eliminarMesaAPI,
-} from '../services/mesaService';
-import {
-  actualizarReserva,
-  crearReserva,
-  eliminarReserva as eliminarReservaAPI,
-} from '../../reservas/services/reservaService';
+import { actualizarMesa, crearMesa as crearMesaAPI, eliminarMesa as eliminarMesaAPI } from '../services/mesaService';
+import { actualizarReserva, crearReserva, eliminarReserva as eliminarReservaAPI } from '../../reservas/services/reservaService';
 
 const RESERVAS_VACIAS = [];
 const MESAS_VACIAS = [];
-const VENTANA_RESERVA_MS = 30 * 60 * 1000;
+const VENTANA_PREVIA_MS = 30 * 60 * 1000; // 30 min antes de la reserva
+const DURACION_RESERVA_MS = 2 * 60 * 60 * 1000; // La reserva asume 2 horas de ocupación
 
 function reservaEnVentana(reserva, ahora) {
-  const inicio = new Date(`${reserva.fecha}T${reserva.hora}`).getTime();
-  return Number.isFinite(inicio) && Math.abs(ahora - inicio) <= VENTANA_RESERVA_MS;
+  const inicio = new Date(`${reserva.fecha}T${reserva.hora || reserva.desde}`).getTime();
+  return Number.isFinite(inicio) && 
+         ahora >= (inicio - VENTANA_PREVIA_MS) && 
+         ahora <= (inicio + DURACION_RESERVA_MS);
 }
 
 export function useSalon() {
@@ -42,12 +37,8 @@ export function useSalon() {
 
     if (reserva) {
       return {
-        ...mesa,
-        estado: 'Reservada',
-        reservaId: reserva.id,
-        cliente: reserva.cliente,
-        comensales: reserva.comensales,
-        desde: reserva.hora,
+        ...mesa, estado: 'Reservada', reservaId: reserva.id,
+        cliente: reserva.cliente, comensales: reserva.comensales, desde: reserva.hora,
       };
     }
 
@@ -72,9 +63,7 @@ export function useSalon() {
 
   const quitarMesa = async (id) => {
     await eliminarMesaAPI(id);
-    setMesasOverride((mesasActuales) => (
-      (mesasActuales ?? datos?.mesas ?? []).filter((mesa) => mesa.id !== id)
-    ));
+    setMesasOverride((mesasActuales) => ((mesasActuales ?? datos?.mesas ?? []).filter((mesa) => mesa.id !== id)));
   };
 
   const ocuparMesa = async (id) => {
@@ -115,13 +104,8 @@ export function useSalon() {
   const asignarReservaAMesa = async (idReserva, mesasIds) => {
     const reserva = reservas.find(r => r.id === idReserva);
     if (!reserva) throw new Error('No se encontró la reserva seleccionada');
-
-    const reservaActualizada = await actualizarReserva(idReserva, {
-      mesaIds: mesasIds.map(Number),
-    });
-    setReservasOverride(reservas.map((item) => (
-      item.id === reservaActualizada.id ? reservaActualizada : item
-    )));
+    const reservaActualizada = await actualizarReserva(idReserva, { mesaIds: mesasIds.map(Number) });
+    setReservasOverride(reservas.map((item) => (item.id === reservaActualizada.id ? reservaActualizada : item)));
   };
 
   return {
