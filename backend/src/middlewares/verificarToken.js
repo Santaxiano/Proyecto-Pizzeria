@@ -1,7 +1,9 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../config/env.js';
+import { pool } from '../config/db.js'; // Agregamos la conexión a la BD
 
-export const verificarToken = (req, res, next) => {
+// Transformamos la función a async para poder usar await con la base de datos
+export const verificarToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -12,6 +14,13 @@ export const verificarToken = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, env.JWT_SECRET);
+
+    // Validación contra la base de datos: ¿el usuario sigue existiendo?
+    const { rowCount } = await pool.query('SELECT 1 FROM usuarios WHERE id = $1', [payload.id]);
+    
+    if (rowCount === 0) {
+      return res.status(401).json({ error: 'La cuenta de usuario fue eliminada' });
+    }
 
     req.usuario = {
       id: payload.id,
