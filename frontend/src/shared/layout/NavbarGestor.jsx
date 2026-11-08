@@ -60,6 +60,11 @@ function NavbarGestor() {
                                 Registrar Personal
                             </NavLink>
                         )}
+                        {rolUsuario === 'administrador' && (
+                            <NavLink to="/gestor/usuarios" onClick={cerrarMenu} className="nav-link text-white rounded px-3 py-2 fw-semibold">
+                                Administrar Usuarios
+                            </NavLink>
+                        )}
                     </div>
 
                     <button onClick={handleLogout} className="btn btn-tomate w-100 mt-4 fw-bold">

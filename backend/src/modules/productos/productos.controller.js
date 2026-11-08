@@ -21,13 +21,6 @@ const buscarProductoPorId = async (db, id) => {
   return rows[0];
 };
 
-// Error con status propio: lo respondemos acá mismo para que el mensaje llegue tal cual al cliente.
-const errorConStatus = (status, mensaje) => {
-  const error = new Error(mensaje);
-  error.status = status;
-  return error;
-};
-
 // Reemplaza la receta completa del producto con la lista recibida.
 // Se llama siempre dentro de una transacción (db = client del pool).
 const guardarIngredientes = async (db, productoId, ingredientesIds) => {
@@ -37,8 +30,12 @@ const guardarIngredientes = async (db, productoId, ingredientesIds) => {
     const { rows } = await db.query('SELECT id FROM ingredientes WHERE id = ANY($1::int[])', [ids]);
     const existentes = new Set(rows.map((r) => r.id));
     const faltantes = ids.filter((id) => !existentes.has(id));
+    
     if (faltantes.length > 0) {
-      throw errorConStatus(400, `Los ingredientes con id ${faltantes.join(', ')} no existen`);
+      // Creamos el error y le asignamos el status para que lo ataje el errorHandler
+      const error = new Error(`Los ingredientes con id ${faltantes.join(', ')} no existen`);
+      error.status = 400;
+      throw error;
     }
   }
 
@@ -64,11 +61,6 @@ const valoresProducto = (body) => [
   body.imagen ?? null,
   body.descripcion ?? null,
 ];
-
-const responderError = (err, res, next) => {
-  if (err.status) return res.status(err.status).json({ error: err.message });
-  next(err);
-};
 
 export const listar = async (_req, res, next) => {
   try {
@@ -113,7 +105,7 @@ export const crear = async (req, res, next) => {
     res.status(201).json(producto);
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
-    responderError(err, res, next);
+    next(err); // Delegamos el error al middleware global
   } finally {
     client.release();
   }
@@ -149,7 +141,7 @@ export const actualizar = async (req, res, next) => {
     res.json(producto);
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
-    responderError(err, res, next);
+    next(err); // Delegamos el error al middleware global
   } finally {
     client.release();
   }
@@ -175,7 +167,9 @@ export const eliminar = async (req, res, next) => {
     await client.query('ROLLBACK').catch(() => {});
     // 23503: el producto figura en algún pedido (detalle_pedido)
     if (err.code === '23503') {
-      return res.status(409).json({ error: 'No se puede eliminar el producto porque tiene pedidos asociados' });
+      const error = new Error('No se puede eliminar el producto porque tiene pedidos asociados');
+      error.status = 409;
+      return next(error);
     }
     next(err);
   } finally {

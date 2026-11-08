@@ -20,6 +20,7 @@ import { StockPage } from './features/stock';
 import SalonPage from './features/salon/pages/SalonPage';
 import ComandasPage from './features/comandas/pages/ComandasPage';
 import EmpleadoPage from './features/empleados/pages/EmpleadoPage';
+import UsuariosPage from './features/usuarios/pages/UsuariosPage';
 
 export const router = createBrowserRouter([
   {
@@ -52,7 +53,8 @@ export const router = createBrowserRouter([
       { path: 'salon', element: <SalonPage /> },
       { path: 'comandas', element: <ComandasPage /> },
       { path: 'stock', element: <StockPage /> },
-      { path: 'empleados', element: <EmpleadoPage /> }
+      { path: 'empleados', element: <EmpleadoPage /> },
+      { path: 'usuarios', element: <UsuariosPage />}
     ]
   }
 ]);
