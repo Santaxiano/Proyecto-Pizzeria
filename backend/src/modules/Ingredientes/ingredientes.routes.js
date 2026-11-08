@@ -10,6 +10,7 @@ router.use(verificarToken);
 
 router.get('/', controller.listar);
 router.get('/:id', validarId, controller.obtener);
+router.get('/:id/productos', validarId, controller.listarProductos);
 router.post('/', validarIngrediente, controller.crear);
 router.put('/:id', validarId, validarIngrediente, controller.actualizar);
 router.delete('/:id', validarId, controller.eliminar);

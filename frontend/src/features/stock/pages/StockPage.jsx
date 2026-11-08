@@ -7,18 +7,20 @@ import ModalConfirmacion from '../components/ModalConfirmacion';
 
 export default function StockPage() {
   const { 
-    ingredientes, productos, relaciones, 
-    toggleIngrediente, toggleProducto, 
-    guardarProducto, eliminarProducto, 
-    guardarIngrediente, eliminarIngrediente, 
-    cargando, error 
+    ingredientes, productos,
+    toggleIngrediente, toggleProducto,
+    guardarProducto, eliminarProducto,
+    guardarIngrediente, eliminarIngrediente,
+    productosAfectados,
+    cargando, error
   } = useStock();
-  
+
   const [tabActiva, setTabActiva] = useState('productos');
   const [modalFormAbierto, setModalFormAbierto] = useState(false);
   const [tipoForm, setTipoForm] = useState('producto'); // 'producto' o 'ingrediente'
   const [itemAEditar, setItemAEditar] = useState(null);
-  const [alertaEliminar, setAlertaEliminar] = useState(null);
+  // Acción pendiente de confirmar: eliminar producto/ingrediente o dejar un ingrediente sin stock
+  const [alertaConfirmacion, setAlertaConfirmacion] = useState(null);
 
   if (cargando) return <div className="text-center py-5"><div className="spinner-border text-danger" /></div>;
   if (error) return <div className="alert alert-danger m-4 text-center">{error.message}</div>;
@@ -36,7 +38,7 @@ export default function StockPage() {
 
   const abrirEdicionProducto = (prod) => {
     setTipoForm('producto');
-    const ingAsociados = relaciones.filter(r => r.producto_id === prod.id).map(r => r.ingrediente_id);
+    const ingAsociados = (prod.ingredientes || []).map(i => i.id);
     setItemAEditar({ ...prod, ingredientesIds: ingAsociados });
     setModalFormAbierto(true);
   };
@@ -45,6 +47,25 @@ export default function StockPage() {
     setTipoForm('ingrediente');
     setItemAEditar(ing);
     setModalFormAbierto(true);
+  };
+
+  // Efecto dominó: antes de dejar un ingrediente sin stock, avisamos qué productos se pausan.
+  // Reponerlo no necesita confirmación.
+  const pedirToggleIngrediente = async (id) => {
+    const ing = ingredientes.find(i => i.id === id);
+    if (!ing) return;
+    if (!ing.activo) return toggleIngrediente(id);
+
+    const afectados = await productosAfectados(id);
+    if (afectados === null) return;
+    if (afectados.length === 0) return toggleIngrediente(id);
+
+    setAlertaConfirmacion({
+      tipo: 'toggleIngrediente',
+      id,
+      titulo: `¿Dejar sin stock "${ing.nombre}"?`,
+      mensaje: `Estos productos van a quedar pausados: ${afectados.map(p => p.nombre).join(', ')}.`
+    });
   };
 
   return (
@@ -69,7 +90,9 @@ export default function StockPage() {
           listaIngredientesDisponibles={ingredientes}
           onGuardar={(valores) => {
             if (tipoForm === 'producto') {
-              guardarProducto(valores, itemAEditar?.id);
+              // El formulario solo trae algunos campos: el resto (imagen, stock, destacado...)
+              // se toma del producto original para no pisarlo al editar.
+              guardarProducto({ ...itemAEditar, ...valores }, itemAEditar?.id);
             } else {
               guardarIngrediente(valores, itemAEditar?.id);
             }
@@ -79,16 +102,17 @@ export default function StockPage() {
         />
       )}
 
-      {/* MODAL CONFIRMACIÓN ELIMINAR */}
-      {alertaEliminar && (
-        <ModalConfirmacion 
-          titulo={alertaEliminar.titulo}
-          mensaje={alertaEliminar.mensaje}
-          onCancelar={() => setAlertaEliminar(null)}
+      {/* MODAL CONFIRMACIÓN (eliminar / dejar ingrediente sin stock) */}
+      {alertaConfirmacion && (
+        <ModalConfirmacion
+          titulo={alertaConfirmacion.titulo}
+          mensaje={alertaConfirmacion.mensaje}
+          onCancelar={() => setAlertaConfirmacion(null)}
           onConfirmar={() => {
-            if (alertaEliminar.tipo === 'producto') eliminarProducto(alertaEliminar.id);
-            if (alertaEliminar.tipo === 'ingrediente') eliminarIngrediente(alertaEliminar.id);
-            setAlertaEliminar(null);
+            if (alertaConfirmacion.tipo === 'producto') eliminarProducto(alertaConfirmacion.id);
+            if (alertaConfirmacion.tipo === 'ingrediente') eliminarIngrediente(alertaConfirmacion.id);
+            if (alertaConfirmacion.tipo === 'toggleIngrediente') toggleIngrediente(alertaConfirmacion.id);
+            setAlertaConfirmacion(null);
           }}
         />
       )}
@@ -113,7 +137,7 @@ export default function StockPage() {
           productos={productos} 
           onToggle={toggleProducto}
           onEditar={abrirEdicionProducto}
-          onEliminar={(id) => setAlertaEliminar({
+          onEliminar={(id) => setAlertaConfirmacion({
             tipo: 'producto',
             id,
             titulo: '¿Eliminar producto?',
@@ -123,13 +147,13 @@ export default function StockPage() {
       ) : (
         <TablaMateriaPrima 
           ingredientes={ingredientes} 
-          onToggle={toggleIngrediente}
+          onToggle={pedirToggleIngrediente}
           onEditar={abrirEdicionIngrediente}
-          onEliminar={(id) => setAlertaEliminar({
+          onEliminar={(id) => setAlertaConfirmacion({
             tipo: 'ingrediente',
             id,
             titulo: '¿Eliminar ingrediente?',
-            mensaje: 'Se borrará este insumo y se desvinculará de las recetas afectadas.'
+            mensaje: 'Se borrará este insumo de forma permanente. Si algún producto lo usa no se podrá eliminar; en ese caso desactivalo.'
           })}
         />
       )}

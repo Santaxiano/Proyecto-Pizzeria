@@ -415,7 +415,8 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Cada producto trae ingredientes y disponible', () => pm.response.json().forEach((p) => { pm.expect(p.ingredientes).to.be.an('array'); pm.expect(p.disponible).to.be.a('boolean'); }));"
                     ]
                   }
                 }
@@ -442,7 +443,8 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Trae sus ingredientes', () => pm.expect(pm.response.json().ingredientes).to.be.an('array').that.is.not.empty);"
                     ]
                   }
                 }
@@ -1073,6 +1075,693 @@
           ]
         },
         {
+          "name": "Producto-Ingrediente",
+          "item": [
+            {
+              "name": "Crear ingrediente para la receta",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('recetaIngredienteId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Ingrediente receta Postman\",\n  \"activo\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Crear producto con ingredientes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 201', () => pm.response.to.have.status(201));",
+                      "const ingId = Number(pm.collectionVariables.get('recetaIngredienteId'));",
+                      "const ids = pm.response.json().ingredientes.map((i) => i.id);",
+                      "pm.test('Devuelve los 2 ingredientes de la receta', () => pm.expect(ids).to.have.members([1, ingId]));",
+                      "pm.test('Queda disponible', () => pm.expect(pm.response.json().disponible).to.eql(true));",
+                      "pm.collectionVariables.set('recetaProductoId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [1, {{recetaIngredienteId}}]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Crear producto con ingrediente inexistente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));",
+                      "pm.test('El mensaje indica el id que no existe', () => pm.expect(pm.response.json().error).to.include('999999'));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [999999]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Crear producto con ingredientesIds inválido",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 400', () => pm.response.to.have.status(400));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [\"a\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Obtener producto con su receta",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Trae 2 ingredientes', () => pm.expect(pm.response.json().ingredientes).to.have.lengthOf(2));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/{{recetaProductoId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "{{recetaProductoId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Productos que usan el ingrediente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "const prodId = Number(pm.collectionVariables.get('recetaProductoId'));",
+                      "pm.test('Incluye el producto de la receta', () => pm.expect(pm.response.json().map((p) => p.id)).to.include(prodId));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{recetaIngredienteId}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{recetaIngredienteId}}",
+                    "productos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Productos que usan el ingrediente sin token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 401', () => pm.response.to.have.status(401));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{recetaIngredienteId}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{recetaIngredienteId}}",
+                    "productos"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              }
+            },
+            {
+              "name": "Productos de un ingrediente inexistente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/9999/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "9999",
+                    "productos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Eliminar ingrediente en uso",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 409', () => pm.response.to.have.status(409));",
+                      "pm.test('Avisa qué productos lo usan', () => pm.expect(pm.response.json().error).to.include('Pizza receta Postman'));",
+                      "pm.test('Devuelve la lista de productos', () => pm.expect(pm.response.json().productos).to.be.an('array').that.is.not.empty);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{recetaIngredienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{recetaIngredienteId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Desactivar ingrediente (efecto dominó)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{recetaIngredienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{recetaIngredienteId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Ingrediente receta Postman\",\n  \"activo\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Producto queda no disponible",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('disponible es false', () => pm.expect(pm.response.json().disponible).to.eql(false));",
+                      "const ingId = Number(pm.collectionVariables.get('recetaIngredienteId'));",
+                      "pm.test('El ingrediente figura inactivo', () => pm.expect(pm.response.json().ingredientes.find((i) => i.id === ingId).activo).to.eql(false));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/{{recetaProductoId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "{{recetaProductoId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Reactivar ingrediente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{recetaIngredienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{recetaIngredienteId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Ingrediente receta Postman\",\n  \"activo\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Producto vuelve a estar disponible",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('disponible es true', () => pm.expect(pm.response.json().disponible).to.eql(true));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/{{recetaProductoId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "{{recetaProductoId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Actualizar producto sin ingredientesIds mantiene la receta",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Sigue con 2 ingredientes', () => pm.expect(pm.response.json().ingredientes).to.have.lengthOf(2));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/{{recetaProductoId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "{{recetaProductoId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Actualizar la receta del producto",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "const ingId = Number(pm.collectionVariables.get('recetaIngredienteId'));",
+                      "const ids = pm.response.json().ingredientes.map((i) => i.id);",
+                      "pm.test('La receta se reemplazó por la nueva lista', () => pm.expect(ids).to.eql([ingId]));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/{{recetaProductoId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "{{recetaProductoId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [{{recetaIngredienteId}}]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Actualizar receta de producto inexistente",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 404', () => pm.response.to.have.status(404));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/9999",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "9999"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [1]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Eliminar producto con ingredientes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/productos/{{recetaProductoId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "productos",
+                    "{{recetaProductoId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "El ingrediente ya no tiene productos",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 200', () => pm.response.to.have.status(200));",
+                      "pm.test('La lista está vacía', () => pm.expect(pm.response.json()).to.be.an('array').that.is.empty);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{recetaIngredienteId}}/productos",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{recetaIngredienteId}}",
+                    "productos"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Eliminar ingrediente que ya no se usa",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde 204', () => pm.response.to.have.status(204));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ingredientes/{{recetaIngredienteId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "ingredientes",
+                    "{{recetaIngredienteId}}"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
           "name": "Mesas",
           "item": [
             {
@@ -1511,7 +2200,8 @@
               }
             }
           ]
-        },{
+        },
+        {
           "name": "Reservas",
           "item": [
             {
@@ -1758,6 +2448,16 @@
     },
     {
       "key": "pedidoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recetaProductoId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "recetaIngredienteId",
       "value": "",
       "type": "string"
     }

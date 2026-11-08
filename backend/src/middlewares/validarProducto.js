@@ -11,6 +11,11 @@ const camposProducto = {
   destacado: { requerido: false, validar: (value) => value === null || value === undefined || typeof value === 'boolean' },
   imagen: { requerido: false, validar: (value) => value === null || value === undefined || typeof value === 'string' },
   descripcion: { requerido: false, validar: (value) => value === null || value === undefined || typeof value === 'string' },
+  // Opcional: si no viene, la receta del producto no se toca. [] deja al producto sin ingredientes.
+  ingredientesIds: {
+    requerido: false,
+    validar: (value) => Array.isArray(value) && value.every((id) => Number.isInteger(id) && id > 0),
+  },
 };
 
 export const validarProducto = (req, res, next) => {

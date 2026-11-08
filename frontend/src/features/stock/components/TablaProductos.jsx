@@ -13,7 +13,11 @@ export default function TablaProductos({ productos, onToggle, onEditar, onElimin
         </thead>
 
         <tbody>
-          {productos.map((prod) => (
+          {productos.map((prod) => {
+            // Efecto dominó: ingredientes inactivos que dejan al producto pausado
+            const faltantes = (prod.ingredientes || []).filter((ing) => !ing.activo);
+
+            return (
             <tr key={prod.id}>
               <th scope="row" className="px-3">{prod.id}</th>
 
@@ -43,6 +47,11 @@ export default function TablaProductos({ productos, onToggle, onEditar, onElimin
                 ) : (
                   <span className="badge bg-danger">Pausado</span>
                 )}
+                {faltantes.length > 0 && (
+                  <small className="text-danger d-block mt-1">
+                    Falta: {faltantes.map((ing) => ing.nombre).join(', ')}
+                  </small>
+                )}
               </td>
 
               <td className="text-end px-3">
@@ -62,7 +71,8 @@ export default function TablaProductos({ productos, onToggle, onEditar, onElimin
                 </div>
               </td>
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>
