@@ -75,6 +75,9 @@ function CarritoPage() {
     if (modalidadHorario === 'programado' && !fechaProgramada) {
       nuevosErrores.fechaProgramada = 'Seleccioná una fecha.';
     }
+    if (modalidadHorario === 'programado' && !horaProgramada) {
+      nuevosErrores.horaProgramada = 'Seleccioná un horario.';
+    }
 
     if (Object.keys(nuevosErrores).length > 0) {
       setErrores(nuevosErrores);

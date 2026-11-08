@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { obtenerProductos } from '../../carta/services/catalogoService';
 import { useFetch } from '../../../shared/hooks/useFetch';
 
-// Misma regla de envío que aplica el backend al crear el pedido (pedidos.controller.js).
+// Misma regla de envío que aplica el backend al crear el pedido
 const ENVIO_GRATIS_DESDE = 15000;
 const COSTO_ENVIO = 1500;
 
@@ -14,12 +14,55 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
     cliente: '',
     telefono: '',
     tipo: 'delivery',
-    direccionMesa: ''
+    direccionMesa: '',
+    // Agregamos los campos para manejar la lógica de horarios
+    modalidadHorario: 'inmediato',
+    fechaProgramada: new Date().toISOString().split('T')[0],
+    horaProgramada: '' 
   });
 
   const [items, setItems] = useState([]);
   const [prodSeleccionado, setProdSeleccionado] = useState('');
   const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
+
+  // --- LÓGICA DINÁMICA DE HORARIOS ---
+  const horariosDisponibles = useMemo(() => {
+    if (!valores.fechaProgramada) return [];
+    
+    const [anio, mes, dia] = valores.fechaProgramada.split('-');
+    const fechaObj = new Date(anio, mes - 1, dia);
+    const esDomingo = fechaObj.getDay() === 0;
+
+    let horarios = [];
+    
+    // Rango Mediodía (Lunes a Sábado). 
+    if (!esDomingo) {
+      horarios.push('12:00', '12:30', '13:00', '13:30', '14:00', '14:30');
+    }
+    // Rango Noche (Todos los días). 
+    horarios.push('19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30');
+
+    const hoy = new Date();
+    const esHoy = hoy.getFullYear() === fechaObj.getFullYear() &&
+                  hoy.getMonth() === fechaObj.getMonth() &&
+                  hoy.getDate() === fechaObj.getDate();
+
+    if (esHoy) {
+      const horaActual = hoy.getHours() * 60 + hoy.getMinutes();
+      horarios = horarios.filter(h => {
+        const [hh, mm] = h.split(':').map(Number);
+        return (hh * 60 + mm) > (horaActual + 30); 
+      });
+    }
+
+    return horarios;
+  }, [valores.fechaProgramada]);
+
+  // Si cambia la fecha y la hora guardada ya no es válida, la reseteamos
+  if (valores.horaProgramada && !horariosDisponibles.includes(valores.horaProgramada)) {
+    setValores(prev => ({ ...prev, horaProgramada: '' }));
+  }
+  // ------------------------------------
 
   const handleChange = (e) => {
     setValores({ ...valores, [e.target.name]: e.target.value });
@@ -85,8 +128,18 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
       return;
     }
 
-    // El total y el detalle de pantalla son solo una vista previa: el backend los recalcula.
-    onGuardar({ ...valores, items });
+    if (valores.modalidadHorario === 'programado' && (!valores.fechaProgramada || !valores.horaProgramada)) {
+      alert("Seleccioná la fecha y la hora programada.");
+      return;
+    }
+
+    // Armamos el string de horario tal como espera el backend y el cliente
+    const horarioFinal = valores.modalidadHorario === 'inmediato' 
+      ? 'Lo antes posible' 
+      : `${valores.fechaProgramada} a las ${valores.horaProgramada} hs`;
+
+    // Pasamos el horarioFinal a onGuardar
+    onGuardar({ ...valores, horario: horarioFinal, items });
   };
 
   return (
@@ -117,7 +170,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
             
             <div className="col-md-8">
               <label className="form-label fw-bold small text-muted">Dirección / N° Mesa</label>
-              <input type="text" className="form-control" name="direccionMesa" value={valores.direccionMesa} onChange={handleChange} required />
+              <input type="text" className="form-control" name="direccionMesa" value={valores.direccionMesa} onChange={handleChange} required={valores.tipo !== 'retiro'} />
             </div>
 
             {aplicaEnvio && (
@@ -130,6 +183,80 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
           </div>
 
           <hr className="text-muted" />
+
+          {/* --- BLOQUE DE HORARIO --- */}
+          <div className="mb-4 bg-light p-3 rounded border">
+            <label className="form-label fw-bold small text-uppercase">Horario del Pedido</label>
+            <div className="d-flex flex-column flex-md-row gap-3 mb-3">
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="modalidadHorario"
+                  id="gestorHorarioInmediato"
+                  value="inmediato"
+                  checked={valores.modalidadHorario === 'inmediato'}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label small fw-semibold" htmlFor="gestorHorarioInmediato">
+                  Lo antes posible
+                </label>
+              </div>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="modalidadHorario"
+                  id="gestorHorarioProgramado"
+                  value="programado"
+                  checked={valores.modalidadHorario === 'programado'}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label small fw-semibold" htmlFor="gestorHorarioProgramado">
+                  Programar horario / otro día
+                </label>
+              </div>
+            </div>
+
+            {valores.modalidadHorario === 'programado' && (
+              <div className="row g-2">
+                <div className="col-sm-6">
+                  <label className="form-label small fw-semibold mb-1">Fecha</label>
+                  <input
+                    type="date"
+                    className="form-control form-control-sm"
+                    name="fechaProgramada"
+                    min={new Date().toISOString().split('T')[0]}
+                    value={valores.fechaProgramada}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="col-sm-6">
+                  <label className="form-label small fw-semibold mb-1">Horario</label>
+                  {horariosDisponibles.length > 0 ? (
+                    <select
+                      className="form-select form-select-sm"
+                      name="horaProgramada"
+                      value={valores.horaProgramada}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Seleccioná...</option>
+                      {horariosDisponibles.map((hora) => (
+                        <option key={hora} value={hora}>{hora} hs</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <select className="form-select form-select-sm" disabled>
+                      <option>Sin horarios disponibles</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* ------------------------- */}
 
           <div className="row g-2 align-items-end mb-4 bg-light p-3 rounded border">
             <div className="col-12 mb-2">
@@ -158,7 +285,6 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                 <table className="table table-sm bg-white mb-0 border">
                   <thead>
                     <tr className="table-secondary">
-          
                       <th>Producto</th>
                       <th className="text-end">Subtotal</th>
                       <th style={{ width: '110px' }} className="text-center">Cant.</th>
@@ -168,7 +294,6 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                   <tbody>
                     {items.map(item => (
                       <tr key={item.id} className="align-middle">
-                       
                         <td className="fw-semibold">{item.nombre}</td>
                         <td className="text-end text-muted">${item.subtotal}</td>
                         <td>

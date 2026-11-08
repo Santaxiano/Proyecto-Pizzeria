@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 function FormularioPedido({ 
   tipoEntrega, 
   setTipoEntrega,
@@ -14,6 +16,50 @@ function FormularioPedido({
   onSimularGeolocalizacion,
   onSubmit
 }) {
+
+  // Generación dinámica de horarios para los pedidos
+  const horariosDisponibles = useMemo(() => {
+    if (!fechaProgramada) return [];
+    
+    const [anio, mes, dia] = fechaProgramada.split('-');
+    const fechaObj = new Date(anio, mes - 1, dia);
+    const esDomingo = fechaObj.getDay() === 0;
+
+    let horarios = [];
+    
+    // Rango Mediodía (Lunes a Sábado). 
+    // Apertura: 12:00 a 15:30. Pedidos hasta 1 hora antes (14:30).
+    if (!esDomingo) {
+      horarios.push('12:00', '12:30', '13:00', '13:30', '14:00', '14:30');
+    }
+    
+    // Rango Noche (Todos los días). 
+    // Apertura: 19:00 a 00:30. Pedidos hasta 1 hora antes (23:30).
+    horarios.push('19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00', '23:30');
+
+    // Filtramos si eligió "Hoy" para no mostrar horarios pasados
+    const hoy = new Date();
+    const esHoy = hoy.getFullYear() === fechaObj.getFullYear() &&
+                  hoy.getMonth() === fechaObj.getMonth() &&
+                  hoy.getDate() === fechaObj.getDate();
+
+    if (esHoy) {
+      const horaActual = hoy.getHours() * 60 + hoy.getMinutes();
+      // Damos 30 min de gracia: ej si son 20:15, el turno de las 20:30 ya no se puede pedir programado.
+      horarios = horarios.filter(h => {
+        const [hh, mm] = h.split(':').map(Number);
+        return (hh * 60 + mm) > (horaActual + 30); 
+      });
+    }
+
+    return horarios;
+  }, [fechaProgramada]);
+
+  // Si cambia la fecha y la hora actual ya no es válida, reseteamos el select
+  if (horaProgramada && !horariosDisponibles.includes(horaProgramada)) {
+    setHoraProgramada('');
+  }
+
   return (
     <form onSubmit={onSubmit} noValidate className="card p-4 border-0 shadow-sm rounded-4 bg-white mb-4">
       {/* Selector Retiro / Delivery */}
@@ -54,7 +100,10 @@ function FormularioPedido({
               value="inmediato"
               disabled={!sePuedeInmediato}
               checked={modalidadHorario === 'inmediato'}
-              onChange={() => setModalidadHorario('inmediato')}
+              onChange={() => {
+                setModalidadHorario('inmediato');
+                setErrores((prev) => ({ ...prev, fechaProgramada: null, horaProgramada: null }));
+              }}
             />
             <label className="form-check-label small fw-semibold" htmlFor="horarioInmediato">
               Lo antes posible
@@ -80,6 +129,7 @@ function FormularioPedido({
         {modalidadHorario === 'programado' && (
           <div className="row g-2 mt-2">
             <div className="col-sm-6">
+              <label className="form-label small fw-semibold mb-1">Fecha</label>
               <input
                 type="date"
                 className={`form-control form-control-sm ${errores.fechaProgramada ? 'is-invalid' : ''}`}
@@ -90,18 +140,24 @@ function FormularioPedido({
               {errores.fechaProgramada && <div className="invalid-feedback">{errores.fechaProgramada}</div>}
             </div>
             <div className="col-sm-6">
-              <select
-                className="form-select form-select-sm"
-                value={horaProgramada}
-                onChange={(e) => setHoraProgramada(e.target.value)}
-              >
-                <option value="12:30">12:30 hs</option>
-                <option value="13:30">13:30 hs</option>
-                <option value="20:00">20:00 hs</option>
-                <option value="21:00">21:00 hs</option>
-                <option value="22:00">22:00 hs</option>
-                <option value="23:00">23:00 hs</option>
-              </select>
+              <label className="form-label small fw-semibold mb-1">Horario</label>
+              {horariosDisponibles.length > 0 ? (
+                <select
+                  className={`form-select form-select-sm ${errores.horaProgramada ? 'is-invalid' : ''}`}
+                  value={horaProgramada}
+                  onChange={(e) => setHoraProgramada(e.target.value)}
+                >
+                  <option value="">Seleccioná...</option>
+                  {horariosDisponibles.map((hora) => (
+                    <option key={hora} value={hora}>{hora} hs</option>
+                  ))}
+                </select>
+              ) : (
+                <select className="form-select form-select-sm" disabled>
+                  <option>Sin horarios disponibles</option>
+                </select>
+              )}
+              {errores.horaProgramada && <div className="text-danger small mt-1">{errores.horaProgramada}</div>}
             </div>
           </div>
         )}
@@ -217,7 +273,7 @@ function FormularioPedido({
         </div>
       </div>
 
-      <button type="submit" className="btn btn-danger w-100 py-3 fw-bold shadow-sm fs-5">
+      <button type="submit" className="btn btn-danger w-100 py-3 fw-bold shadow-sm fs-5" disabled={modalidadHorario === 'programado' && (!fechaProgramada || !horaProgramada)}>
         Confirmar pedido
       </button>
     </form>
