@@ -18,8 +18,8 @@ function MenuPage() {
   const cambiarCantidad = contexto.cambiarCantidad || (() => {});
   const quitarProducto = contexto.quitarProducto || (() => {});
 
-  const tasaServicio = subtotal > 0 ? Math.round(subtotal * 0.02) : 0;
-  const total = subtotal + tasaServicio;
+  // Sin tasa de servicio: el total coincide con el que guarda el backend (el envío se suma en el checkout)
+  const total = subtotal;
 
   const filtros = useFiltros(productos);
 

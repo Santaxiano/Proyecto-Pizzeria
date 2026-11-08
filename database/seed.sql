@@ -133,12 +133,17 @@ ON CONFLICT (producto_id, ingrediente_id) DO NOTHING;
 
 -- La fuente JSON de pedidos solo trae el texto detalle; estas lineas de
 -- detalle_pedido son relaciones de ejemplo para poder probar esa tabla.
-INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad) VALUES
-  (1, 2, 1),
-  (1, 7, 1),
-  (2, 1, 1)
-ON CONFLICT (pedido_id, producto_id) DO UPDATE SET
-  cantidad = EXCLUDED.cantidad;
+INSERT INTO detalle_pedido (id, pedido_id, producto_id, cantidad, tamano, segundo_sabor_id, precio_unitario) VALUES
+  (1, 1, 2, 1, '8 porciones', NULL, 9800),
+  (2, 1, 7, 1, NULL, NULL, 4200),
+  (3, 2, 1, 1, '8 porciones', NULL, 8500)
+ON CONFLICT (id) DO UPDATE SET
+  pedido_id = EXCLUDED.pedido_id,
+  producto_id = EXCLUDED.producto_id,
+  cantidad = EXCLUDED.cantidad,
+  tamano = EXCLUDED.tamano,
+  segundo_sabor_id = EXCLUDED.segundo_sabor_id,
+  precio_unitario = EXCLUDED.precio_unitario;
 
 INSERT INTO reserva_mesa (reserva_id, mesa_id) VALUES
   (1, 1),
@@ -170,6 +175,11 @@ SELECT setval(
   COALESCE(MAX(id), 1),
   MAX(id) IS NOT NULL
 ) FROM pedidos;
+SELECT setval(
+  pg_get_serial_sequence('detalle_pedido', 'id'),
+  COALESCE(MAX(id), 1),
+  MAX(id) IS NOT NULL
+) FROM detalle_pedido;
 SELECT setval(
   pg_get_serial_sequence('reservas', 'id'),
   COALESCE(MAX(id), 1),

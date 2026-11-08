@@ -5,20 +5,16 @@ import TarjetaComanda from '../components/TarjetaComanda';
 import ModalConfirmacion from '../components/ModalConfirmacion'; // 👈 Importamos el modal
 
 export default function ComandasPage() {
-  const { comandas, cargando, error, agregarComanda, modificarComanda, eliminarComanda, cambiarEstado } = useComandas();
-  
+  const { comandas, cargando, error, agregarComanda, eliminarComanda, cambiarEstado } = useComandas();
+
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
-  const [comandaEnEdicion, setComandaEnEdicion] = useState(null);
   const [alertaEliminar, setAlertaEliminar] = useState(null); // Estado para controlar el modal de borrado
 
-  const handleGuardar = (datosFormulario) => {
-    if (comandaEnEdicion) {
-      modificarComanda(comandaEnEdicion.id, datosFormulario);
-    } else {
-      agregarComanda(datosFormulario);
-    }
-    setMostrarFormulario(false);
-    setComandaEnEdicion(null);
+  // El backend no permite editar un pedido completo (solo su estado), por eso el formulario solo crea.
+  // Si falla (ej. un producto sin disponibilidad) el formulario queda abierto para corregirlo.
+  const handleGuardar = async (datosFormulario) => {
+    const guardado = await agregarComanda(datosFormulario);
+    if (guardado) setMostrarFormulario(false);
   };
 
   const confirmarPorWpp = (comanda) => {
@@ -46,13 +42,9 @@ export default function ComandasPage() {
       </header>
 
       {mostrarFormulario && (
-        <FormularioComanda 
-          comandaAEditar={comandaEnEdicion} 
-          onGuardar={handleGuardar} 
-          onCancelar={() => {
-            setMostrarFormulario(false);
-            setComandaEnEdicion(null);
-          }} 
+        <FormularioComanda
+          onGuardar={handleGuardar}
+          onCancelar={() => setMostrarFormulario(false)}
         />
       )}
 
@@ -73,11 +65,7 @@ export default function ComandasPage() {
         {comandas.map((comanda) => (
           <TarjetaComanda 
             key={comanda.id} 
-            comanda={comanda} 
-            onEditar={() => {
-              setComandaEnEdicion(comanda);
-              setMostrarFormulario(true);
-            }}
+            comanda={comanda}
             onEliminar={() => setAlertaEliminar({
               id: comanda.id,
               titulo: `¿Eliminar pedido de ${comanda.cliente}?`,
