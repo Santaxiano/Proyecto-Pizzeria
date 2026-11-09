@@ -18,10 +18,26 @@ async function lanzarErrorDeRespuesta(respuesta, mensajePorDefecto) {
   throw new Error(errorData.error || mensajePorDefecto);
 }
 
+// El backend agrega al final de las notas "Ubicación: https://www.google.com/maps?q=lat,lng"
+// (pedidos.controller.js, armarNotas). Solo se reconoce ese formato exacto con números,
+// así un cliente no puede colar otro link escribiéndolo en las indicaciones.
+const PATRON_UBICACION = /(?:\s·\s)?Ubicación: (https:\/\/www\.google\.com\/maps\?q=-?\d{1,3}\.\d+,-?\d{1,3}\.\d+)$/;
+
+function separarUbicacion(notas) {
+  const coincidencia = notas?.match(PATRON_UBICACION);
+  if (!coincidencia) return { notas: notas ?? '', ubicacionUrl: null };
+  return { notas: notas.slice(0, coincidencia.index).trim(), ubicacionUrl: coincidencia[1] };
+}
+
 // La base devuelve "direccionmesa" y "forma_pago"; la pantalla usa camelCase.
 function adaptarComanda(pedido) {
-  const { direccionmesa, forma_pago, ...resto } = pedido;
-  return { ...resto, direccionMesa: direccionmesa ?? '', formaPago: forma_pago ?? 'efectivo' };
+  const { direccionmesa, forma_pago, notas, ...resto } = pedido;
+  return {
+    ...resto,
+    ...separarUbicacion(notas),
+    direccionMesa: direccionmesa ?? '',
+    formaPago: forma_pago ?? 'efectivo',
+  };
 }
 
 // Más nuevas primero
@@ -33,7 +49,7 @@ export async function obtenerComandas() {
   return pedidos.map(adaptarComanda).sort((a, b) => b.id - a.id);
 }
 
-// Solo se manda productoId y cantidad: el total, el envío y el detalle los calcula el backend.
+// Se manda producto, cantidad, tamaño y segundo sabor: el total, el envío y el detalle los calcula el backend.
 export async function crearComanda(datos) {
   const respuesta = await fetch(`${URL_BASE}/pedidos`, {
     method: 'POST',
@@ -43,7 +59,13 @@ export async function crearComanda(datos) {
       telefono: datos.telefono,
       tipo: datos.tipo,
       direccionMesa: datos.direccionMesa,
-      items: datos.items.map((item) => ({ productoId: item.id, cantidad: item.cantidad })),
+      horario: datos.horario || null,
+      items: datos.items.map((item) => ({
+        productoId: item.id,
+        cantidad: item.cantidad,
+        tamano: item.tamano || null,
+        segundoSaborId: item.segundoSaborId ?? null,
+      })),
     }),
   });
 

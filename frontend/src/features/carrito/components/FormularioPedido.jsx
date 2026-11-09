@@ -1,4 +1,9 @@
 import { useMemo } from 'react';
+import { fechaLocalHoy } from '../../../shared/utils/fecha';
+import { distanciaAlLocal, RADIO_ENTREGA_KM } from '../../../shared/utils/pedidosUtils';
+import MapaUbicacion from './MapaUbicacion';
+
+const formatoKm = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 
 function FormularioPedido({ 
   tipoEntrega, 
@@ -13,8 +18,12 @@ function FormularioPedido({
   datosCliente,
   handleChange,
   errores,
-  onSimularGeolocalizacion,
-  onSubmit
+  setErrores,
+  ubicacion,
+  onCambiarUbicacion,
+  fueraDeZona = false,
+  onSubmit,
+  procesando = false
 }) {
 
   // Generación dinámica de horarios para los pedidos
@@ -133,7 +142,7 @@ function FormularioPedido({
               <input
                 type="date"
                 className={`form-control form-control-sm ${errores.fechaProgramada ? 'is-invalid' : ''}`}
-                min={new Date().toISOString().split('T')[0]}
+                min={fechaLocalHoy()}
                 value={fechaProgramada}
                 onChange={(e) => setFechaProgramada(e.target.value)}
               />
@@ -229,15 +238,22 @@ function FormularioPedido({
             </div>
           </div>
 
-          <button
-            type="button"
-            className="btn btn-outline-secondary btn-sm"
-            onClick={onSimularGeolocalizacion}
-          >
-            📍 Validar zona de entrega
-          </button>
-          {errores.direccion && <div className="alert alert-danger small p-2 mt-2 mb-0">{errores.direccion}</div>}
-          {errores.direccionExito && <div className="alert alert-success small p-2 mt-2 mb-0">{errores.direccionExito}</div>}
+          <MapaUbicacion ubicacion={ubicacion} onCambiarUbicacion={onCambiarUbicacion} />
+
+          {ubicacion && !fueraDeZona && (
+            <div className="alert alert-success small p-2 mt-2 mb-0" role="status">
+              ✓ ¡Llegamos! Tu domicilio está dentro de la zona de entrega ({formatoKm.format(distanciaAlLocal(ubicacion.lat, ubicacion.lng))} km).
+            </div>
+          )}
+          {fueraDeZona && (
+            <div className="alert alert-danger small p-2 mt-2 mb-0" role="alert">
+              ✗ Lo sentimos, tu domicilio está a {formatoKm.format(distanciaAlLocal(ubicacion.lat, ubicacion.lng))} km y
+              solo entregamos hasta {RADIO_ENTREGA_KM} km. Podés elegir <strong>"Para retirar"</strong>.
+            </div>
+          )}
+          {errores.ubicacion && !fueraDeZona && (
+            <div className="alert alert-danger small p-2 mt-2 mb-0" role="alert">{errores.ubicacion}</div>
+          )}
         </div>
       )}
 
@@ -273,8 +289,12 @@ function FormularioPedido({
         </div>
       </div>
 
-      <button type="submit" className="btn btn-danger w-100 py-3 fw-bold shadow-sm fs-5" disabled={modalidadHorario === 'programado' && (!fechaProgramada || !horaProgramada)}>
-        Confirmar pedido
+      <button
+        type="submit"
+        className="btn btn-danger w-100 py-3 fw-bold shadow-sm fs-5"
+        disabled={procesando || fueraDeZona || (modalidadHorario === 'programado' && (!fechaProgramada || !horaProgramada))}
+      >
+        {procesando ? 'Registrando pedido...' : 'Confirmar pedido'}
       </button>
     </form>
   )

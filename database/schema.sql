@@ -53,6 +53,7 @@ CREATE TABLE Pedidos (
     horario VARCHAR(100),                              -- "Lo antes posible" o fecha y hora programada
     notas VARCHAR(255),                                -- piso/depto e indicaciones de entrega
     forma_pago VARCHAR(20) NOT NULL DEFAULT 'efectivo', -- efectivo | mercadopago
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),      -- momento en que se registró (lo pone Postgres solo)
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id)
 );
 

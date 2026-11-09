@@ -1,48 +1,37 @@
 import { obtenerComandas } from '../../comandas/services/comandasService';
-import { listarMesas } from '../../salon/services/mesaService';
-import { listarReservas } from '../../reservas/services/reservaService';
 
-function esDeHoy(fecha, hoy) {
-  if (!fecha) return false;
+const URL_BASE = 'http://localhost:3000/api';
 
-  const valor = new Date(fecha);
-  return !Number.isNaN(valor.getTime())
-    && valor.getFullYear() === hoy.getFullYear()
-    && valor.getMonth() === hoy.getMonth()
-    && valor.getDate() === hoy.getDate();
+function obtenerToken() {
+  const auth = sessionStorage.getItem('pizzeria:sesion');
+  if (!auth) return null;
+  try { return JSON.parse(auth).token; } catch { return null; }
+}
+
+// Estadísticas del período (fechas AAAA-MM-DD, ambas inclusive).
+// Las cuentas las hace el backend con SQL; acá solo se piden.
+export async function obtenerEstadisticas(desde, hasta) {
+  const parametros = new URLSearchParams({ desde, hasta });
+  const respuesta = await fetch(`${URL_BASE}/estadisticas?${parametros}`, {
+    headers: { Authorization: `Bearer ${obtenerToken()}` },
+  });
+
+  if (!respuesta.ok) {
+    const errorData = await respuesta.json().catch(() => ({}));
+    throw new Error(errorData.error || 'No se pudieron obtener las estadísticas');
+  }
+  return respuesta.json();
 }
 
 function ordenarComandasRecientes(a, b) {
-  const fechaA = a.created_at ? new Date(a.created_at).getTime() : 0;
-  const fechaB = b.created_at ? new Date(b.created_at).getTime() : 0;
+  const fechaA = a.creado_en ? new Date(a.creado_en).getTime() : 0;
+  const fechaB = b.creado_en ? new Date(b.creado_en).getTime() : 0;
 
   if (fechaA !== fechaB) return fechaB - fechaA;
   return Number(b.id) - Number(a.id);
 }
 
-export async function obtenerResumenDashboard() {
-  const [comandas, mesas, reservas] = await Promise.all([
-    obtenerComandas(),
-    listarMesas(),
-    listarReservas(),
-  ]);
-  const hoy = new Date();
-  const comandasDeHoy = comandas.filter((comanda) => esDeHoy(comanda.created_at, hoy));
-
-  return {
-    comandasPendientes: comandas.filter((comanda) => comanda.estado === 'Pendiente').length,
-    mesasLibres: mesas.filter((mesa) => mesa.estado === 'Libre').length,
-    mesasOcupadas: mesas.filter((mesa) => mesa.estado === 'Ocupada').length,
-    mesasReservadas: mesas.filter((mesa) => mesa.estado === 'Reservada').length,
-    reservasHoy: reservas.filter((reserva) => reserva.fecha === [
-      hoy.getFullYear(),
-      String(hoy.getMonth() + 1).padStart(2, '0'),
-      String(hoy.getDate()).padStart(2, '0'),
-    ].join('-')).length,
-    ventasHoy: comandasDeHoy.reduce((total, comanda) => {
-      const importe = Number(comanda.total);
-      return total + (Number.isFinite(importe) ? importe : 0);
-    }, 0),
-    comandasRecientes: [...comandas].sort(ordenarComandasRecientes).slice(0, 5),
-  };
+export async function obtenerPedidosRecientes(cantidad = 5) {
+  const comandas = await obtenerComandas();
+  return [...comandas].sort(ordenarComandasRecientes).slice(0, cantidad);
 }

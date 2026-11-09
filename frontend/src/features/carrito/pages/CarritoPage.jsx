@@ -42,27 +42,19 @@ function CarritoPage() {
     if (errores[name]) setErrores((prev) => ({ ...prev, [name]: null }));
   };
 
-  const handleSimularGeolocalizacion = () => {
-    const latSimulada = -33.3000;
-    const lngSimulada = -66.3360;
+  // Punto que el cliente marca en el mapa (o con el GPS). Solo se usa en delivery.
+  const [ubicacion, setUbicacion] = useState(null);
+  const fueraDeZona = tipoEntrega === 'delivery' && ubicacion !== null
+    && !estaEnZonaDeEnvio(ubicacion.lat, ubicacion.lng);
 
-    if (!estaEnZonaDeEnvio(latSimulada, lngSimulada)) {
-      setErrores((prev) => ({ 
-        ...prev, 
-        direccion: 'Lo sentimos, la dirección está fuera de nuestro radio de entrega (5 km).',
-        direccionExito: null
-      }));
-    } else {
-      setErrores((prev) => ({ 
-        ...prev, 
-        direccion: null,
-        direccionExito: '¡Dirección dentro del radio de entrega confirmada!'
-      }));
-    }
+  const handleCambiarUbicacion = (punto) => {
+    setUbicacion(punto);
+    if (errores.ubicacion) setErrores((prev) => ({ ...prev, ubicacion: null }));
   };
 
   async function handleFinalizar(e) {
     e.preventDefault();
+    if (procesandoPago) return; // evita registrar el pedido dos veces (doble clic / doble Enter)
     const nuevosErrores = {};
 
     if (!datosCliente.nombre.trim()) nuevosErrores.nombre = 'Ingresá tu nombre y apellido.';
@@ -71,6 +63,12 @@ function CarritoPage() {
     }
     if (tipoEntrega === 'delivery' && !datosCliente.calleNumero.trim()) {
       nuevosErrores.calleNumero = 'Ingresá la calle y número para el envío.';
+    }
+    if (tipoEntrega === 'delivery' && !ubicacion) {
+      nuevosErrores.ubicacion = 'Marcá tu domicilio en el mapa para saber si llegamos.';
+    }
+    if (fueraDeZona) {
+      nuevosErrores.ubicacion = 'Tu domicilio está fuera de la zona de entrega.';
     }
     if (modalidadHorario === 'programado' && !fechaProgramada) {
       nuevosErrores.fechaProgramada = 'Seleccioná una fecha.';
@@ -92,7 +90,10 @@ function CarritoPage() {
     //    Si falla (ej. un producto sin disponibilidad) el carrito queda intacto para corregirlo.
     let pedido;
     try {
-      pedido = await crearPedido({ items, tipoEntrega, datosCliente, horario });
+      pedido = await crearPedido({
+        items, tipoEntrega, datosCliente, horario,
+        ubicacion: tipoEntrega === 'delivery' ? ubicacion : null,
+      });
     } catch (error) {
       alert('No pudimos registrar tu pedido: ' + error.message);
       setProcesandoPago(false);
@@ -101,21 +102,11 @@ function CarritoPage() {
 
     const confirmacion = { horario, cliente: datosCliente, numero: pedido.id, total: pedido.total };
 
-    // 2. Mercado Pago: se cobra con los precios que calculó el backend y el pedido como referencia
+    // 2. Mercado Pago: solo se manda el número de pedido; el backend arma los ítems
+    //    con los precios guardados en la base (el navegador no decide cuánto se cobra)
     if (datosCliente.formaPago === 'transferencia') {
       try {
-        const itemsParaMP = pedido.items.map(item => ({
-          title: `${item.nombre}${item.tamano ? ` (${item.tamano})` : ''}`,
-          unit_price: item.precioUnitario,
-          quantity: item.cantidad,
-          currency_id: 'ARS'
-        }));
-
-        if (pedido.costoEnvio > 0) {
-          itemsParaMP.push({ title: 'Costo de Envío', unit_price: pedido.costoEnvio, quantity: 1, currency_id: 'ARS' });
-        }
-
-        const data = await generarLinkMercadoPago(itemsParaMP, String(pedido.id));
+        const data = await generarLinkMercadoPago(pedido.id);
 
         if (data.init_point) {
           vaciarCarrito();
@@ -184,8 +175,12 @@ function CarritoPage() {
             datosCliente={datosCliente}
             handleChange={handleChange}
             errores={errores}
-            onSimularGeolocalizacion={handleSimularGeolocalizacion}
+            setErrores={setErrores}
+            ubicacion={ubicacion}
+            onCambiarUbicacion={handleCambiarUbicacion}
+            fueraDeZona={fueraDeZona}
             onSubmit={handleFinalizar}
+            procesando={procesandoPago}
           />
           {procesandoPago && <p className="text-center text-primary mt-2">⏳ Registrando tu pedido...</p>}
 

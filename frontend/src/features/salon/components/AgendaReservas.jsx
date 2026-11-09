@@ -89,8 +89,10 @@ export default function AgendaReservas({
                   .flatMap((otraReserva) => otraReserva.mesasIds ?? [])
                   .map(Number)
               );
+              // Solo bloquean los choques de horario con otras reservas: que una mesa
+              // esté ocupada ahora no impide reservarla para más tarde u otro día.
               const mesasDisponibles = mesas.filter((mesa) => (
-                seleccionIds.has(mesa.id) || (mesa.estado !== 'Ocupada' && !mesasEnConflicto.has(mesa.id))
+                seleccionIds.has(mesa.id) || !mesasEnConflicto.has(mesa.id)
               ));
 
               return (

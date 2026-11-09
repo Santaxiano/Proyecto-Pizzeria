@@ -1,6 +1,9 @@
 import { pool } from '../../config/db.js';
 import { CAMPOS_RESERVA } from '../../middlewares/validarReserva.js';
 
+// Se asume que una reserva ocupa la mesa 2 horas (igual que el front)
+const DURACION_RESERVA_SEG = 2 * 60 * 60;
+
 const SELECT_RESERVAS = `
   SELECT r.*,
     COALESCE(
@@ -119,16 +122,13 @@ const asignarMesas = async (client, reservaId, mesaIds) => {
     throw error;
   }
 
-  const { rows: mesasActuales } = await client.query(
-    'SELECT mesa_id FROM reserva_mesa WHERE reserva_id = $1 FOR UPDATE',
-    [reservaId]
-  );
-  const mesasActualesIds = mesasActuales.map(({ mesa_id }) => mesa_id);
   const mesasIdsOrdenadas = [...mesaIds].sort((a, b) => a - b);
 
   if (mesasIdsOrdenadas.length > 0) {
+    // FOR UPDATE: evita que otra petición asigne las mismas mesas al mismo tiempo.
+    // No se rechazan mesas ocupadas: estar ocupada ahora no impide reservarla para más tarde u otro día.
     const { rows: mesas } = await client.query(
-      'SELECT id, estado FROM mesas WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
+      'SELECT id FROM mesas WHERE id = ANY($1::int[]) ORDER BY id FOR UPDATE',
       [mesasIdsOrdenadas]
     );
     if (mesas.length !== mesasIdsOrdenadas.length) {
@@ -137,13 +137,8 @@ const asignarMesas = async (client, reservaId, mesaIds) => {
       throw error;
     }
 
-    if (mesas.some(({ estado }) => estado === 'Ocupada')) {
-      const error = new Error('Una o más mesas están ocupadas');
-      error.status = 409;
-      error.publicMessage = error.message;
-      throw error;
-    }
-
+    // Choque si otra reserva de la misma mesa empieza a menos de la duración de una reserva
+    // (misma regla que el front: AgendaReservas.jsx, DURACION_RESERVA_MS)
     const reservasEnConflicto = await client.query(
       `SELECT 1
        FROM reserva_mesa rm
@@ -152,9 +147,9 @@ const asignarMesas = async (client, reservaId, mesaIds) => {
          AND rm.reserva_id <> $2
          AND ABS(EXTRACT(EPOCH FROM (
            (r.fecha + r.hora) - ($3::date + $4::time)
-         ))) <= 3600
+         ))) < $5
        LIMIT 1`,
-      [mesasIdsOrdenadas, reservaId, reservas[0].fecha, reservas[0].hora]
+      [mesasIdsOrdenadas, reservaId, reservas[0].fecha, reservas[0].hora, DURACION_RESERVA_SEG]
     );
     if (reservasEnConflicto.rowCount > 0) {
       const error = new Error('Una o más mesas ya están asignadas a otra reserva en ese horario');
@@ -164,29 +159,13 @@ const asignarMesas = async (client, reservaId, mesaIds) => {
     }
   }
 
+  // El estado "Reservada" de la mesa no se guarda: lo calcula mesas.controller.js a partir de reserva_mesa
   await client.query('DELETE FROM reserva_mesa WHERE reserva_id = $1', [reservaId]);
-  if (mesasActualesIds.length > 0) {
-    await client.query(
-      `UPDATE mesas
-       SET estado = 'Libre'
-       WHERE id = ANY($1::int[])
-         AND estado = 'Reservada'
-         AND NOT EXISTS (
-           SELECT 1 FROM reserva_mesa rm WHERE rm.mesa_id = mesas.id
-         )`,
-      [mesasActualesIds]
-    );
-  }
-
   if (mesasIdsOrdenadas.length > 0) {
     await client.query(
       `INSERT INTO reserva_mesa (reserva_id, mesa_id)
        SELECT $1, unnest($2::int[])`,
       [reservaId, mesasIdsOrdenadas]
-    );
-    await client.query(
-      "UPDATE mesas SET estado = 'Reservada' WHERE id = ANY($1::int[])",
-      [mesasIdsOrdenadas]
     );
   }
 };
@@ -205,30 +184,13 @@ export const eliminar = async (req, res, next) => {
       return res.status(404).json({ error: 'Reserva no encontrada' });
     }
 
-    const { rows: mesasAsignadas } = await client.query(
-      'SELECT mesa_id FROM reserva_mesa WHERE reserva_id = $1 FOR UPDATE',
-      [req.idParseado]
-    );
+    // Al borrar el vínculo, la mesa deja de figurar como reservada (el estado se calcula)
     await client.query('DELETE FROM reserva_mesa WHERE reserva_id = $1', [req.idParseado]);
     const { rowCount } = await client.query('DELETE FROM reservas WHERE id = $1', [req.idParseado]);
 
     if (rowCount === 0) {
       await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Reserva no encontrada' });
-    }
-
-    const mesasIds = mesasAsignadas.map(({ mesa_id }) => mesa_id);
-    if (mesasIds.length > 0) {
-      await client.query(
-        `UPDATE mesas
-         SET estado = 'Libre'
-         WHERE id = ANY($1::int[])
-           AND estado = 'Reservada'
-           AND NOT EXISTS (
-             SELECT 1 FROM reserva_mesa rm WHERE rm.mesa_id = mesas.id
-           )`,
-        [mesasIds]
-      );
     }
 
     await client.query('COMMIT');

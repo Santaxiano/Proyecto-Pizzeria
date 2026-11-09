@@ -11,6 +11,33 @@ const LARGO_MAX_DETALLE = 255; // pedidos.detalle es VARCHAR(255)
 const MULTIPLICADOR_TAMANO = { '4 porciones': 0.6 };
 const TAMANO_MITAD_Y_MITAD = '8 porciones';
 
+// Zona de entrega: mismos valores que el front (frontend/src/shared/utils/pedidosUtils.js)
+const UBICACION_LOCAL = { lat: -33.3021, lng: -66.3368 }; // Pringles 1091, San Luis
+const RADIO_ENTREGA_KM = 5;
+const LARGO_MAX_NOTAS = 255; // pedidos.notas es VARCHAR(255)
+
+// Distancia en km entre dos puntos (fórmula de Haversine)
+const calcularDistancia = (lat1, lon1, lat2, lon2) => {
+  const aRadianes = (grados) => grados * (Math.PI / 180);
+  const dLat = aRadianes(lat2 - lat1);
+  const dLon = aRadianes(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(aRadianes(lat1)) * Math.cos(aRadianes(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+// Suma a las notas un link de Google Maps con el punto exacto para el repartidor,
+// recortando las notas del cliente si hace falta para no pasar los 255 caracteres.
+const armarNotas = (notas, lat, lng) => {
+  const texto = notas?.trim() || '';
+  if (lat === undefined || lat === null) return texto || null;
+  const link = `Ubicación: https://www.google.com/maps?q=${lat.toFixed(6)},${lng.toFixed(6)}`;
+  if (!texto) return link;
+  const espacio = LARGO_MAX_NOTAS - link.length - 3; // 3 = " · "
+  const recortado = texto.length > espacio ? `${texto.slice(0, espacio - 1)}…` : texto;
+  return `${recortado} · ${link}`;
+};
+
 // Junta los items que son exactamente lo mismo (producto + tamaño + segundo sabor) sumando cantidades.
 const unificarItems = (items) => {
   const lineas = new Map();
@@ -56,8 +83,19 @@ const validarLineas = (lineas, productosPorId) => {
 // POST público: lo usan el carrito (clientes) y el salón. El total y el detalle
 // los arma el backend con los precios de la base; no se confía en lo que manda el front.
 export const crear = async (req, res, next) => {
-  const { cliente, telefono, tipo, direccionMesa, items, horario, notas, formaPago } = req.body;
+  const { cliente, telefono, tipo, direccionMesa, items, horario, notas, formaPago, lat, lng } = req.body;
   const pedidas = unificarItems(items);
+
+  // El bloqueo del mapa en el front se puede saltar: acá se vuelve a controlar el radio de entrega
+  const hayUbicacion = tipo === 'delivery' && typeof lat === 'number';
+  if (hayUbicacion) {
+    const distancia = calcularDistancia(UBICACION_LOCAL.lat, UBICACION_LOCAL.lng, lat, lng);
+    if (distancia > RADIO_ENTREGA_KM) {
+      return res.status(400).json({
+        error: `El domicilio está a ${distancia.toFixed(1)} km y solo entregamos hasta ${RADIO_ENTREGA_KM} km`,
+      });
+    }
+  }
 
   // Productos involucrados: los pedidos y los segundos sabores de las mitades
   const ids = [...new Set(pedidas.flatMap((l) => [l.productoId, l.segundoSaborId]).filter(Boolean))];
@@ -91,11 +129,15 @@ export const crear = async (req, res, next) => {
       });
     }
 
-    // La mitad y mitad cobra el precio del primer sabor, igual que la carta.
+    // La mitad y mitad cobra la mitad de cada pizza sumadas (ej. $9.000 y $11.000 -> $10.000),
+    // igual que la carta (DetalleProducto.jsx) y comandas (FormularioComanda.jsx).
     const lineas = pedidas.map((l) => {
       const producto = productosPorId.get(l.productoId);
       const segundo = l.segundoSaborId ? productosPorId.get(l.segundoSaborId) : null;
-      const precioUnitario = Math.round(producto.precio * (MULTIPLICADOR_TAMANO[l.tamano] ?? 1));
+      const multiplicador = MULTIPLICADOR_TAMANO[l.tamano] ?? 1;
+      const precioUnitario = segundo
+        ? Math.round((producto.precio * multiplicador) / 2 + (segundo.precio * multiplicador) / 2)
+        : Math.round(producto.precio * multiplicador);
       return {
         productoId: l.productoId,
         nombre: segundo ? `${producto.nombre} / ${segundo.nombre}` : producto.nombre,
@@ -135,7 +177,7 @@ export const crear = async (req, res, next) => {
           subtotal + costoEnvio,
           detalle,
           horario?.trim() || null,
-          notas?.trim() || null,
+          armarNotas(notas, hayUbicacion ? lat : null, hayUbicacion ? lng : null),
           formaPago ?? 'efectivo',
         ]
       );

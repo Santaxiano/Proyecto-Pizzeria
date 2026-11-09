@@ -46,18 +46,44 @@ export function cerrarSesion() {
     sessionStorage.removeItem(CLAVE_SESION);
 }
 
+// Lee la fecha de vencimiento ("exp", en segundos) que viene dentro del token JWT.
+// Si el token no se puede leer, se lo trata como vencido.
+export function tokenVencido(token) {
+    try {
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        const { exp } = JSON.parse(atob(base64));
+        return typeof exp === 'number' && exp * 1000 <= Date.now();
+    } catch {
+        return true;
+    }
+}
+
 export function protegerRuta() {
     const sesion = obtenerSesion();
     if (!sesion || !sesion.token) {
-        throw redirect('/login'); 
+        throw redirect('/login');
+    }
+    if (tokenVencido(sesion.token)) {
+        cerrarSesion();
+        throw redirect('/login?sesion=vencida');
+    }
+    return sesion;
+}
+
+// Para las páginas que solo puede ver un administrador (empleados, usuarios)
+export function protegerRutaAdmin() {
+    const sesion = protegerRuta();
+    if (sesion.rol !== 'administrador') {
+        throw redirect('/gestor');
     }
     return sesion;
 }
 
 export function redirigirSiHaySesion() {
     const sesion = obtenerSesion();
-    if (sesion && sesion.token) {
-        throw redirect('/gestor'); 
+    if (sesion && sesion.token && !tokenVencido(sesion.token)) {
+        throw redirect('/gestor');
     }
+    if (sesion) cerrarSesion(); // sesión vencida: se limpia y se muestra el login
     return null;
 }

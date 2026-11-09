@@ -4,6 +4,7 @@ const FORMAS_PAGO = ['efectivo', 'mercadopago'];
 const esTextoConContenido = (valor) => typeof valor === 'string' && valor.trim() !== '';
 const esEnteroPositivo = (valor) => Number.isInteger(valor) && valor > 0;
 const esOpcional = (valor) => valor === undefined || valor === null;
+const esCoordenada = (valor, maximo) => typeof valor === 'number' && Number.isFinite(valor) && Math.abs(valor) <= maximo;
 const esTextoOpcional = (valor, largoMax) =>
   esOpcional(valor) || (typeof valor === 'string' && valor.length <= largoMax);
 
@@ -50,6 +51,18 @@ export const validarPedido = (req, res, next) => {
 
   if (!esOpcional(formaPago) && !FORMAS_PAGO.includes(formaPago)) {
     return res.status(400).json({ error: `La forma de pago debe ser ${FORMAS_PAGO.join(' o ')}` });
+  }
+
+  // Ubicación del mapa: opcional, pero si viene tienen que venir las dos coordenadas y ser válidas
+  const { lat, lng } = req.body;
+  const hayUbicacion = !esOpcional(lat) || !esOpcional(lng);
+  if (hayUbicacion && !(esCoordenada(lat, 90) && esCoordenada(lng, 180))) {
+    return res.status(400).json({ error: 'La ubicación debe tener lat y lng numéricas válidas' });
+  }
+  // Un cliente (sin token) que pide delivery tiene que marcar su domicilio en el mapa.
+  // Las comandas del gestor (con token) no tienen mapa, así que para ellas es opcional.
+  if (tipo === 'delivery' && !hayUbicacion && !req.usuario) {
+    return res.status(400).json({ error: 'Marcá tu domicilio en el mapa para hacer un pedido con delivery' });
   }
 
   if (!Array.isArray(items) || items.length === 0) {

@@ -28,7 +28,7 @@ export const registro = async (req, res, next) => {
       `INSERT INTO usuarios (nombre, email, rol, password)
        VALUES ($1, $2, $3, $4)
        RETURNING id, nombre, email, rol`,
-      [nombre.trim(), email.trim(), rol, hash]
+      [nombre.trim(), email.trim().toLowerCase(), rol, hash]
     );
     res.status(201).json(rows[0]);
   } catch (err) {
@@ -42,11 +42,15 @@ export const registro = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
       return res.status(400).json({ error: 'Email y password son obligatorios' });
     }
 
-    const { rows } = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+    // Sin distinguir mayúsculas: así también entran usuarios viejos guardados con mayúsculas
+    const { rows } = await pool.query(
+      'SELECT * FROM usuarios WHERE LOWER(email) = LOWER($1)',
+      [email.trim()]
+    );
     const usuario = rows[0];
 
     const passwordOk = usuario && (await bcrypt.compare(password, usuario.password));

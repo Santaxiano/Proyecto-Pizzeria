@@ -1,9 +1,11 @@
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import FormularioLogin from '../components/FormularioLogin';
 import { iniciarSesion } from '../service/inicioservice';
 
 function LoginPage() {
     const navigate = useNavigate();
+    const [parametros] = useSearchParams();
+    const sesionVencida = parametros.get('sesion') === 'vencida';
 
     async function handleIngresar({ email, password }) {
         await iniciarSesion(email, password);
@@ -28,7 +30,13 @@ function LoginPage() {
                         {/* Cuerpo del formulario */}
                         <div className="card-body p-4 p-md-5 bg-white">
                             <h2 className="h5 text-center mb-4 text-muted fw-semibold">Ingresá tus credenciales</h2>
-                            
+
+                            {sesionVencida && (
+                                <div className="alert alert-warning small text-center" role="alert">
+                                    Tu sesión venció. Volvé a ingresar para continuar.
+                                </div>
+                            )}
+
                             <FormularioLogin onIngresar={handleIngresar} />
                             
                             {/* Credenciales de prueba adaptadas al diseño */}

@@ -1,5 +1,6 @@
-const COORDENADAS_LOCAL = { lat: -33.2995, lng: -66.3356 };
-const RADIO_MAXIMO_KM = 5.0;
+// Pizzería: Pringles 1091, San Luis. Mismos valores que el backend (pedidos.controller.js).
+export const UBICACION_LOCAL = { lat: -33.3021, lng: -66.3368 };
+export const RADIO_ENTREGA_KM = 5;
 
 export function verificarDisponibilidadInmediata() {
   const ahora = new Date();
@@ -23,18 +24,24 @@ export function verificarDisponibilidadInmediata() {
   }
 }
 
-export function calcularDistanciaKm(lat1, lon1, lat2 = COORDENADAS_LOCAL.lat, lon2 = COORDENADAS_LOCAL.lng) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
+// Distancia real en km entre dos puntos de la Tierra (fórmula de Haversine)
+export function calcularDistancia(lat1, lon1, lat2, lon2) {
+  const R = 6371; // radio de la Tierra en km
+  const aRadianes = (grados) => grados * (Math.PI / 180);
+  const dLat = aRadianes(lat2 - lat1);
+  const dLon = aRadianes(lon2 - lon1);
   const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aRadianes(lat1)) * Math.cos(aRadianes(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// Distancia desde la pizzería hasta el punto del cliente
+export function distanciaAlLocal(lat, lng) {
+  return calcularDistancia(UBICACION_LOCAL.lat, UBICACION_LOCAL.lng, lat, lng);
+}
+
+// true si el punto está dentro del radio de entrega (<= 5 km)
 export function estaEnZonaDeEnvio(lat, lng) {
-  return calcularDistanciaKm(lat, lng) <= RADIO_MAXIMO_KM;
+  return distanciaAlLocal(lat, lng) <= RADIO_ENTREGA_KM;
 }

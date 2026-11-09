@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
+import { fechaLocalHoy } from '../../../shared/utils/fecha';
 import IndicadorPasos from './IndicadorPasos'; 
-import { validarDatosReserva } from '../services/reservaService';
+import { validarDatosReserva, MAX_COMENSALES } from '../services/reservaService';
 
 function FormularioReserva({ onReservaConfirmada }) {
   const [paso, setPaso] = useState(1);
@@ -152,7 +153,7 @@ function FormularioReserva({ onReservaConfirmada }) {
               type="date"
               className={`form-control form-control-lg ${errores.fecha ? 'is-invalid' : ''}`}
               value={datos.fecha}
-              min={new Date().toISOString().split('T')[0]}
+              min={fechaLocalHoy()}
               onChange={(e) => {
                 actualizarCampo('fecha', e.target.value);
                 actualizarCampo('hora', ''); // Resetea la hora si cambian el día
@@ -183,7 +184,7 @@ function FormularioReserva({ onReservaConfirmada }) {
             </div>
             <div className="d-flex gap-2">
               <button type="button" className="btn btn-outline-dark rounded-circle" style={{ width: '38px', height: '38px' }} disabled={datos.personas <= 1} onClick={() => actualizarCampo('personas', datos.personas - 1)}>-</button>
-              <button type="button" className="btn btn-outline-dark rounded-circle" style={{ width: '38px', height: '38px' }} onClick={() => actualizarCampo('personas', datos.personas + 1)}>+</button>
+              <button type="button" className="btn btn-outline-dark rounded-circle" style={{ width: '38px', height: '38px' }} disabled={datos.personas >= MAX_COMENSALES} onClick={() => actualizarCampo('personas', datos.personas + 1)}>+</button>
             </div>
           </div>
           {errores.personas && <div className="text-danger small mb-3">{errores.personas}</div>}

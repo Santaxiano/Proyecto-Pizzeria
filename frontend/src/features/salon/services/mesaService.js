@@ -29,11 +29,17 @@ async function solicitar(url, opciones, mensajeError) {
   return respuesta.json();
 }
 
+// El backend calcula el estado ('Libre' | 'Ocupada' | 'Reservada') y, si hay,
+// manda la reserva de hoy asignada a la mesa en columnas reserva_*.
 function adaptarMesa(mesa) {
+  const { reserva_id, reserva_cliente, reserva_hora, reserva_comensales, ...resto } = mesa;
   return {
-    ...mesa,
+    ...resto,
     id: Number(mesa.id),
     capacidad: Number(mesa.capacidad),
+    reserva: reserva_id
+      ? { id: String(reserva_id), cliente: reserva_cliente, hora: reserva_hora, comensales: reserva_comensales }
+      : null,
   };
 }
 

@@ -1,3 +1,7 @@
+import { ZONA_HORARIA } from '../config/zonaHoraria.js';
+
+export const MAX_COMENSALES = 30;
+
 const CAMPOS_RESERVA = {
   cliente: {
     columna: 'cliente',
@@ -22,7 +26,7 @@ const CAMPOS_RESERVA = {
   comensales: {
     columna: 'comensales',
     requerido: true,
-    validar: (valor) => Number.isInteger(valor) && valor > 0,
+    validar: (valor) => Number.isInteger(valor) && valor > 0 && valor <= MAX_COMENSALES,
   },
   lugar: {
     columna: 'lugar',
@@ -81,9 +85,25 @@ export const validarReserva = (modo) => (req, res, next) => {
         return res.status(400).json({ error: `El campo '${campo}' es obligatorio` });
       }
     }
+
+    // Es un endpoint público: no se confía en que el front haya filtrado fechas pasadas
+    if (`${body.fecha} ${body.hora}` < ahoraEnArgentina()) {
+      return res.status(400).json({ error: 'La fecha y hora de la reserva no pueden estar en el pasado' });
+    }
   }
 
   next();
 };
+
+// "AAAA-MM-DD HH:MM" en hora argentina (se compara como texto con fecha + hora de la reserva)
+function ahoraEnArgentina() {
+  const partes = Object.fromEntries(
+    new Intl.DateTimeFormat('en-CA', {
+      timeZone: ZONA_HORARIA, year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date()).map(({ type, value }) => [type, value])
+  );
+  return `${partes.year}-${partes.month}-${partes.day} ${partes.hour}:${partes.minute}`;
+}
 
 export { CAMPOS_RESERVA };

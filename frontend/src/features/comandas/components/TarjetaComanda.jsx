@@ -23,6 +23,16 @@ export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, on
           {comanda.direccionMesa && <p className="text-muted small mb-1">📍 {comanda.direccionMesa}</p>}
           {comanda.horario && <p className="text-muted small mb-1">🕒 {comanda.horario}</p>}
           {comanda.notas && <p className="text-muted small mb-1">📝 {comanda.notas}</p>}
+          {comanda.ubicacionUrl && (
+            <a
+              href={comanda.ubicacionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline-primary btn-sm align-self-start mb-2"
+            >
+              📍 Ver en el mapa
+            </a>
+          )}
           <p className="text-muted small mb-3">
             {comanda.formaPago === 'mercadopago' ? '💳 Mercado Pago' : '💵 Efectivo'}
           </p>

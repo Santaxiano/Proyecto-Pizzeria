@@ -1,16 +1,16 @@
-export const generarLinkMercadoPago = async (itemsParaMP, idReferencia) => {
+// Pide el link de pago de un pedido ya registrado. Solo se manda el número de pedido:
+// los ítems y precios los arma el backend desde la base.
+export const generarLinkMercadoPago = async (pedidoId) => {
   try {
     const respuesta = await fetch('http://localhost:3000/api/pagos/crear-preferencia', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        items: itemsParaMP, 
-        idReferencia: idReferencia 
-      })
+      body: JSON.stringify({ pedidoId: Number(pedidoId) }),
     });
 
     if (!respuesta.ok) {
-      throw new Error('El servidor rechazó la solicitud de pago');
+      const errorData = await respuesta.json().catch(() => ({}));
+      throw new Error(errorData.error || 'El servidor rechazó la solicitud de pago');
     }
 
     return await respuesta.json(); // Retorna { id, init_point }

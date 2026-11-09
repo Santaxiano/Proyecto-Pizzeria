@@ -11,6 +11,7 @@ import reservasRoutes from './modules/reservas/reservas.routes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFound } from './middlewares/notFound.js';
 import pagosRoutes from './modules/pagos/pagos.routes.js';
+import estadisticasRoutes from './modules/estadisticas/estadisticas.routes.js';
 import { CARPETA_UPLOADS } from './middlewares/subirImagen.js';
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/productos', productosRoutes);
 app.use('/api/usuarios', usuariosRoutes); 
 app.use('/api/reservas', reservasRoutes);
 app.use('/api/pagos', pagosRoutes);
+app.use('/api/estadisticas', estadisticasRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

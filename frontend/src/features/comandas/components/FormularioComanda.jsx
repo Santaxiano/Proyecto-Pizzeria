@@ -1,10 +1,14 @@
 import { useState, useMemo } from 'react';
+import { fechaLocalHoy } from '../../../shared/utils/fecha';
 import { obtenerProductos } from '../../carta/services/catalogoService';
 import { useFetch } from '../../../shared/hooks/useFetch';
 
 // Misma regla de envío que aplica el backend al crear el pedido
 const ENVIO_GRATIS_DESDE = 15000;
 const COSTO_ENVIO = 1500;
+// Mismas reglas de precio por tamaño que la carta y el backend (pedidos.controller.js)
+const MULTIPLICADOR_TAMANO = { '4 porciones': 0.6 };
+const TAMANO_MITAD_Y_MITAD = '8 porciones';
 
 export default function FormularioComanda({ onGuardar, onCancelar }) {
   const { datos: productosBackend, cargando: cargandoProductos } = useFetch(obtenerProductos);
@@ -17,12 +21,14 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
     direccionMesa: '',
     // Agregamos los campos para manejar la lógica de horarios
     modalidadHorario: 'inmediato',
-    fechaProgramada: new Date().toISOString().split('T')[0],
+    fechaProgramada: fechaLocalHoy(),
     horaProgramada: '' 
   });
 
   const [items, setItems] = useState([]);
   const [prodSeleccionado, setProdSeleccionado] = useState('');
+  const [tamanoSeleccionado, setTamanoSeleccionado] = useState('');
+  const [segundoSaborSeleccionado, setSegundoSaborSeleccionado] = useState('');
   const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
 
   // --- LÓGICA DINÁMICA DE HORARIOS ---
@@ -68,36 +74,69 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
     setValores({ ...valores, [e.target.name]: e.target.value });
   };
 
-  const agregarProductoAlPedido = () => {
-    if (!prodSeleccionado) return;
-    const producto = productos.find(p => p.id === Number(prodSeleccionado));
-    if (!producto) return;
+  // --- Tamaño y mitad y mitad (mismas reglas que la carta y el backend) ---
+  const productoActual = productos.find(p => p.id === Number(prodSeleccionado));
+  const tamanosProducto = productoActual?.tamanos ?? [];
+  const puedeMitad = productoActual?.categoria === 'pizzas'
+    && productoActual?.permitemitad
+    && tamanoSeleccionado === TAMANO_MITAD_Y_MITAD;
+  const opcionesSegundoSabor = productos.filter(p => (
+    p.categoria === 'pizzas' && p.permitemitad && p.disponible && p.id !== productoActual?.id
+  ));
 
-    const subtotal = producto.precio * cantidadSeleccionada;
-    
-    const itemExistente = items.find(i => i.id === producto.id);
+  const elegirProducto = (id) => {
+    setProdSeleccionado(id);
+    setSegundoSaborSeleccionado('');
+    const producto = productos.find(p => p.id === Number(id));
+    const tamanos = producto?.tamanos ?? [];
+    // Por defecto el tamaño más grande (en pizzas, 8 porciones)
+    setTamanoSeleccionado(tamanos.length > 0 ? tamanos[tamanos.length - 1] : '');
+  };
+
+  const agregarProductoAlPedido = () => {
+    if (!productoActual || !productoActual.disponible) return;
+    if (tamanosProducto.length > 0 && !tamanoSeleccionado) return;
+
+    const tamano = tamanosProducto.length > 0 ? tamanoSeleccionado : null;
+    const segundo = puedeMitad && segundoSaborSeleccionado
+      ? productos.find(p => p.id === Number(segundoSaborSeleccionado))
+      : null;
+    // Mitad y mitad: la mitad de cada pizza sumadas (misma regla que el backend)
+    const multiplicador = MULTIPLICADOR_TAMANO[tamano] ?? 1;
+    const precio = segundo
+      ? Math.round((productoActual.precio * multiplicador) / 2 + (segundo.precio * multiplicador) / 2)
+      : Math.round(productoActual.precio * multiplicador);
+    const clave = `${productoActual.id}|${tamano}|${segundo?.id ?? ''}`;
+    const nombre = `${productoActual.nombre}${segundo ? ` / ${segundo.nombre}` : ''}${tamano ? ` (${tamano})` : ''}`;
+
+    const itemExistente = items.find(i => i.clave === clave);
     if (itemExistente) {
-      setItems(items.map(i => i.id === producto.id 
-        ? { ...i, cantidad: i.cantidad + cantidadSeleccionada, subtotal: i.subtotal + subtotal } 
+      setItems(items.map(i => i.clave === clave
+        ? { ...i, cantidad: i.cantidad + cantidadSeleccionada, subtotal: i.precio * (i.cantidad + cantidadSeleccionada) }
         : i
       ));
     } else {
-      setItems([...items, { 
-        id: producto.id, 
-        nombre: producto.nombre, 
-        precio: producto.precio, 
-        cantidad: cantidadSeleccionada, 
-        subtotal 
+      setItems([...items, {
+        clave,
+        id: productoActual.id,
+        nombre,
+        tamano,
+        segundoSaborId: segundo?.id ?? null,
+        precio,
+        cantidad: cantidadSeleccionada,
+        subtotal: precio * cantidadSeleccionada,
       }]);
     }
 
     setProdSeleccionado('');
+    setTamanoSeleccionado('');
+    setSegundoSaborSeleccionado('');
     setCantidadSeleccionada(1);
   };
 
-  const actualizarCantidad = (idItem, modificador) => {
+  const actualizarCantidad = (claveItem, modificador) => {
     setItems(items.map(item => {
-      if (item.id === idItem) {
+      if (item.clave === claveItem) {
         const nuevaCantidad = item.cantidad + modificador;
         if (nuevaCantidad < 1) return item; 
         
@@ -111,8 +150,8 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
     }));
   };
 
-  const eliminarItem = (idAEliminar) => {
-    setItems(items.filter(i => i.id !== idAEliminar));
+  const eliminarItem = (claveAEliminar) => {
+    setItems(items.filter(i => i.clave !== claveAEliminar));
   };
 
   const subtotalProductos = items.reduce((acc, item) => acc + item.subtotal, 0);
@@ -226,7 +265,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                     type="date"
                     className="form-control form-control-sm"
                     name="fechaProgramada"
-                    min={new Date().toISOString().split('T')[0]}
+                    min={fechaLocalHoy()}
                     value={valores.fechaProgramada}
                     onChange={handleChange}
                     required
@@ -264,13 +303,40 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
             </div>
             
             <div className="col-md-7">
-              <select className="form-select" value={prodSeleccionado} onChange={(e) => setProdSeleccionado(e.target.value)} disabled={cargandoProductos}>
+              <select className="form-select" value={prodSeleccionado} onChange={(e) => elegirProducto(e.target.value)} disabled={cargandoProductos}>
                 <option value="">{cargandoProductos ? 'Cargando menú...' : 'Seleccionar producto...'}</option>
                 {productos.map(p => (
-                  <option key={p.id} value={p.id}>{p.nombre} - ${p.precio}</option>
+                  <option key={p.id} value={p.id} disabled={!p.disponible}>
+                    {p.nombre} - ${p.precio}{!p.disponible ? ' (sin stock)' : ''}
+                  </option>
                 ))}
               </select>
             </div>
+
+            {tamanosProducto.length > 0 && (
+              <div className={puedeMitad ? 'col-md-4' : 'col-md-7'}>
+                <select className="form-select" value={tamanoSeleccionado} onChange={(e) => { setTamanoSeleccionado(e.target.value); setSegundoSaborSeleccionado(''); }} aria-label="Tamaño">
+                  {tamanosProducto.map(t => (
+                    <option key={t} value={t}>
+                      {t} - ${Math.round(productoActual.precio * (MULTIPLICADOR_TAMANO[t] ?? 1))}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {puedeMitad && (
+              <div className="col-md-3">
+                <select className="form-select" value={segundoSaborSeleccionado} onChange={(e) => setSegundoSaborSeleccionado(e.target.value)} aria-label="Segunda mitad">
+                  <option value="">Entera (sin mitad)</option>
+                  {opcionesSegundoSabor.map(p => (
+                    <option key={p.id} value={p.id}>
+                      Mitad: {p.nombre} - ${Math.round(productoActual.precio / 2 + p.precio / 2)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="col-md-2 col-4">
               <input type="number" className="form-control" min="1" value={cantidadSeleccionada} onChange={(e) => setCantidadSeleccionada(Number(e.target.value))} />
             </div>
@@ -293,7 +359,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                   </thead>
                   <tbody>
                     {items.map(item => (
-                      <tr key={item.id} className="align-middle">
+                      <tr key={item.clave} className="align-middle">
                         <td className="fw-semibold">{item.nombre}</td>
                         <td className="text-end text-muted">${item.subtotal}</td>
                         <td>
@@ -301,7 +367,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-link text-dark text-decoration-none px-2 py-0" 
-                              onClick={() => actualizarCantidad(item.id, -1)}
+                              onClick={() => actualizarCantidad(item.clave, -1)}
                               disabled={item.cantidad <= 1}
                             >
                               -
@@ -310,14 +376,14 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                             <button 
                               type="button" 
                               className="btn btn-sm btn-link text-dark text-decoration-none px-2 py-0" 
-                              onClick={() => actualizarCantidad(item.id, 1)}
+                              onClick={() => actualizarCantidad(item.clave, 1)}
                             >
                               +
                             </button>
                           </div>
                         </td>
                         <td className="text-center">
-                          <button type="button" className="btn btn-sm btn-outline-danger border-0" onClick={() => eliminarItem(item.id)}>
+                          <button type="button" className="btn btn-sm btn-outline-danger border-0" onClick={() => eliminarItem(item.clave)}>
                             🗑️
                           </button>
                         </td>

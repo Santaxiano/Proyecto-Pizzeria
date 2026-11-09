@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
-import { validarDatosReserva } from '../../reservas/services/reservaService';
+import { fechaLocalHoy } from '../../../shared/utils/fecha';
+import { validarDatosReserva, MAX_COMENSALES } from '../../reservas/services/reservaService';
 
 export default function FormularioReserva({ onReservaConfirmada }) {
   const [datos, setDatos] = useState({
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: fechaLocalHoy(),
     personas: 2,
     hora: '', // Iniciamos vacío para obligar a seleccionar
     nombre: '',
@@ -119,7 +120,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
             type="date"
             className={`form-control ${errores.fecha ? 'is-invalid' : ''}`}
             value={datos.fecha}
-            min={new Date().toISOString().split('T')[0]}
+            min={fechaLocalHoy()}
             onChange={(e) => {
               actualizarCampo('fecha', e.target.value);
               actualizarCampo('hora', ''); // Resetea la hora si cambian el día
@@ -145,11 +146,13 @@ export default function FormularioReserva({ onReservaConfirmada }) {
               value={datos.personas}
               onChange={(e) => actualizarCampo('personas', Number(e.target.value))}
               min="1"
+              max={MAX_COMENSALES}
               required
             />
             <button 
               type="button" 
               className="btn btn-outline-dark" 
+              disabled={datos.personas >= MAX_COMENSALES}
               onClick={() => actualizarCampo('personas', datos.personas + 1)}
             >
               +

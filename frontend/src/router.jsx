@@ -12,7 +12,7 @@ import ContactoPage from './features/contacto/pages/ContactoPage';
 
 // --- Autenticación ---
 import LoginPage from './features/login/pages/LoginPage';
-import { protegerRuta, redirigirSiHaySesion } from './features/login/service/inicioservice';
+import { protegerRuta, protegerRutaAdmin, redirigirSiHaySesion } from './features/login/service/inicioservice';
 
 // --- Páginas del Gestor ---
 import InicioGestorPage from './features/home/pages/InicioGestorPage'; 
@@ -53,8 +53,9 @@ export const router = createBrowserRouter([
       { path: 'salon', element: <SalonPage /> },
       { path: 'comandas', element: <ComandasPage /> },
       { path: 'stock', element: <StockPage /> },
-      { path: 'empleados', element: <EmpleadoPage /> },
-      { path: 'usuarios', element: <UsuariosPage />}
+      // Solo administradores (el backend también lo exige)
+      { path: 'empleados', element: <EmpleadoPage />, loader: protegerRutaAdmin },
+      { path: 'usuarios', element: <UsuariosPage />, loader: protegerRutaAdmin }
     ]
   }
 ]);

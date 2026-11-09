@@ -28,7 +28,15 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
   }
 
   const multiplicadorPrecio = tamano === '4 porciones' ? 0.6 : 1;
-  const precioFinal = producto.precio * multiplicadorPrecio;
+  // Mitad y mitad: la mitad de cada pizza sumadas (misma regla que el backend, pedidos.controller.js)
+  const pizzaSegundaMitad = esMitad && segundoSabor
+    ? todasLasPizzas.find((p) => p.id === Number(segundoSabor))
+    : null;
+  const precioMitadPrimera = Math.round((producto.precio * multiplicadorPrecio) / 2);
+  const precioMitadSegunda = pizzaSegundaMitad ? Math.round((pizzaSegundaMitad.precio * multiplicadorPrecio) / 2) : 0;
+  const precioFinal = pizzaSegundaMitad
+    ? Math.round((producto.precio * multiplicadorPrecio) / 2 + (pizzaSegundaMitad.precio * multiplicadorPrecio) / 2)
+    : Math.round(producto.precio * multiplicadorPrecio);
 
   // Fallback seguro de la imagen
   const imagenSegura = (producto.imagen && producto.imagen.trim() !== '') 
@@ -38,7 +46,7 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
   function handleAgregar() {
     if (botonDeshabilitado) return;
 
-    const pizzaSegundoSabor = esMitad ? todasLasPizzas.find((p) => p.id === Number(segundoSabor)) : null;
+    const pizzaSegundoSabor = pizzaSegundaMitad;
 
     const itemCarrito = {
       ...producto,
@@ -84,6 +92,11 @@ function DetalleProducto({ producto, todasLasPizzas = [], onAgregar }) {
             </span>
           )}
         </p>
+        {pizzaSegundaMitad && (
+          <p className="small text-secondary mt-n2 mb-3">
+            ½ {producto.nombre} ${precioMitadPrimera.toLocaleString('es-AR')} + ½ {pizzaSegundaMitad.nombre} ${precioMitadSegunda.toLocaleString('es-AR')}
+          </p>
+        )}
         <p className="text-secondary">{producto.descripcion}</p>
 
         <h6 className="fw-bold mt-4">

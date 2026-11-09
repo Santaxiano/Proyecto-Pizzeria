@@ -1,5 +1,8 @@
 const URL_BASE = 'http://localhost:3000/api/reservas';
 
+// Mismo tope que el backend (backend/src/middlewares/validarReserva.js)
+export const MAX_COMENSALES = 30;
+
 function nombreCampo(datos, api, alternativo) {
   return Object.hasOwn(datos, alternativo) ? alternativo : api;
 }
@@ -48,6 +51,8 @@ export function validarDatosReserva(datos) {
   const comensalesCampo = nombreCampo(datos, 'comensales', 'personas');
   if (!Number.isInteger(comensales) || comensales <= 0) {
     errores[comensalesCampo] = 'Ingresá una cantidad entera mayor que cero.';
+  } else if (comensales > MAX_COMENSALES) {
+    errores[comensalesCampo] = `Para más de ${MAX_COMENSALES} personas comunicate con el local.`;
   }
 
   return errores;

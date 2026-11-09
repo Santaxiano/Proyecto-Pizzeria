@@ -7,6 +7,8 @@ import {
 } from '../services/comandasService';
 import { useFetch } from '../../../shared/hooks/useFetch';
 
+const INTERVALO_REFRESCO_MS = 30_000;
+
 // Las comandas viven en la base (tabla pedidos): cada acción llama al backend
 // y después recarga la lista, así todos ven lo mismo.
 export function useComandas() {
@@ -24,6 +26,14 @@ export function useComandas() {
       console.error('Error al recargar las comandas:', err);
     }
   }
+
+  // Los pedidos que hacen los clientes desde la web aparecen solos, sin recargar la página
+  useEffect(() => {
+    const intervalo = setInterval(() => {
+      obtenerComandas().then(setComandas).catch(() => {}); // si falla, se reintenta en el próximo ciclo
+    }, INTERVALO_REFRESCO_MS);
+    return () => clearInterval(intervalo);
+  }, []);
 
   // Devuelve true si se guardó, para que la pantalla cierre el formulario solo en ese caso.
   const agregarComanda = async (nuevoPedido) => {

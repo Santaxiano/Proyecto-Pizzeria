@@ -3,7 +3,8 @@ const URL_BASE = 'http://localhost:3000/api';
 
 // Crea el pedido en el backend (POST público, sin token).
 // El total, el envío y el detalle los calcula el backend con los precios de la base.
-export async function crearPedido({ items, tipoEntrega, datosCliente, horario }) {
+// En delivery se manda la ubicación del mapa: el backend vuelve a controlar el radio de 5 km.
+export async function crearPedido({ items, tipoEntrega, datosCliente, horario, ubicacion = null }) {
   const notas = [datosCliente.pisoDepto, datosCliente.indicaciones]
     .map((texto) => texto?.trim())
     .filter(Boolean)
@@ -20,6 +21,8 @@ export async function crearPedido({ items, tipoEntrega, datosCliente, horario })
       direccionMesa: tipoEntrega === 'delivery' ? datosCliente.calleNumero.trim() : null,
       horario,
       notas: notas || null,
+      lat: ubicacion?.lat ?? null,
+      lng: ubicacion?.lng ?? null,
       formaPago: datosCliente.formaPago === 'transferencia' ? 'mercadopago' : 'efectivo',
       items: items.map((item) => ({
         productoId: item.id,
