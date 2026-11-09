@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { fechaLocalHoy } from '../../../shared/utils/fecha';
 import { distanciaAlLocal, RADIO_ENTREGA_KM } from '../../../shared/utils/pedidosUtils';
-import MapaUbicacion from './MapaUbicacion';
+import MapaUbicacion from '../../../shared/components/MapaUbicacion';
 
 const formatoKm = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 
@@ -238,7 +238,13 @@ function FormularioPedido({
             </div>
           </div>
 
-          <MapaUbicacion ubicacion={ubicacion} onCambiarUbicacion={onCambiarUbicacion} />
+          {/* El buscador arranca con lo que escribió en "Calle y número": solo tiene que tocar Buscar */}
+          <MapaUbicacion
+            ubicacion={ubicacion}
+            onCambiarUbicacion={onCambiarUbicacion}
+            mostrarBuscador
+            textoInicialBusqueda={datosCliente.calleNumero}
+          />
 
           {ubicacion && !fueraDeZona && (
             <div className="alert alert-success small p-2 mt-2 mb-0" role="status">

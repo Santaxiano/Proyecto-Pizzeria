@@ -60,6 +60,9 @@ export async function crearComanda(datos) {
       tipo: datos.tipo,
       direccionMesa: datos.direccionMesa,
       horario: datos.horario || null,
+      // Opcional en el gestor: si se marcó en el mapa, el backend valida la zona y guarda el link
+      lat: datos.ubicacion?.lat ?? null,
+      lng: datos.ubicacion?.lng ?? null,
       items: datos.items.map((item) => ({
         productoId: item.id,
         cantidad: item.cantidad,

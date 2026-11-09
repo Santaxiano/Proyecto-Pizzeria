@@ -2,6 +2,10 @@ import { useState, useMemo } from 'react';
 import { fechaLocalHoy } from '../../../shared/utils/fecha';
 import { obtenerProductos } from '../../carta/services/catalogoService';
 import { useFetch } from '../../../shared/hooks/useFetch';
+import MapaUbicacion from '../../../shared/components/MapaUbicacion';
+import { distanciaAlLocal, estaEnZonaDeEnvio, RADIO_ENTREGA_KM } from '../../../shared/utils/pedidosUtils';
+
+const formatoKm = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 
 // Misma regla de envío que aplica el backend al crear el pedido
 const ENVIO_GRATIS_DESDE = 15000;
@@ -30,6 +34,12 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
   const [tamanoSeleccionado, setTamanoSeleccionado] = useState('');
   const [segundoSaborSeleccionado, setSegundoSaborSeleccionado] = useState('');
   const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
+
+  // Domicilio marcado en el mapa (solo delivery). Para el gestor es opcional:
+  // si el cliente llama por teléfono puede no saber dónde marcarlo. Si se marca, se valida la zona.
+  const [ubicacion, setUbicacion] = useState(null);
+  const fueraDeZona = valores.tipo === 'delivery' && ubicacion !== null
+    && !estaEnZonaDeEnvio(ubicacion.lat, ubicacion.lng);
 
   // --- LÓGICA DINÁMICA DE HORARIOS ---
   const horariosDisponibles = useMemo(() => {
@@ -177,8 +187,18 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
       ? 'Lo antes posible' 
       : `${valores.fechaProgramada} a las ${valores.horaProgramada} hs`;
 
-    // Pasamos el horarioFinal a onGuardar
-    onGuardar({ ...valores, horario: horarioFinal, items });
+    if (fueraDeZona) {
+      alert('El domicilio marcado está fuera de la zona de entrega.');
+      return;
+    }
+
+    // Pasamos el horarioFinal a onGuardar. La ubicación solo viaja si es delivery.
+    onGuardar({
+      ...valores,
+      horario: horarioFinal,
+      items,
+      ubicacion: valores.tipo === 'delivery' ? ubicacion : null,
+    });
   };
 
   return (
@@ -211,6 +231,29 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
               <label className="form-label fw-bold small text-muted">Dirección / N° Mesa</label>
               <input type="text" className="form-control" name="direccionMesa" value={valores.direccionMesa} onChange={handleChange} required={valores.tipo !== 'retiro'} />
             </div>
+
+            {valores.tipo === 'delivery' && (
+              <div className="col-12">
+                <MapaUbicacion
+                  ubicacion={ubicacion}
+                  onCambiarUbicacion={setUbicacion}
+                  titulo="Ubicación del domicilio (opcional)"
+                  mostrarGps={false}
+                  mostrarBuscador
+                />
+                {ubicacion && !fueraDeZona && (
+                  <div className="alert alert-success small p-2 mt-2 mb-0" role="status">
+                    ✓ Dentro de la zona de entrega ({formatoKm.format(distanciaAlLocal(ubicacion.lat, ubicacion.lng))} km). El repartidor va a tener el link del mapa.
+                  </div>
+                )}
+                {fueraDeZona && (
+                  <div className="alert alert-danger small p-2 mt-2 mb-0" role="alert">
+                    ✗ Fuera de la zona: está a {formatoKm.format(distanciaAlLocal(ubicacion.lat, ubicacion.lng))} km
+                    y entregamos hasta {RADIO_ENTREGA_KM} km.
+                  </div>
+                )}
+              </div>
+            )}
 
             {aplicaEnvio && (
               <div className="col-md-4">
@@ -410,7 +453,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
 
           <div className="mt-4 d-flex justify-content-end gap-2 border-top pt-3">
             <button type="button" className="btn btn-outline-secondary fw-bold" onClick={onCancelar}>Cancelar</button>
-            <button type="submit" className="btn btn-success fw-bold">Guardar Pedido</button>
+            <button type="submit" className="btn btn-success fw-bold" disabled={fueraDeZona}>Guardar Pedido</button>
           </div>
         </form>
       </div>
