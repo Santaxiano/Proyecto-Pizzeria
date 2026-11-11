@@ -22,6 +22,7 @@ import SalonPage from './features/salon/pages/SalonPage';
 import ComandasPage from './features/comandas/pages/ComandasPage';
 import EmpleadoPage from './features/empleados/pages/EmpleadoPage';
 import UsuariosPage from './features/usuarios/pages/UsuariosPage';
+import ConfiguracionPage from './features/configuracion/pages/ConfiguracionPage';
 
 export const router = createBrowserRouter([
   {
@@ -60,6 +61,8 @@ export const router = createBrowserRouter([
       { path: 'salon', element: <SalonPage /> },
       { path: 'comandas', element: <ComandasPage /> },
       { path: 'stock', element: <StockPage /> },
+      // Empleados y administradores (el loader del padre ya exige sesión)
+      { path: 'configuracion', element: <ConfiguracionPage /> },
       // Solo administradores (el backend también lo exige)
       { path: 'empleados', element: <EmpleadoPage />, loader: protegerRutaAdmin },
       { path: 'usuarios', element: <UsuariosPage />, loader: protegerRutaAdmin }

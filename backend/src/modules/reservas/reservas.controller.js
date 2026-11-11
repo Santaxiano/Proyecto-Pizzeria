@@ -65,6 +65,20 @@ export const actualizar = async (req, res, next) => {
   try {
     await client.query('BEGIN');
 
+    // Una reserva Finalizada (el cliente ya vino y se fue) no se puede modificar
+    const { rows: actuales } = await client.query(
+      'SELECT estado FROM reservas WHERE id = $1 FOR UPDATE',
+      [id]
+    );
+    if (actuales.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Reserva no encontrada' });
+    }
+    if (actuales[0].estado === 'Finalizada') {
+      await client.query('ROLLBACK');
+      return res.status(409).json({ error: 'No se puede modificar una reserva finalizada' });
+    }
+
     if (entradas.length > 0) {
       const { rowCount } = await client.query(
         `UPDATE reservas
@@ -145,6 +159,7 @@ const asignarMesas = async (client, reservaId, mesaIds) => {
        JOIN reservas r ON r.id = rm.reserva_id
        WHERE rm.mesa_id = ANY($1::int[])
          AND rm.reserva_id <> $2
+         AND r.estado <> 'Finalizada'
          AND ABS(EXTRACT(EPOCH FROM (
            (r.fecha + r.hora) - ($3::date + $4::time)
          ))) < $5

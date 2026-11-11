@@ -151,6 +151,11 @@ INSERT INTO reserva_mesa (reserva_id, mesa_id) VALUES
   (1, 2),
   (2, 5)
 ON CONFLICT (reserva_id, mesa_id) DO NOTHING;
+
+-- Fila única de configuración con los valores de envío iniciales
+INSERT INTO configuracion (id, costo_envio, envio_gratis_desde) VALUES (1, 1500, 15000)
+ON CONFLICT (id) DO NOTHING;
+
 SELECT setval(
   pg_get_serial_sequence('usuarios', 'id'),
   COALESCE(MAX(id), 1),

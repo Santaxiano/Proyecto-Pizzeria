@@ -1,4 +1,4 @@
-export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, onCambiarEstado }) {
+export default function TarjetaComanda({ comanda, onEditar, onEliminar, onConfirmarWpp, onCambiarEstado }) {
   // Colores dinámicos según el estado
   const colorEstado = 
     comanda.estado === 'Finalizada' ? 'bg-success' : 
@@ -6,6 +6,13 @@ export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, on
 
   // En mesa no hay a quién avisarle por WhatsApp: se pasa directo de estado.
   const esMesaPendiente = comanda.tipo === 'mesa' && comanda.estado === 'Pendiente';
+
+  // Mismas reglas que el backend: no se editan las finalizadas ni las pagadas online
+  const motivoNoEditable = comanda.estado === 'Finalizada'
+    ? 'Un pedido finalizado no se puede editar'
+    : comanda.formaPago === 'mercadopago'
+      ? 'Un pedido pagado con Mercado Pago no se puede editar'
+      : null;
 
   return (
     <div className="col">
@@ -23,6 +30,11 @@ export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, on
             <h3 className="h5 fw-bold mb-0">{comanda.cliente}</h3>
             <span className="fw-bold text-success">${comanda.total}</span>
           </div>
+          {comanda.telefono && (
+            <p className="text-muted small mb-1">
+              📞 <a href={`tel:${comanda.telefono}`} className="text-reset">{comanda.telefono}</a>
+            </p>
+          )}
           {comanda.direccionMesa && <p className="text-muted small mb-1">📍 {comanda.direccionMesa}</p>}
           {comanda.horario && <p className="text-muted small mb-1">🕒 {comanda.horario}</p>}
           {comanda.notas && <p className="text-muted small mb-1">📝 {comanda.notas}</p>}
@@ -78,9 +90,9 @@ export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, on
             )}
             
             <div className="d-flex gap-2 mt-1">
-              {/* El backend solo permite cambiar el estado de un pedido, no editarlo completo */}
-              <span className="w-50" title="Para cambiar el pedido, eliminalo y crealo de nuevo">
-                <button className="btn btn-outline-dark btn-sm w-100" disabled>
+              {/* El span muestra el motivo al pasar el mouse (un botón deshabilitado no muestra title) */}
+              <span className="w-50" title={motivoNoEditable ?? 'Editar datos y productos del pedido'}>
+                <button className="btn btn-outline-dark btn-sm w-100" onClick={onEditar} disabled={Boolean(motivoNoEditable)}>
                   Editar
                 </button>
               </span>

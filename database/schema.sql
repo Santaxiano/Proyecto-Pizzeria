@@ -97,6 +97,9 @@ CREATE TABLE Reservas (
     comensales INT NOT NULL,
     lugar VARCHAR(50) NOT NULL,
     usuario_id INT,
+    -- Pendiente: todavía no llegó · En curso: el cliente ocupó la mesa · Finalizada: se liberó la mesa
+    estado VARCHAR(20) NOT NULL DEFAULT 'Pendiente',
+    CONSTRAINT reservas_estado_valido CHECK (estado IN ('Pendiente', 'En curso', 'Finalizada')),
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id)
 );
 
@@ -113,4 +116,12 @@ CREATE TABLE Reserva_Mesa (
     PRIMARY KEY (reserva_id, mesa_id),
     FOREIGN KEY (reserva_id) REFERENCES Reservas(id),
     FOREIGN KEY (mesa_id) REFERENCES Mesas(id)
+);
+
+-- Configuración del local editable desde el gestor. Tiene una sola fila (id = 1).
+-- envio_gratis_desde = 0 significa que no hay envío gratis.
+CREATE TABLE Configuracion (
+    id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    costo_envio INT NOT NULL DEFAULT 1500 CHECK (costo_envio >= 0),
+    envio_gratis_desde INT NOT NULL DEFAULT 15000 CHECK (envio_gratis_desde >= 0)
 );

@@ -4,12 +4,11 @@ import { obtenerProductos } from '../../carta/services/catalogoService';
 import { useFetch } from '../../../shared/hooks/useFetch';
 import MapaUbicacion from '../../../shared/components/MapaUbicacion';
 import { distanciaAlLocal, estaEnZonaDeEnvio, RADIO_ENTREGA_KM } from '../../../shared/utils/pedidosUtils';
+import { obtenerConfigEnvio } from '../../../shared/services/configuracionService';
+import { calcularEnvio, hayEnvioGratis } from '../../../shared/utils/envio';
 
 const formatoKm = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 
-// Misma regla de envío que aplica el backend al crear el pedido
-const ENVIO_GRATIS_DESDE = 15000;
-const COSTO_ENVIO = 1500;
 const TAMANO_MITAD_Y_MITAD = '8 porciones';
 const VARIANTE_MITAD = '4 porciones';
 
@@ -52,24 +51,67 @@ const nombreClienteMesa = (direccionMesa) => {
   return (/^mesa\b/i.test(mesa) ? mesa : `Mesa ${mesa}`).slice(0, 255);
 };
 
-export default function FormularioComanda({ onGuardar, onCancelar }) {
+// Misma clave que usa agregarProductoAlPedido para juntar productos iguales
+const armarClaveItem = (productoId, tamano, segundoSaborId, toppings) => {
+  const claveToppings = JSON.stringify(
+    toppings.map(topping => topping.nombre.trim().toLowerCase()).sort()
+  );
+  return `${productoId}|${tamano}|${segundoSaborId ?? ''}|${claveToppings}`;
+};
+
+// --- Precarga al editar una comanda existente ---
+// El backend guarda el horario como "Lo antes posible" o "AAAA-MM-DD a las HH:MM hs"
+const PATRON_HORARIO_PROGRAMADO = /^(\d{4}-\d{2}-\d{2}) a las (\d{2}:\d{2}) hs$/;
+
+const valoresIniciales = (comanda) => {
+  const programado = comanda?.horario?.match(PATRON_HORARIO_PROGRAMADO);
+  return {
+    cliente: comanda?.cliente ?? '',
+    telefono: comanda?.telefono ?? '',
+    tipo: comanda?.tipo ?? 'delivery',
+    direccionMesa: comanda?.direccionMesa ?? '',
+    modalidadHorario: programado ? 'programado' : 'inmediato',
+    fechaProgramada: programado ? programado[1] : fechaLocalHoy(),
+    horaProgramada: programado ? programado[2] : '',
+  };
+};
+
+// Las líneas guardadas (detalle_pedido) pasan al formato de la tabla del formulario
+const itemsIniciales = (comanda) => (comanda?.items ?? []).map((linea) => {
+  const toppings = Array.isArray(linea.toppings) ? linea.toppings : [];
+  const precio = Number(linea.precio_unitario);
+  return {
+    clave: armarClaveItem(linea.producto_id, linea.tamano, linea.segundo_sabor_id, toppings),
+    id: linea.producto_id,
+    nombre: `${linea.producto_nombre}${linea.segundo_sabor_nombre ? ` / ${linea.segundo_sabor_nombre}` : ''}${linea.tamano ? ` (${linea.tamano})` : ''}`,
+    tamano: linea.tamano,
+    segundoSaborId: linea.segundo_sabor_id ?? null,
+    toppings,
+    precio,
+    cantidad: linea.cantidad,
+    subtotal: precio * linea.cantidad,
+  };
+});
+
+// El link del mapa guardado en las notas trae las coordenadas: ...maps?q=lat,lng
+const ubicacionInicial = (comanda) => {
+  const coincidencia = comanda?.ubicacionUrl?.match(/q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  return coincidencia ? { lat: Number(coincidencia[1]), lng: Number(coincidencia[2]) } : null;
+};
+
+// comandaInicial: si viene, el formulario edita esa comanda en vez de crear una nueva
+export default function FormularioComanda({ onGuardar, onCancelar, comandaInicial = null }) {
   const { datos: productosBackend, cargando: cargandoProductos } = useFetch(obtenerProductos);
   const productos = productosBackend || [];
+  // Costo de envío configurado desde el gestor (Configuración)
+  const { datos: configEnvio } = useFetch(obtenerConfigEnvio);
+  const editando = comandaInicial !== null;
 
-  const [valores, setValores] = useState({
-    cliente: '',
-    telefono: '',
-    tipo: 'delivery',
-    direccionMesa: '',
-    // Agregamos los campos para manejar la lógica de horarios
-    modalidadHorario: 'inmediato',
-    fechaProgramada: fechaLocalHoy(),
-    horaProgramada: '' 
-  });
+  const [valores, setValores] = useState(() => valoresIniciales(comandaInicial));
 
   const esMesa = valores.tipo === 'mesa';
 
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(() => itemsIniciales(comandaInicial));
   const [prodSeleccionado, setProdSeleccionado] = useState('');
   const [tamanoSeleccionado, setTamanoSeleccionado] = useState('');
   const [segundoSaborSeleccionado, setSegundoSaborSeleccionado] = useState('');
@@ -78,7 +120,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
 
   // Domicilio marcado en el mapa (solo delivery). Para el gestor es opcional:
   // si el cliente llama por teléfono puede no saber dónde marcarlo. Si se marca, se valida la zona.
-  const [ubicacion, setUbicacion] = useState(null);
+  const [ubicacion, setUbicacion] = useState(() => ubicacionInicial(comandaInicial));
   const fueraDeZona = valores.tipo === 'delivery' && ubicacion !== null
     && !estaEnZonaDeEnvio(ubicacion.lat, ubicacion.lng);
 
@@ -197,10 +239,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
       precio: Number(topping.precio),
     }));
     const precio = precioBase + totalToppings;
-    const claveToppings = JSON.stringify(
-      toppings.map(topping => topping.nombre.trim().toLowerCase()).sort()
-    );
-    const clave = `${productoActual.id}|${tamano}|${segundo?.id ?? ''}|${claveToppings}`;
+    const clave = armarClaveItem(productoActual.id, tamano, segundo?.id, toppings);
     const nombre = `${productoActual.nombre}${segundo ? ` / ${segundo.nombre}` : ''}${tamano ? ` (${tamano})` : ''}`;
 
     const itemExistente = items.find(i => i.clave === clave);
@@ -252,7 +291,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
 
   const subtotalProductos = items.reduce((acc, item) => acc + item.subtotal, 0);
   const aplicaEnvio = valores.tipo === 'delivery';
-  const costoEnvioActual = aplicaEnvio && subtotalProductos < ENVIO_GRATIS_DESDE ? COSTO_ENVIO : 0;
+  const costoEnvioActual = calcularEnvio(valores.tipo, subtotalProductos, configEnvio);
   const totalFinal = subtotalProductos + costoEnvioActual;
   const detalleGenerado = items.map(i => `${i.cantidad}x ${i.nombre}`).join(', ');
 
@@ -294,13 +333,15 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
       horario: horarioFinal,
       items,
       ubicacion: valores.tipo === 'delivery' ? ubicacion : null,
+      // Al editar se conservan las notas que cargó el cliente (piso, depto, indicaciones)
+      notas: comandaInicial?.notas || null,
     });
   };
 
   return (
     <div className="card shadow-sm mb-4 border-0">
       <div className="card-header bg-dark text-white">
-        <h3 className="h5 mb-0">Nuevo Pedido</h3>
+        <h3 className="h5 mb-0">{editando ? `Editar pedido #${comandaInicial.id}` : 'Nuevo Pedido'}</h3>
       </div>
       <div className="card-body">
         <form onSubmit={handleSubmit}>
@@ -389,8 +430,12 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
             {aplicaEnvio && (
               <div className="col-md-4">
                 <label className="form-label fw-bold small text-danger">Costo Envío ($)</label>
-                <input type="text" className="form-control bg-light border-danger" value={`$ ${costoEnvioActual}`} readOnly />
-                <span className="small text-muted d-block mt-1">Gratis desde ${ENVIO_GRATIS_DESDE}</span>
+                <input type="text" className="form-control bg-light border-danger" value={configEnvio ? `$ ${costoEnvioActual}` : '…'} readOnly />
+                {configEnvio && (
+                  <span className="small text-muted d-block mt-1">
+                    {hayEnvioGratis(configEnvio) ? `Gratis desde $${configEnvio.envioGratisDesde}` : 'Sin envío gratis'}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -633,7 +678,9 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
 
           <div className="mt-4 d-flex justify-content-end gap-2 border-top pt-3">
             <button type="button" className="btn btn-outline-secondary fw-bold" onClick={onCancelar}>Cancelar</button>
-            <button type="submit" className="btn btn-success fw-bold" disabled={fueraDeZona}>Guardar Pedido</button>
+            <button type="submit" className="btn btn-success fw-bold" disabled={fueraDeZona}>
+              {editando ? 'Guardar cambios' : 'Guardar Pedido'}
+            </button>
           </div>
         </form>
       </div>

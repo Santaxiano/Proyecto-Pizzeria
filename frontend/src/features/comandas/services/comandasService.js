@@ -52,33 +52,58 @@ export async function obtenerComandas() {
 }
 
 // Se manda producto, cantidad, tamaño y segundo sabor: el total, el envío y el detalle los calcula el backend.
+// Lo comparten crear y editar.
+function armarCuerpoPedido(datos) {
+  return JSON.stringify({
+    cliente: datos.cliente,
+    telefono: datos.telefono,
+    tipo: datos.tipo,
+    direccionMesa: datos.direccionMesa,
+    horario: datos.horario || null,
+    notas: datos.notas || null,
+    // Opcional en el gestor: si se marcó en el mapa, el backend valida la zona y guarda el link
+    lat: datos.ubicacion?.lat ?? null,
+    lng: datos.ubicacion?.lng ?? null,
+    items: datos.items.map((item) => ({
+      productoId: item.id,
+      cantidad: item.cantidad,
+      tamano: item.tamano || null,
+      segundoSaborId: item.segundoSaborId ?? null,
+      // Solo los nombres: el backend valida y suma los precios de la base.
+      toppings: (item.toppings ?? [])
+        .map((topping) => (typeof topping === 'string' ? topping : topping?.nombre))
+        .filter(Boolean),
+    })),
+  });
+}
+
 export async function crearComanda(datos) {
   const respuesta = await fetch(`${URL_BASE}/pedidos`, {
     method: 'POST',
     headers: headersConToken(true),
-    body: JSON.stringify({
-      cliente: datos.cliente,
-      telefono: datos.telefono,
-      tipo: datos.tipo,
-      direccionMesa: datos.direccionMesa,
-      horario: datos.horario || null,
-      // Opcional en el gestor: si se marcó en el mapa, el backend valida la zona y guarda el link
-      lat: datos.ubicacion?.lat ?? null,
-      lng: datos.ubicacion?.lng ?? null,
-      items: datos.items.map((item) => ({
-        productoId: item.id,
-        cantidad: item.cantidad,
-        tamano: item.tamano || null,
-        segundoSaborId: item.segundoSaborId ?? null,
-        // Solo los nombres: el backend valida y suma los precios de la base.
-        toppings: (item.toppings ?? [])
-          .map((topping) => (typeof topping === 'string' ? topping : topping?.nombre))
-          .filter(Boolean),
-      })),
-    }),
+    body: armarCuerpoPedido(datos),
   });
 
   if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'No se pudo crear el pedido');
+  return adaptarComanda(await respuesta.json());
+}
+
+// Una comanda con sus productos (detalle_pedido), para precargar el formulario de edición
+export async function obtenerComanda(id) {
+  const respuesta = await fetch(`${URL_BASE}/pedidos/${id}`, { headers: headersConToken() });
+  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'No se pudo obtener el pedido');
+  return adaptarComanda(await respuesta.json());
+}
+
+// Reemplaza los datos y los productos de la comanda. El backend recalcula total y envío.
+export async function editarComanda(id, datos) {
+  const respuesta = await fetch(`${URL_BASE}/pedidos/${id}/editar`, {
+    method: 'PUT',
+    headers: headersConToken(true),
+    body: armarCuerpoPedido(datos),
+  });
+
+  if (!respuesta.ok) await lanzarErrorDeRespuesta(respuesta, 'No se pudo editar el pedido');
   return adaptarComanda(await respuesta.json());
 }
 

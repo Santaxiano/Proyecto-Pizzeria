@@ -16,9 +16,16 @@ function reservasSeSuperponen(reserva, otraReserva) {
          Math.max(inicio1, inicio2) < Math.min(fin1, fin2); // Lógica de superposición estricta
 }
 
+// Estado que guarda el backend: cambia solo al ocupar y liberar la mesa desde el plano
+const ESTILO_ESTADO = {
+  Pendiente: { clase: 'bg-warning text-dark', texto: 'Pendiente' },
+  'En curso': { clase: 'bg-primary', texto: 'En curso · cliente en el local' },
+  Finalizada: { clase: 'bg-secondary', texto: 'Finalizada' },
+};
+
 export default function AgendaReservas({
   reservasDelDia, reservas, fechasProximas, mesas,
-  fechaFiltro, setFechaFiltro, onAsignarReserva, onCancelarReserva
+  fechaFiltro, setFechaFiltro, onAsignarReserva, onEditarReserva, onCancelarReserva
 }) {
   const [mesaSeleccionada, setMesaSeleccionada] = useState({});
   const [erroresAsignacion, setErroresAsignacion] = useState({});
@@ -83,9 +90,17 @@ export default function AgendaReservas({
               const resuelta = mesasAsignadas.length > 0 && capacidadAsignada >= comensales;
               const seleccionActual = mesaSeleccionada[reserva.id] ?? mesasIdsAsignadas;
               const seleccionIds = new Set(seleccionActual.map(Number));
+              const estado = reserva.estado ?? 'Pendiente';
+              const estilo = ESTILO_ESTADO[estado] ?? ESTILO_ESTADO.Pendiente;
+              const finalizada = estado === 'Finalizada';
+              // Una reserva finalizada ya liberó sus mesas: no cuenta como choque (igual que el backend)
               const mesasEnConflicto = new Set(
                 reservas
-                  .filter((otraReserva) => (otraReserva.id !== reserva.id && reservasSeSuperponen(reserva, otraReserva)))
+                  .filter((otraReserva) => (
+                    otraReserva.id !== reserva.id
+                    && otraReserva.estado !== 'Finalizada'
+                    && reservasSeSuperponen(reserva, otraReserva)
+                  ))
                   .flatMap((otraReserva) => otraReserva.mesasIds ?? [])
                   .map(Number)
               );
@@ -96,12 +111,13 @@ export default function AgendaReservas({
               ));
 
               return (
-                <div key={reserva.id} className="card border-secondary">
+                <div key={reserva.id} className={`card border-secondary ${finalizada ? 'opacity-75' : ''}`}>
                   <div className="card-body p-3">
                     <div className="d-flex justify-content-between">
                       <h6 className="fw-bold mb-1">{reserva.cliente}</h6>
                       <span className="badge bg-dark">{reserva.desde || reserva.hora} hs</span>
                     </div>
+                    <span className={`badge ${estilo.clase} mb-2`}>{estilo.texto}</span>
                     <p className="small text-muted mb-2">👥 {comensales} personas | 📞 {reserva.contacto || reserva.whatsapp}</p>
                     <p className="small text-secondary mb-2 fst-italic">Sector: {reserva.lugarMotivo || reserva.motivo}</p>
                     
@@ -115,6 +131,8 @@ export default function AgendaReservas({
                       ) : (<div>Sin mesas asignadas</div>)}
                     </div>
 
+                    {/* Una reserva finalizada ya no se modifica (el backend tampoco lo permite) */}
+                    {!finalizada && (<>
                     <div className="form-label small fw-bold mb-1">Asignar mesas</div>
                     <details className="border rounded">
                       <summary className="px-2 py-1 small fw-semibold">Elegir mesas ({seleccionActual.length})</summary>
@@ -146,12 +164,21 @@ export default function AgendaReservas({
                       {asignando[reserva.id] ? 'Guardando...' : 'Guardar mesas asignadas'}
                     </button>
                     {erroresAsignacion[reserva.id] && (<div className="text-danger small mt-2" role="alert">{erroresAsignacion[reserva.id]}</div>)}
+                    </>)}
                   </div>
-                  <div className="card-footer bg-white border-top-0 pt-0 text-end">
-                    <button className="btn btn-link text-danger text-decoration-none btn-sm p-0" onClick={() => onCancelarReserva(reserva.id, reserva.cliente)}>
-                      Cancelar Reserva
-                    </button>
-                  </div>
+                  {!finalizada && (
+                    <div className="card-footer bg-white border-top-0 pt-0 d-flex justify-content-end gap-3">
+                      {/* Se edita mientras el cliente no llegó; en curso solo se pueden cambiar las mesas */}
+                      {estado === 'Pendiente' && (
+                        <button className="btn btn-link text-dark text-decoration-none btn-sm p-0 fw-semibold" onClick={() => onEditarReserva(reserva)}>
+                          Editar
+                        </button>
+                      )}
+                      <button className="btn btn-link text-danger text-decoration-none btn-sm p-0" onClick={() => onCancelarReserva(reserva.id, reserva.cliente)}>
+                        Cancelar Reserva
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}

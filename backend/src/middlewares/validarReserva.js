@@ -92,6 +92,12 @@ export const validarReserva = (modo) => (req, res, next) => {
     }
   }
 
+  // Al editar desde el gestor se mandan fecha y hora juntas: tampoco pueden quedar en el pasado
+  if (modo === 'actualizar' && body.fecha !== undefined && body.hora !== undefined
+    && `${body.fecha} ${body.hora}` < ahoraEnArgentina()) {
+    return res.status(400).json({ error: 'La fecha y hora de la reserva no pueden estar en el pasado' });
+  }
+
   next();
 };
 

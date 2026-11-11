@@ -4,13 +4,16 @@ import FormularioComanda from '../components/FormularioComanda';
 import TarjetaComanda from '../components/TarjetaComanda';
 import ModalConfirmacion from '../components/ModalConfirmacion';
 import { fechaLocalHoy, fechaLocalISO } from '../../../shared/utils/fecha';
+import { obtenerComanda } from '../services/comandasService';
 
 const formatoFechaFiltro = new Intl.DateTimeFormat('es-AR', { dateStyle: 'long' });
 
 export default function ComandasPage() {
-  const { comandas, cargando, error, agregarComanda, eliminarComanda, cambiarEstado } = useComandas();
+  const { comandas, cargando, error, agregarComanda, editarComanda, eliminarComanda, cambiarEstado } = useComandas();
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  // Comanda completa (con sus productos) que se está editando; null = el formulario crea
+  const [comandaEditando, setComandaEditando] = useState(null);
   const [alertaEliminar, setAlertaEliminar] = useState(null); // Estado para controlar el modal de borrado
   const [fechaFiltro, setFechaFiltro] = useState(fechaLocalHoy());
 
@@ -33,11 +36,29 @@ export default function ComandasPage() {
     ? formatoFechaFiltro.format(new Date(`${fechaFiltro}T00:00:00`))
     : null;
 
-  // El backend no permite editar un pedido completo (solo su estado), por eso el formulario solo crea.
-  // Si falla (ej. un producto sin disponibilidad) el formulario queda abierto para corregirlo.
+  // El mismo formulario crea o edita. Si falla (ej. un producto sin disponibilidad)
+  // queda abierto para corregirlo.
   const handleGuardar = async (datosFormulario) => {
-    const guardado = await agregarComanda(datosFormulario);
-    if (guardado) setMostrarFormulario(false);
+    const guardado = comandaEditando
+      ? await editarComanda(comandaEditando.id, datosFormulario)
+      : await agregarComanda(datosFormulario);
+    if (guardado) cerrarFormulario();
+  };
+
+  const cerrarFormulario = () => {
+    setMostrarFormulario(false);
+    setComandaEditando(null);
+  };
+
+  // La lista no trae los productos de cada comanda: se pide la comanda completa para precargarla
+  const abrirEdicion = async (id) => {
+    try {
+      setComandaEditando(await obtenerComanda(id));
+      setMostrarFormulario(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      alert('No se pudo abrir el pedido para editarlo: ' + err.message);
+    }
   };
 
   const confirmarPorWpp = (comanda) => {
@@ -90,8 +111,11 @@ export default function ComandasPage() {
 
       {mostrarFormulario && (
         <FormularioComanda
+          // key: al pasar de una comanda a otra el formulario arranca de cero con los datos nuevos
+          key={comandaEditando?.id ?? 'nueva'}
+          comandaInicial={comandaEditando}
           onGuardar={handleGuardar}
-          onCancelar={() => setMostrarFormulario(false)}
+          onCancelar={cerrarFormulario}
         />
       )}
 
@@ -135,6 +159,7 @@ export default function ComandasPage() {
               titulo: `¿Eliminar pedido de ${comanda.cliente}?`,
               mensaje: 'Esta acción borrará la comanda de forma permanente y no se podrá recuperar.'
             })}
+            onEditar={() => abrirEdicion(comanda.id)}
             onConfirmarWpp={() => confirmarPorWpp(comanda)}
             onCambiarEstado={(nuevoEstado) => cambiarEstado(comanda.id, nuevoEstado)}
           />

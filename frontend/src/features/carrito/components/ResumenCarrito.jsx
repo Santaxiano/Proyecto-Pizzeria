@@ -1,17 +1,18 @@
 import { formatearPrecio } from '../../../shared/utils/formato'
+import { useFetch } from '../../../shared/hooks/useFetch'
+import { obtenerConfigEnvio } from '../../../shared/services/configuracionService'
+import { calcularEnvio, hayEnvioGratis } from '../../../shared/utils/envio'
 
-const ENVIO_GRATIS_DESDE = 15000;
-const COSTO_ENVIO = 1500;
-// Misma regla que aplica el backend (backend/src/modules/pedidos/pedidos.controller.js).
+// El costo de envío y el mínimo para envío gratis se configuran desde el gestor.
+// Misma regla que aplica el backend al guardar el pedido.
 // Sin tasa de servicio: el total que ve el cliente es el mismo que se guarda en el pedido.
 function ResumenCarrito({ cantidadTotal, subtotal, tipoEntrega, onVaciar }) {
-  let envio = 0;
-  if (tipoEntrega === 'delivery') {
-      envio = subtotal >= ENVIO_GRATIS_DESDE ? 0 : COSTO_ENVIO;
-  }
+  const { datos: configEnvio } = useFetch(obtenerConfigEnvio);
 
+  const envio = calcularEnvio(tipoEntrega, subtotal, configEnvio);
   const total = subtotal + envio;
-  const faltaParaEnvioGratis = ENVIO_GRATIS_DESDE - subtotal;
+  const faltaParaEnvioGratis = hayEnvioGratis(configEnvio) ? configEnvio.envioGratisDesde - subtotal : 0;
+  const cargandoEnvio = tipoEntrega === 'delivery' && !configEnvio;
 
   return (
     <div 
@@ -27,12 +28,16 @@ function ResumenCarrito({ cantidadTotal, subtotal, tipoEntrega, onVaciar }) {
           {tipoEntrega === 'delivery' && (
              <>
                <dt className="col-7 fw-normal">Envío</dt>
-               <dd className="col-5 text-end">{envio === 0 ? 'Gratis' : formatearPrecio(envio)}</dd>
+               <dd className="col-5 text-end">
+                 {cargandoEnvio ? '…' : envio === 0 ? 'Gratis' : formatearPrecio(envio)}
+               </dd>
              </>
           )}
 
           <dt className="col-7 border-top pt-2">Total</dt>
-          <dd className="col-5 text-end border-top pt-2 fw-bold text-danger fs-5">{formatearPrecio(total)}</dd>
+          <dd className="col-5 text-end border-top pt-2 fw-bold text-danger fs-5">
+            {cargandoEnvio ? '…' : formatearPrecio(total)}
+          </dd>
         </dl>
 
         {tipoEntrega === 'delivery' && faltaParaEnvioGratis > 0 && (

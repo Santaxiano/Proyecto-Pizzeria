@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   obtenerComandas,
   crearComanda,
+  editarComanda as editarComandaAPI,
   cambiarEstadoComanda,
   eliminarComanda as eliminarComandaAPI,
 } from '../services/comandasService';
@@ -47,6 +48,18 @@ export function useComandas() {
     }
   };
 
+  // Igual que agregarComanda: devuelve true si se guardó para cerrar el formulario
+  const editarComanda = async (id, datos) => {
+    try {
+      await editarComandaAPI(id, datos);
+      await recargar();
+      return true;
+    } catch (err) {
+      alert('No se pudo editar el pedido: ' + err.message);
+      return false;
+    }
+  };
+
   const eliminarComanda = async (id) => {
     try {
       await eliminarComandaAPI(id);
@@ -65,5 +78,5 @@ export function useComandas() {
     }
   };
 
-  return { comandas, cargando, error, agregarComanda, eliminarComanda, cambiarEstado };
+  return { comandas, cargando, error, agregarComanda, editarComanda, eliminarComanda, cambiarEstado };
 }

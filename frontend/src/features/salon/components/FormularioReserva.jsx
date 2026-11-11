@@ -2,16 +2,25 @@ import { useState, useMemo } from 'react';
 import { fechaLocalHoy } from '../../../shared/utils/fecha';
 import { validarDatosReserva, MAX_COMENSALES } from '../../reservas/services/reservaService';
 
-export default function FormularioReserva({ onReservaConfirmada }) {
-  const [datos, setDatos] = useState({
-    fecha: fechaLocalHoy(),
-    personas: 2,
-    hora: '', // Iniciamos vacío para obligar a seleccionar
-    nombre: '',
-    whatsapp: '',
-    motivo: 'Salón Principal',
+const SECTORES = [
+  { valor: 'Salón Principal', etiqueta: 'Salón Principal' },
+  { valor: 'Subsuelo con Barra', etiqueta: 'Subsuelo con Barra (Grupos/Eventos)' },
+  { valor: 'Cumpleaños', etiqueta: 'Festejo de Cumpleaños' },
+  { valor: 'Reunión familiar/amigos', etiqueta: 'Reunión familiar o amigos' },
+];
+
+// reservaInicial: si viene, el formulario edita esa reserva en vez de crear una nueva
+export default function FormularioReserva({ onReservaConfirmada, reservaInicial = null }) {
+  const editando = reservaInicial !== null;
+  const [datos, setDatos] = useState(() => ({
+    fecha: reservaInicial?.fecha ?? fechaLocalHoy(),
+    personas: Number(reservaInicial?.comensales ?? 2),
+    hora: reservaInicial?.hora ?? '', // Al crear arranca vacío para obligar a seleccionar
+    nombre: reservaInicial?.cliente ?? '',
+    whatsapp: reservaInicial?.contacto ?? '',
+    motivo: reservaInicial?.lugar ?? 'Salón Principal',
     comentarios: ''
-  });
+  }));
 
   const [errores, setErrores] = useState({});
   const [enviando, setEnviando] = useState(false);
@@ -47,8 +56,19 @@ export default function FormularioReserva({ onReservaConfirmada }) {
       });
     }
 
+    // Al editar, el horario que ya tenía la reserva sigue disponible en su mismo día
+    // (puede no estar en la lista: por ejemplo si se cargó desde la web o ya pasó)
+    if (reservaInicial?.hora && datos.fecha === reservaInicial.fecha && !horarios.includes(reservaInicial.hora)) {
+      horarios = [...horarios, reservaInicial.hora].sort();
+    }
+
     return horarios;
-  }, [datos.fecha]);
+  }, [datos.fecha, reservaInicial]);
+
+  // Si la reserva tiene un sector que no está en la lista (ej. cargado desde la web), se muestra igual
+  const sectores = SECTORES.some((sector) => sector.valor === datos.motivo)
+    ? SECTORES
+    : [...SECTORES, { valor: datos.motivo, etiqueta: datos.motivo }];
 
   const actualizarCampo = (campo, valor) => {
     setDatos((prev) => ({ ...prev, [campo]: valor }));
@@ -191,10 +211,9 @@ export default function FormularioReserva({ onReservaConfirmada }) {
             value={datos.motivo}
             onChange={(e) => actualizarCampo('motivo', e.target.value)}
           >
-            <option value="Salón Principal">Salón Principal</option>
-            <option value="Subsuelo con Barra">Subsuelo con Barra (Grupos/Eventos)</option>
-            <option value="Cumpleaños">Festejo de Cumpleaños</option>
-            <option value="Reunión familiar/amigos">Reunión familiar o amigos</option>
+            {sectores.map((sector) => (
+              <option key={sector.valor} value={sector.valor}>{sector.etiqueta}</option>
+            ))}
           </select>
           {errores.motivo && <div className="invalid-feedback">{errores.motivo}</div>}
         </div>
@@ -216,7 +235,7 @@ export default function FormularioReserva({ onReservaConfirmada }) {
       {errorEnvio && <div className="alert alert-danger mt-3" role="alert">{errorEnvio}</div>}
 
       <button type="submit" className="btn btn-success w-100 py-2 fw-bold mt-4" disabled={enviando || horariosDisponibles.length === 0}>
-        {enviando ? 'Guardando reserva...' : 'Guardar Reserva en la Agenda'}
+        {enviando ? 'Guardando reserva...' : editando ? 'Guardar cambios' : 'Guardar Reserva en la Agenda'}
       </button>
     </form>
   );

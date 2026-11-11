@@ -9,8 +9,10 @@ export default function SalonPage() {
   const { 
     mesas, reservas, cargando, error, 
     agregarMesa, quitarMesa, ocuparMesa, liberarMesa, 
-    agregarReserva, eliminarReserva, asignarReservaAMesa 
+    agregarReserva, editarReserva, eliminarReserva, asignarReservaAMesa
   } = useSalon();
+  // Reserva que se está editando; null = el formulario crea una nueva
+  const [reservaEditando, setReservaEditando] = useState(null);
 
   const hoy = new Date();
   const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
@@ -25,9 +27,25 @@ export default function SalonPage() {
   const [mesaEnProceso, setMesaEnProceso] = useState(null);
   const [creandoMesa, setCreandoMesa] = useState(false);
 
-  const handleReservaConfirmada = async (nuevaReserva) => {
-    await agregarReserva(nuevaReserva);
+  // El mismo formulario crea o edita. Si falla, el error lo muestra el formulario.
+  const handleReservaConfirmada = async (datosReserva) => {
+    if (reservaEditando) {
+      await editarReserva(reservaEditando, datosReserva);
+    } else {
+      await agregarReserva(datosReserva);
+    }
+    cerrarFormularioReserva();
+  };
+
+  const cerrarFormularioReserva = () => {
     setFormReservaAbierto(false);
+    setReservaEditando(null);
+  };
+
+  const abrirEdicionReserva = (reserva) => {
+    setReservaEditando(reserva);
+    setFormReservaAbierto(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const confirmarAccion = async () => {
@@ -91,7 +109,10 @@ export default function SalonPage() {
           <h1 className="h3 fw-bold mb-1" style={{ color: 'var(--color-negro)' }}>Gestión de Salón</h1>
           <p className="text-muted mb-0">Controlá las mesas y asigná las reservas del día.</p>
         </div>
-        <button className="btn btn-dark fw-bold mt-3 mt-md-0" onClick={() => setFormReservaAbierto(!formReservaAbierto)}>
+        <button
+          className="btn btn-dark fw-bold mt-3 mt-md-0"
+          onClick={() => (formReservaAbierto ? cerrarFormularioReserva() : setFormReservaAbierto(true))}
+        >
           {formReservaAbierto ? 'Cerrar formulario' : '+ Nueva Reserva'}
         </button>
       </header>
@@ -100,10 +121,17 @@ export default function SalonPage() {
       {formReservaAbierto && (
         <div className="card p-4 shadow-sm mb-4 border-dark bg-white mx-auto" style={{ maxWidth: '650px' }}>
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h5 className="m-0 fw-bold">Crear Nueva Reserva</h5>
-            <button type="button" className="btn-close" onClick={() => setFormReservaAbierto(false)}></button>
+            <h5 className="m-0 fw-bold">
+              {reservaEditando ? `Editar reserva de ${reservaEditando.cliente}` : 'Crear Nueva Reserva'}
+            </h5>
+            <button type="button" className="btn-close" onClick={cerrarFormularioReserva}></button>
           </div>
-          <FormularioReserva onReservaConfirmada={handleReservaConfirmada} />
+          <FormularioReserva
+            // key: al pasar de una reserva a otra el formulario arranca con los datos nuevos
+            key={reservaEditando?.id ?? 'nueva'}
+            reservaInicial={reservaEditando}
+            onReservaConfirmada={handleReservaConfirmada}
+          />
         </div>
       )}
 
@@ -174,6 +202,7 @@ export default function SalonPage() {
             fechaFiltro={fechaFiltro}
             setFechaFiltro={setFechaFiltro}
             onAsignarReserva={asignarReservaAMesa}
+            onEditarReserva={abrirEdicionReserva}
             onCancelarReserva={(idReserva, nombreCliente) => {
               setErrorAccion('');
               setAlertaAccion({

@@ -158,6 +158,33 @@ export async function actualizarReserva(id, cambios) {
   return adaptarReserva(reserva);
 }
 
+// Edición desde el salón. Recibe los campos del formulario (nombre, whatsapp, personas, motivo...)
+// y la reserva original. Fecha y hora solo se mandan si cambiaron: así se puede corregir
+// el nombre de una reserva de hoy aunque su horario ya haya pasado. Si cambiaron, se reenvían
+// las mesas asignadas para que el backend vuelva a controlar choques de horario.
+export async function editarReserva(reservaOriginal, datos) {
+  const errores = validarDatosReserva(datos);
+  if (Object.keys(errores).length > 0) {
+    const error = new Error('Revisá los campos indicados.');
+    error.campos = errores;
+    throw error;
+  }
+
+  const cambios = {
+    cliente: datos.nombre.trim(),
+    contacto: datos.whatsapp.trim(),
+    comensales: datos.personas,
+    lugar: datos.motivo,
+  };
+  if (datos.fecha !== reservaOriginal.fecha || datos.hora !== reservaOriginal.hora) {
+    cambios.fecha = datos.fecha;
+    cambios.hora = datos.hora;
+    if (reservaOriginal.mesasIds?.length > 0) cambios.mesaIds = reservaOriginal.mesasIds;
+  }
+
+  return actualizarReserva(reservaOriginal.id, cambios);
+}
+
 export async function eliminarReserva(id) {
   await solicitar(`${URL_BASE}/${id}`, {
     method: 'DELETE',

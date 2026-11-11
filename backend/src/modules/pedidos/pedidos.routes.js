@@ -14,7 +14,10 @@ router.post('/', tokenOpcional, validarPedido, controller.crear);
 
 // Privado: el token se pone ruta por ruta para que el POST público no dependa del orden de las líneas.
 router.get('/', verificarToken, controller.listar);
+router.get('/:id', verificarToken, validarId, controller.obtener);
 router.put('/:id', verificarToken, validarId, validarEstadoPedido, controller.actualizar);
+// Edición completa de la comanda desde el gestor (el PUT de arriba solo cambia el estado)
+router.put('/:id/editar', verificarToken, validarId, validarPedido, controller.editar);
 router.delete('/:id', verificarToken, validarId, controller.eliminar);
 
 export default router;

@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { obtenerDatosSalon } from '../services/salonService';
 import { useFetch } from '../../../shared/hooks/useFetch';
 import { actualizarMesa, crearMesa as crearMesaAPI, eliminarMesa as eliminarMesaAPI, listarMesas } from '../services/mesaService';
-import { actualizarReserva, crearReserva, eliminarReserva as eliminarReservaAPI } from '../../reservas/services/reservaService';
+import {
+  actualizarReserva,
+  crearReserva,
+  editarReserva as editarReservaAPI,
+  eliminarReserva as eliminarReservaAPI,
+  listarReservas,
+} from '../../reservas/services/reservaService';
 
 const RESERVAS_VACIAS = [];
 const MESAS_VACIAS = [];
@@ -21,6 +27,16 @@ export function useSalon() {
 
   const refrescarMesas = async () => {
     setMesasOverride(await listarMesas());
+  };
+
+  // Ocupar o liberar una mesa cambia el estado de su reserva (En curso / Finalizada) en el backend
+  // Si falla no se muestra error: la mesa ya se actualizó y la agenda se corrige al recargar
+  const refrescarReservas = async () => {
+    try {
+      setReservasOverride(await listarReservas());
+    } catch (err) {
+      console.error('No se pudieron recargar las reservas:', err);
+    }
   };
 
   useEffect(() => {
@@ -53,6 +69,7 @@ export function useSalon() {
     if (!mesa) throw new Error('No se encontró la mesa seleccionada');
     const mesaActualizada = await actualizarMesa(mesa, 'Ocupada');
     actualizarEstadoLocal(mesaActualizada);
+    if (mesa.reserva) await refrescarReservas(); // la reserva pasó a "En curso"
   };
 
   // Si la mesa tiene otra reserva de hoy pendiente, el backend la devuelve como 'Reservada'
@@ -61,6 +78,7 @@ export function useSalon() {
     if (!mesa) throw new Error('No se encontró la mesa seleccionada');
     const mesaActualizada = await actualizarMesa(mesa, 'Libre');
     actualizarEstadoLocal(mesaActualizada);
+    await refrescarReservas(); // si tenía una reserva "En curso", ahora está "Finalizada"
   };
 
   const agregarReserva = async (nuevaReserva) => {
@@ -83,9 +101,17 @@ export function useSalon() {
     await refrescarMesas(); // así la mesa pasa a "Reservada" apenas se asigna
   };
 
+  // Si cambió la fecha o la hora, el backend vuelve a controlar las mesas asignadas
+  const editarReserva = async (reservaOriginal, datosFormulario) => {
+    const reservaActualizada = await editarReservaAPI(reservaOriginal, datosFormulario);
+    setReservasOverride(reservas.map((item) => (item.id === reservaActualizada.id ? reservaActualizada : item)));
+    await refrescarMesas(); // la mesa puede dejar de figurar como reservada hoy (o empezar a hacerlo)
+    return reservaActualizada;
+  };
+
   return {
     mesas, reservas, cargando, error,
     agregarMesa, quitarMesa, ocuparMesa, liberarMesa,
-    agregarReserva, eliminarReserva, asignarReservaAMesa
+    agregarReserva, editarReserva, eliminarReserva, asignarReservaAMesa
   };
 }

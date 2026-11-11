@@ -54,6 +54,9 @@ function NavbarGestor() {
                         <NavLink to="/gestor/stock" onClick={cerrarMenu} className="nav-link text-white rounded px-3 py-2 fw-semibold">
                             Gestión de Stock
                         </NavLink>
+                        <NavLink to="/gestor/configuracion" onClick={cerrarMenu} className="nav-link text-white rounded px-3 py-2 fw-semibold">
+                            Configuración
+                        </NavLink>
 
                         {rolUsuario === 'administrador' && (
                             <NavLink to="/gestor/empleados" onClick={cerrarMenu} className="nav-link text-white rounded px-3 py-2 fw-semibold">
