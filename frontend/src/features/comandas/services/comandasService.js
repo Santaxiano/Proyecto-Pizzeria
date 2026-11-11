@@ -1,5 +1,7 @@
 // src/features/comandas/services/comandasService.js
-const URL_BASE = 'http://localhost:3000/api';
+import { API_URL } from '../../../shared/services/api';
+
+const URL_BASE = API_URL;
 
 function obtenerToken() {
   const auth = sessionStorage.getItem('pizzeria:sesion');

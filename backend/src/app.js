@@ -16,6 +16,9 @@ import { CARPETA_UPLOADS } from './middlewares/subirImagen.js';
 
 const app = express();
 
+// Render pone un proxy delante: sin esto req.protocol da "http" y no "https"
+app.set('trust proxy', 1);
+
 app.use(cors(corsOptions));
 app.use(express.json());
 // Imágenes subidas desde el panel (ej. /uploads/productos/123-abcd.jpg)

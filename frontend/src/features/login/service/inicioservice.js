@@ -1,7 +1,8 @@
 import { redirect } from 'react-router';
+import { API_URL } from '../../../shared/services/api';
 
 const CLAVE_SESION = 'pizzeria:sesion';
-const URL_BASE = 'http://localhost:3000/api'; 
+const URL_BASE = API_URL;
 
 export async function iniciarSesion(email, password) {
     const respuesta = await fetch(`${URL_BASE}/auth/login`, {

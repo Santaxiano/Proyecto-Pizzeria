@@ -1,5 +1,7 @@
 // src/features/carrito/services/pedidoService.js
-const URL_BASE = 'http://localhost:3000/api';
+import { API_URL } from '../../../shared/services/api';
+
+const URL_BASE = API_URL;
 
 // Crea el pedido en el backend (POST público, sin token).
 // El total, el envío y el detalle los calcula el backend con los precios de la base.

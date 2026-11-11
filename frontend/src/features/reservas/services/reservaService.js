@@ -1,4 +1,6 @@
-const URL_BASE = 'http://localhost:3000/api/reservas';
+import { API_URL } from '../../../shared/services/api';
+
+const URL_BASE = `${API_URL}/reservas`;
 
 // Mismo tope que el backend (backend/src/middlewares/validarReserva.js)
 export const MAX_COMENSALES = 30;

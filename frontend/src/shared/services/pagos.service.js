@@ -1,8 +1,10 @@
 // Pide el link de pago de un pedido ya registrado. Solo se manda el número de pedido:
 // los ítems y precios los arma el backend desde la base.
+import { API_URL } from './api';
+
 export const generarLinkMercadoPago = async (pedidoId) => {
   try {
-    const respuesta = await fetch('http://localhost:3000/api/pagos/crear-preferencia', {
+    const respuesta = await fetch(`${API_URL}/pagos/crear-preferencia`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pedidoId: Number(pedidoId) }),

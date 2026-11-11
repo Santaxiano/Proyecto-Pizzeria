@@ -1,6 +1,7 @@
 import { cerrarSesion } from '../../features/login/service/inicioservice';
+import { API_URL } from './api';
 
-const URL_API = 'http://localhost:3000/api';
+const URL_API = API_URL;
 let instalado = false;
 let redirigiendo = false;
 

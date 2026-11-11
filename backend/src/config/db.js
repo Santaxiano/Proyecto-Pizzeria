@@ -3,12 +3,19 @@ import { env } from './env.js';
 
 const { Pool } = pkg;
 
+// Producción (Render): una sola URL. Local: variables PG* como siempre
+const conexion = env.DATABASE_URL
+  ? { connectionString: env.DATABASE_URL }
+  : {
+      host: env.PGHOST,
+      port: env.PGPORT,
+      user: env.PGUSER,
+      password: env.PGPASSWORD,
+      database: env.PGDATABASE,
+    };
+
 export const pool = new Pool({
-  host: env.PGHOST,
-  port: env.PGPORT,
-  user: env.PGUSER,
-  password: env.PGPASSWORD,
-  database: env.PGDATABASE,
+  ...conexion,
 
   max: 20,
   min: 0,
