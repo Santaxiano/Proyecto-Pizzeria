@@ -8,28 +8,76 @@ const esCoordenada = (valor, maximo) => typeof valor === 'number' && Number.isFi
 const esTextoOpcional = (valor, largoMax) =>
   esOpcional(valor) || (typeof valor === 'string' && valor.length <= largoMax);
 
+const MAX_TOPPINGS = 20;
+const LARGO_MAX_NOMBRE_TOPPING = 100;
+
+const tokenTopping = (nombre) =>
+  nombre
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, '');
+
+// El front puede mandar solo los nombres o los objetos { nombre, precio }.
+// El precio que venga en el objeto se ignora: el controller usa el de la base.
+const nombreTopping = (topping) => {
+  if (typeof topping === 'string') return topping;
+  if (topping && typeof topping === 'object' && !Array.isArray(topping)) return topping.nombre;
+  return null;
+};
+
+const toppingsValidos = (toppings) => {
+  if (esOpcional(toppings)) return true;
+  if (!Array.isArray(toppings) || toppings.length > MAX_TOPPINGS) return false;
+
+  const nombres = new Set();
+  for (const topping of toppings) {
+    const nombre = nombreTopping(topping);
+    if (typeof nombre !== 'string' || nombre.trim() === '') return false;
+    if (nombre.trim().length > LARGO_MAX_NOMBRE_TOPPING) return false;
+
+    const token = tokenTopping(nombre);
+    if (nombres.has(token)) return false;
+    nombres.add(token);
+  }
+  return true;
+};
+
 const itemValido = (item) =>
   item &&
   esEnteroPositivo(item.productoId) &&
   esEnteroPositivo(item.cantidad) &&
   (esOpcional(item.tamano) || esTextoConContenido(item.tamano)) &&
-  (esOpcional(item.segundoSaborId) || esEnteroPositivo(item.segundoSaborId));
+  (esOpcional(item.segundoSaborId) || esEnteroPositivo(item.segundoSaborId)) &&
+  toppingsValidos(item.toppings);
 
 // Valida la forma del body de POST /pedidos. Precios, total y disponibilidad
 // los resuelve el controller consultando la base.
 export const validarPedido = (req, res, next) => {
   const { cliente, telefono, tipo, direccionMesa, items, horario, notas, formaPago } = req.body || {};
 
-  if (!esTextoConContenido(cliente)) {
-    return res.status(400).json({ error: "El campo 'cliente' es obligatorio" });
-  }
-
-  if (!esTextoConContenido(telefono)) {
-    return res.status(400).json({ error: "El campo 'telefono' es obligatorio" });
-  }
-
   if (!TIPOS_VALIDOS.includes(tipo)) {
     return res.status(400).json({ error: `El tipo debe ser ${TIPOS_VALIDOS.join(', ')}` });
+  }
+
+  // Los pedidos de mesa se identifican por el número de mesa: el gestor puede
+  // crearlos sin nombre ni teléfono. Delivery y retiro siguen exigiendo ambos.
+  if (tipo !== 'mesa') {
+    if (!esTextoConContenido(cliente)) {
+      return res.status(400).json({ error: "El campo 'cliente' es obligatorio" });
+    }
+
+    if (!esTextoConContenido(telefono)) {
+      return res.status(400).json({ error: "El campo 'telefono' es obligatorio" });
+    }
+  }
+
+  if (!esTextoOpcional(cliente, 255)) {
+    return res.status(400).json({ error: "El campo 'cliente' debe ser texto de hasta 255 caracteres" });
+  }
+
+  if (!esTextoOpcional(telefono, 255)) {
+    return res.status(400).json({ error: "El campo 'telefono' debe ser texto de hasta 255 caracteres" });
   }
 
   // Delivery necesita la dirección y mesa el número de mesa; en retiro es opcional.
@@ -71,7 +119,7 @@ export const validarPedido = (req, res, next) => {
 
   if (!items.every(itemValido)) {
     return res.status(400).json({
-      error: 'Cada item debe tener productoId y cantidad enteros mayores a 0 (tamano y segundoSaborId son opcionales)',
+      error: 'Cada item debe tener productoId y cantidad enteros mayores a 0 (tamano, segundoSaborId y toppings son opcionales; los toppings no pueden repetirse)',
     });
   }
 

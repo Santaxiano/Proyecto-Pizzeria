@@ -566,7 +566,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"delivery\",\n  \"direccionMesa\": \"Av. Illia 123\",\n  \"total\": 1,\n  \"estado\": \"Finalizada\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    },\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"delivery\",\n  \"direccionMesa\": \"Av. Illia 123\",\n  \"total\": 1,\n  \"estado\": \"Finalizada\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"8 porciones\"\n    },\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1,\n      \"tamano\": \"500ml\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -618,7 +618,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    },\n    {\n      \"productoId\": 1,\n      \"cantidad\": 2\n    }\n  ]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"8 porciones\"\n    },\n    {\n      \"productoId\": 1,\n      \"cantidad\": 2,\n      \"tamano\": \"8 porciones\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -644,8 +644,8 @@
                       "const chica = p.items.find((i) => i.tamano === '4 porciones');",
                       "const entera = p.items.find((i) => i.tamano === '8 porciones' && !i.segundoSaborId);",
                       "const mitad = p.items.find((i) => i.segundoSaborId === 2);",
-                      "pm.test('4 porciones cobra el 60%', () => pm.expect(chica.precioUnitario).to.eql(Math.round(entera.precioUnitario * 0.6)));",
-                      "pm.test('La mitad y mitad cobra el precio del primer sabor', () => pm.expect(mitad.precioUnitario).to.eql(entera.precioUnitario));",
+                      "pm.test('4 porciones cobra su precio exacto', () => pm.expect(chica.precioUnitario).to.eql(9000));",
+                      "pm.test('La mitad y mitad suma las variantes de 4 porciones', () => pm.expect(mitad.precioUnitario).to.eql(19800));",
                       "pm.test('El nombre muestra los dos sabores', () => pm.expect(mitad.nombre).to.include(' / '));",
                       "pm.test('El detalle incluye el tamaño', () => pm.expect(p.detalle).to.include('(4 porciones)'));",
                       "pm.test('Guarda horario, notas y forma de pago', () => { pm.expect(p.horario).to.eql('2026-11-10 a las 21:30 hs'); pm.expect(p.notas).to.eql('Piso 3 B · timbre roto'); pm.expect(p.forma_pago).to.eql('mercadopago'); });",
@@ -720,7 +720,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1,\n      \"tamano\": \"500ml\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -897,7 +897,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"formaPago\": \"bitcoin\",\n  \"items\": [\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"formaPago\": \"bitcoin\",\n  \"items\": [\n    {\n      \"productoId\": 8,\n      \"cantidad\": 1,\n      \"tamano\": \"500ml\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -941,7 +941,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"delivery\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"delivery\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"8 porciones\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -985,7 +985,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retirar\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retirar\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 1,\n      \"tamano\": \"8 porciones\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1073,7 +1073,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 0\n    }\n  ]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [\n    {\n      \"productoId\": 1,\n      \"cantidad\": 0,\n      \"tamano\": \"8 porciones\"\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1174,7 +1174,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza de prueba Postman\",\n  \"precio\": 9000,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\n    \"4 porciones\",\n    \"8 porciones\"\n  ],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado desde la colección de Postman\"\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza de prueba Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado desde la colección de Postman\",\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5400\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9000\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1215,7 +1215,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Sin Token\",\n  \"precio\": 1000,\n  \"categoria\": \"pizzas\"\n}",
+                  "raw": "{\n  \"nombre\": \"Sin Token\",\n  \"categoria\": \"pizzas\",\n  \"variantes\": [\n    {\n      \"nombre\": \"Única\",\n      \"precio\": 1000\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1259,7 +1259,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"\",\n  \"precio\": -5\n}",
+                  "raw": "{\n  \"nombre\": \"\",\n  \"variantes\": [\n    {\n      \"nombre\": \"Única\",\n      \"precio\": -5\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1277,7 +1277,7 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('Responde 200', () => pm.response.to.have.status(200));",
-                      "pm.test('El precio quedó en 9500', () => pm.expect(pm.response.json().precio).to.eql(9500));"
+                      "pm.test('La variante de 8 porciones quedó en 9500', () => { const p = pm.response.json(); const variante = p.variantes.find((v) => v.nombre === '8 porciones'); pm.expect(variante.precio).to.eql(9500); });"
                     ]
                   }
                 }
@@ -1302,7 +1302,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza de prueba Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\n    \"4 porciones\",\n    \"8 porciones\"\n  ],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado desde la colección de Postman\"\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza de prueba Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado desde la colección de Postman\",\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5700\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9500\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1766,7 +1766,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [1, {{recetaIngredienteId}}]\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [1, {{recetaIngredienteId}}],\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5700\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9500\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1808,7 +1808,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [999999]\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [\n    999999\n  ],\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5700\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9500\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -1849,7 +1849,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [\"a\"]\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [\n    \"a\"\n  ],\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5700\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9500\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2187,7 +2187,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\"\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5700\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9500\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2232,7 +2232,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [{{recetaIngredienteId}}]\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [{{recetaIngredienteId}}],\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5700\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9500\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2274,7 +2274,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"precio\": 9500,\n  \"categoria\": \"pizzas\",\n  \"tamanos\": [\"4 porciones\", \"8 porciones\"],\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [1]\n}",
+                  "raw": "{\n  \"nombre\": \"Pizza receta Postman\",\n  \"categoria\": \"pizzas\",\n  \"permiteMitad\": true,\n  \"stock\": 10,\n  \"destacado\": false,\n  \"imagen\": \"/IMG_2169.jpeg\",\n  \"descripcion\": \"Producto creado para probar la relación con ingredientes\",\n  \"ingredientesIds\": [\n    1\n  ],\n  \"variantes\": [\n    {\n      \"nombre\": \"4 porciones\",\n      \"precio\": 5700\n    },\n    {\n      \"nombre\": \"8 porciones\",\n      \"precio\": 9500\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2969,7 +2969,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"nombre\": \"Producto sin stock Postman\",\n  \"precio\": 1000,\n  \"categoria\": \"comidas\",\n  \"stock\": 0\n}",
+                  "raw": "{\n  \"nombre\": \"Producto sin stock Postman\",\n  \"categoria\": \"comidas\",\n  \"stock\": 0,\n  \"variantes\": [\n    {\n      \"nombre\": \"Única\",\n      \"precio\": 1000\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3011,7 +3011,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [{ \"productoId\": {{productoSinStockId}}, \"cantidad\": 1 }]\n}",
+                  "raw": "{\n  \"cliente\": \"Cliente Postman\",\n  \"telefono\": \"5492664000000\",\n  \"tipo\": \"retiro\",\n  \"items\": [{ \"productoId\": {{productoSinStockId}}, \"cantidad\": 1, \"tamano\": \"Única\" }]\n}",
                   "options": {
                     "raw": {
                       "language": "json"

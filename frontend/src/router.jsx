@@ -7,6 +7,7 @@ import NoEncontradaPage from './shared/pages/NoEncontradaPage';
 import HomePage from './features/home/pages/HomePage';
 import { MenuPage, DetalleProductoPage } from './features/carta';
 import CarritoPage from './features/carrito/pages/CarritoPage';
+import PagoResultadoPage from './features/carrito/pages/PagoResultadoPage';
 import ReservaPage from './features/reservas/pages/ReservaPage';
 import ContactoPage from './features/contacto/pages/ContactoPage';
 
@@ -32,6 +33,12 @@ export const router = createBrowserRouter([
       { path: 'menu', element: <MenuPage /> },
       { path: 'menu/:id', element: <DetalleProductoPage /> },
       { path: 'carrito', element: <CarritoPage /> },
+      { path: 'pago-exitoso', element: <PagoResultadoPage resultado="exitoso" /> },
+      { path: 'pago-exitoso/:pedidoId', element: <PagoResultadoPage resultado="exitoso" /> },
+      { path: 'pago-fallido', element: <PagoResultadoPage resultado="fallido" /> },
+      { path: 'pago-fallido/:pedidoId', element: <PagoResultadoPage resultado="fallido" /> },
+      { path: 'pago-pendiente', element: <PagoResultadoPage resultado="pendiente" /> },
+      { path: 'pago-pendiente/:pedidoId', element: <PagoResultadoPage resultado="pendiente" /> },
       { path: 'reserva', element: <ReservaPage /> },
       { path: 'contacto', element: <ContactoPage /> },
       { path: '*', element: <NoEncontradaPage /> }

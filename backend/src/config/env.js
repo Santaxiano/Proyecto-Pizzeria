@@ -3,6 +3,8 @@ process.loadEnvFile();
 export const env = {
   PORT: process.env.PORT ?? 3000,
   CORS_ORIGIN: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  // URL a la que Mercado Pago devuelve al usuario después de pagar.
+  FRONTEND_URL: process.env.FRONTEND_URL ?? process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   PGHOST: process.env.PGHOST ?? 'localhost',
   PGPORT: process.env.PGPORT ?? 5432,
   PGUSER: process.env.PGUSER ?? 'postgres',

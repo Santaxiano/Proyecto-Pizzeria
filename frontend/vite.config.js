@@ -47,10 +47,13 @@ function servirBackend() {
       server.middlewares.use(middleware)
     },
     closeBundle() {
-      // npm run build: copia los JSON a dist/backend/data
+      // La carpeta solo existe en instalaciones que aún conservan datos JSON legacy.
       if (configuracion.command !== 'build') return
+      const origen = path.join(CARPETA_BACKEND, 'data')
+      if (!fs.existsSync(origen)) return
+
       const destino = path.resolve(configuracion.root, configuracion.build.outDir, 'backend/data')
-      fs.cpSync(path.join(CARPETA_BACKEND, 'data'), destino, { recursive: true })
+      fs.cpSync(origen, destino, { recursive: true })
     },
   }
 }

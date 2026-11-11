@@ -68,6 +68,10 @@ export async function crearComanda(datos) {
         cantidad: item.cantidad,
         tamano: item.tamano || null,
         segundoSaborId: item.segundoSaborId ?? null,
+        // Solo los nombres: el backend valida y suma los precios de la base.
+        toppings: (item.toppings ?? [])
+          .map((topping) => (typeof topping === 'string' ? topping : topping?.nombre))
+          .filter(Boolean),
       })),
     }),
   });

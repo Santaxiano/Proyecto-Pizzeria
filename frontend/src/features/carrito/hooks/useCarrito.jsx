@@ -11,6 +11,21 @@ function leerCarritoGuardado() {
   }
 }
 
+// Los toppings forman parte de la identidad del ítem: una hamburguesa con
+// cheddar y otra sin cheddar no deben fusionarse en el carrito.
+function claveToppings(toppings) {
+  if (!Array.isArray(toppings)) return ''
+
+  const nombres = toppings
+    .map((topping) => (typeof topping === 'string' ? topping : topping?.nombre ?? ''))
+    .map((nombre) => String(nombre).trim().toLowerCase())
+    .filter(Boolean)
+    .sort()
+
+  // JSON.stringify evita colisiones si un topping tuviera un separador.
+  return nombres.length > 0 ? JSON.stringify(nombres) : ''
+}
+
 export function useCarrito() {
   const [items, setItems] = useState(leerCarritoGuardado)
 
@@ -20,10 +35,12 @@ export function useCarrito() {
 
   function agregarProducto(productoNuevo) {
     setItems((prev) => {
-      // Creamos un ID único combinando id original + tamaño + segundo sabor
-      // Así el carrito sabe diferenciar una grande de una chica, o una mitad de otra.
+      // Creamos un ID único combinando id original + tamaño + segundo sabor + toppings.
+      // Así el carrito diferencia una grande de una chica, una mitad de otra y
+      // una comida con extras de la misma sin extras.
       const saborSecundario = productoNuevo.esMitadYMitad ? productoNuevo.segundoSabor : 'entera';
-      const idVariante = `${productoNuevo.id}-${productoNuevo.tamanoElegido || 'unica'}-${saborSecundario}`;
+      const extras = claveToppings(productoNuevo.toppings);
+      const idVariante = `${productoNuevo.id}-${productoNuevo.tamanoElegido || 'unica'}-${saborSecundario}-${extras || 'sin-toppings'}`;
 
       const existente = prev.find((item) => item.idVariante === idVariante)
 
@@ -35,13 +52,13 @@ export function useCarrito() {
         )
       }
 
-      // Si es nuevo, lo agregamos con su precio calculado y su idVariante
+      // Si es nuevo, lo agregamos con el precio exacto de la variante elegida y su idVariante
       return [
         ...prev,
         {
           ...productoNuevo,
           idVariante,
-          precio: productoNuevo.precioUnitario || productoNuevo.precio // Lee el precio con descuento
+          precio: productoNuevo.precioUnitario ?? 0
         },
       ]
     })

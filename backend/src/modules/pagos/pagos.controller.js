@@ -4,6 +4,8 @@ import { pool } from '../../config/db.js';
 
 const crearError = (status, mensaje) => Object.assign(new Error(mensaje), { status, publicMessage: mensaje });
 
+const FRONTEND_URL = env.FRONTEND_URL.replace(/\/+$/, '');
+
 // POST público (el cliente paga sin iniciar sesión). Recibe solo { pedidoId }:
 // los ítems y precios salen de la base, nunca del navegador.
 export const crearPreferencia = async (req, res, next) => {
@@ -33,7 +35,7 @@ export const crearPreferencia = async (req, res, next) => {
 
     // Precios guardados al momento de la venta (detalle_pedido.precio_unitario)
     const { rows: lineas } = await pool.query(
-      `SELECT dp.cantidad, dp.precio_unitario, dp.tamano,
+      `SELECT dp.cantidad, dp.precio_unitario, dp.tamano, dp.toppings,
               p.nombre, s.nombre AS segundo_sabor
        FROM detalle_pedido dp
        JOIN productos p ON p.id = dp.producto_id
@@ -44,12 +46,21 @@ export const crearPreferencia = async (req, res, next) => {
     );
     if (lineas.length === 0) return next(crearError(409, 'El pedido no tiene productos'));
 
-    const items = lineas.map((l) => ({
-      title: `${l.nombre}${l.segundo_sabor ? ` / ${l.segundo_sabor}` : ''}${l.tamano ? ` (${l.tamano})` : ''}`,
-      unit_price: l.precio_unitario,
-      quantity: l.cantidad,
-      currency_id: 'ARS',
-    }));
+    const items = lineas.map((l) => {
+      const toppings = Array.isArray(l.toppings)
+        ? l.toppings.map((topping) => topping?.nombre).filter(Boolean)
+        : [];
+      const extras = toppings.length > 0 ? ` + ${toppings.join(', ')}` : '';
+      const titulo = `${l.nombre}${l.segundo_sabor ? ` / ${l.segundo_sabor}` : ''}${l.tamano ? ` (${l.tamano})` : ''}${extras}`;
+
+      return {
+        // Mercado Pago admite títulos cortos; recortamos sin romper el precio.
+        title: titulo.slice(0, 250),
+        unit_price: l.precio_unitario,
+        quantity: l.cantidad,
+        currency_id: 'ARS',
+      };
+    });
 
     // Lo que falta para llegar al total guardado es el costo de envío
     const subtotal = lineas.reduce((suma, l) => suma + l.precio_unitario * l.cantidad, 0);
@@ -63,10 +74,13 @@ export const crearPreferencia = async (req, res, next) => {
       body: {
         items,
         external_reference: String(pedido.id),
+        // El pedido viaja en la ruta para que la página de resultado pueda
+        // mostrarlo aunque Mercado Pago no agregue external_reference.
+        // Sin webhook público el pedido sigue "Pendiente": el cajero valida el pago.
         back_urls: {
-          success: 'http://localhost:5173/pago-exitoso',
-          failure: 'http://localhost:5173/pago-fallido',
-          pending: 'http://localhost:5173/pago-pendiente',
+          success: `${FRONTEND_URL}/pago-exitoso/${pedido.id}`,
+          failure: `${FRONTEND_URL}/pago-fallido/${pedido.id}`,
+          pending: `${FRONTEND_URL}/pago-pendiente/${pedido.id}`,
         },
         //auto_return: 'approved' COMENTADO TEMPORALMENTE PARA QUE ANDE
       },

@@ -61,15 +61,24 @@ export async function guardarProductoAPI(producto, idEditar = null) {
 
   const body = {
     nombre: producto.nombre,
-    precio: Number(producto.precio),
     categoria: producto.categoria,
-    tamanos: producto.tamanos ?? (esPizza ? ['4 porciones', '8 porciones'] : null),
+    variantes: (producto.variantes ?? []).map((variante) => ({
+      nombre: variante.nombre,
+      precio: Number(variante.precio),
+    })),
     permiteMitad: producto.permitemitad ?? producto.permiteMitad ?? esPizza,
     stock: producto.stock !== undefined ? producto.stock : 100,
     destacado: producto.destacado !== undefined ? producto.destacado : true,
     // Aseguramos la imagen por defecto por si falla algo en el frontend
-    imagen: producto.imagen || '/noimagen.jpg', 
+    imagen: producto.imagen || '/noimagen.jpg',
     descripcion: producto.descripcion ?? null,
+    // Solo las comidas llevan toppings. En pizzas y bebidas se manda lista vacía.
+    toppings: producto.categoria === 'comidas'
+      ? (producto.toppings ?? []).map((topping) => ({
+          nombre: topping.nombre,
+          precio: Number(topping.precio),
+        }))
+      : [],
   };
 
   if (esBebida) {

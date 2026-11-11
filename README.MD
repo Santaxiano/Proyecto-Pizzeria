@@ -12,6 +12,8 @@ psql -U postgres -d Pizzeria -v ON_ERROR_STOP=1 -f database/seed.sql
 (Nota: Si tu usuario local de PostgreSQL no es postgres, reemplazalo por el tuyo).
 Estos comandos eliminan todos los datos existentes en `Pizzeria`. `schema.sql` crea las tablas en la base seleccionada y `seed.sql` carga los datos de prueba.
 
+Los toppings están disponibles únicamente para productos de categoría `comidas`. Se administran desde Stock → editar/crear producto, y se guardan en `productos.toppings`; cada línea de pedido conserva una foto histórica en `detalle_pedido.toppings`.
+
 2. Iniciar el Backend (Terminal 1)
 En la carpeta backend/, copiá el archivo .env.example y nombralo .env.
 
@@ -74,7 +76,7 @@ Ingresá a "Gestión de Stock" en el panel del Gestor.
 
 Crear Producto (POST): Hacé clic en "Nuevo Producto", completá los campos y guardá. Se guarda en la BD y aparece en la lista de inmediato.
 
-Editar Producto (PUT): Hacé clic en "Editar", modificá el precio o nombre y guardá. Se actualizan los datos en la base.
+Editar Producto (PUT): Hacé clic en "Editar", modificá el nombre, las variantes/tamaños con sus precios y guardá. Se actualizan los datos en la base.
 
 Eliminar Producto (DELETE): Hacé clic en "Eliminar" sobre un producto de prueba para removerlo del sistema.
 
@@ -111,7 +113,7 @@ La colección está diseñada para probar de forma automatizada y ordenada todos
       B. Carpeta Publico (Sin Token)
         - Productos (Listar, Obtener por ID, Producto inexistente 404, ID inválido 400): Verifica el comportamiento de las rutas públicas del catálogo y cómo reacciona el backend ante errores de sintaxis en el parámetro :id (gestionado por nuestro middleware validarId).   
       C. Carpeta Privado (Requieren Token Bearer)
-        -Productos: Incluye casos de éxito y error para Crear producto (guarda el ID devuelto en una variable), Crear sin token (401), Crear con datos inválidos / precio negativo (400), Actualizar (PUT) y Eliminar (204 / 404).   
+        -Productos: Incluye casos de éxito y error para Crear producto (guarda el ID devuelto en una variable), Crear sin token (401), Crear con datos inválidos / variante con precio inválido (400), Actualizar (PUT) y Eliminar (204 / 404).
         -Ingredientes: Permite administrar el stock de materia prima probando listar, obtener, crear, actualizar estados (activo: false) y eliminar insumos, además de validar restricciones cuando faltan datos obligatorios.   
         -Mesas: Prueba la gestión completa del salón (crear mesa con capacidad y estado, listar, actualizar su estado a "Ocupada", eliminar y controlar mesas inexistentes).   
         -Pedidos: Evalúa el acceso al listado de comandas tanto de forma autorizada como bloqueada sin token. 

@@ -1,6 +1,12 @@
 import { formatearPrecio } from '../../../shared/utils/formato'
 
 function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
+  const toppings = Array.isArray(item.toppings)
+    ? item.toppings
+        .map((topping) => (typeof topping === 'string' ? topping : topping?.nombre))
+        .filter(Boolean)
+    : []
+
   return (
     <li className="list-group-item py-3">
       <div className="d-flex flex-wrap flex-sm-nowrap gap-3 align-items-center">
@@ -13,6 +19,11 @@ function ItemCarrito({ item, onCambiarCantidad, onQuitar }) {
           <p className="small text-body-secondary mb-2">
             {item.tamanoElegido && <span className="me-1">{item.tamanoElegido} ·</span>}
             {item.esMitadYMitad && <span className="me-1">Mitad: {item.segundoSabor} ·</span>}
+            {toppings.length > 0 && (
+              <span className="d-block text-danger fw-semibold">
+                Toppings: {toppings.join(', ')}
+              </span>
+            )}
             {formatearPrecio(item.precio)} c/u
           </p>
 

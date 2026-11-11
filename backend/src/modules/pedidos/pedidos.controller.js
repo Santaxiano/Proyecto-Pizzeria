@@ -6,10 +6,55 @@ const ENVIO_GRATIS_DESDE = 15000;
 const COSTO_ENVIO = 1500;
 const LARGO_MAX_DETALLE = 255; // pedidos.detalle es VARCHAR(255)
 
-// Precio por tamaño: misma regla que la carta (frontend/src/features/carta/components/DetalleProducto.jsx).
-// Un tamaño que no figura acá (ej. "8 porciones") paga el precio completo.
-const MULTIPLICADOR_TAMANO = { '4 porciones': 0.6 };
+// Solo la pizza de 8 porciones admite mitad y mitad (misma regla que la carta).
 const TAMANO_MITAD_Y_MITAD = '8 porciones';
+const VARIANTE_MITAD = '4 porciones';
+
+const buscarVariante = (producto, nombre) =>
+  (producto?.variantes ?? []).find((variante) => variante.nombre === nombre) ?? null;
+
+// Token para comparar toppings sin acentos, mayúsculas ni espacios.
+const tokenTopping = (nombre) =>
+  String(nombre ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, '');
+
+const normalizarToppingsItem = (toppings) => {
+  if (!Array.isArray(toppings)) return [];
+
+  return toppings
+    .map((topping) => (typeof topping === 'string' ? topping : topping?.nombre ?? ''))
+    .map((nombre) => String(nombre).trim().replace(/\s+/g, ' '))
+    .filter(Boolean);
+};
+
+const buscarTopping = (producto, nombre) =>
+  (producto?.toppings ?? []).find(
+    (topping) => tokenTopping(topping?.nombre) === tokenTopping(nombre)
+  ) ?? null;
+
+// Cada mitad se cobra con el precio de la variante "4 porciones". Si esa
+// variante no existe, se usa como fallback la mitad de la variante elegida.
+const precioUnaMitad = (producto, varianteSeleccionada) => {
+  const varianteCuatro = buscarVariante(producto, VARIANTE_MITAD);
+  if (varianteCuatro) return Number(varianteCuatro.precio);
+
+  return Math.round(Number(varianteSeleccionada?.precio ?? 0) / 2);
+};
+
+// Los pedidos de mesa no requieren contacto: si no hay nombre, se identifica
+// la comanda con el número de mesa (ej. "Mesa 5"). Evita "Mesa Mesa 5".
+const armarCliente = (cliente, tipo, direccionMesa) => {
+  const nombre = cliente?.trim();
+  if (nombre) return nombre;
+  if (tipo !== 'mesa') return '';
+
+  const mesa = direccionMesa?.trim();
+  if (!mesa) return 'Mesa';
+  return (/^mesa\b/i.test(mesa) ? mesa : `Mesa ${mesa}`).slice(0, 255);
+};
 
 // Zona de entrega: mismos valores que el front (frontend/src/shared/utils/pedidosUtils.js)
 const UBICACION_LOCAL = { lat: -33.3021, lng: -66.3368 }; // Pringles 1091, San Luis
@@ -38,18 +83,27 @@ const armarNotas = (notas, lat, lng) => {
   return `${recortado} · ${link}`;
 };
 
-// Junta los items que son exactamente lo mismo (producto + tamaño + segundo sabor) sumando cantidades.
+// Junta los items que son exactamente lo mismo (producto + tamaño + segundo
+// sabor + toppings) sumando cantidades. El orden de los toppings no importa.
 const unificarItems = (items) => {
   const lineas = new Map();
   for (const item of items) {
     const tamano = item.tamano?.trim() || null;
     const segundoSaborId = item.segundoSaborId ?? null;
-    const clave = `${item.productoId}|${tamano}|${segundoSaborId}`;
+    const toppings = normalizarToppingsItem(item.toppings);
+    const claveToppings = JSON.stringify(toppings.map(tokenTopping).sort());
+    const clave = `${item.productoId}|${tamano}|${segundoSaborId}|${claveToppings}`;
 
     if (lineas.has(clave)) {
       lineas.get(clave).cantidad += item.cantidad;
     } else {
-      lineas.set(clave, { productoId: item.productoId, tamano, segundoSaborId, cantidad: item.cantidad });
+      lineas.set(clave, {
+        productoId: item.productoId,
+        tamano,
+        segundoSaborId,
+        toppings,
+        cantidad: item.cantidad,
+      });
     }
   }
   return [...lineas.values()];
@@ -60,20 +114,39 @@ const validarLineas = (lineas, productosPorId) => {
   for (const linea of lineas) {
     const producto = productosPorId.get(linea.productoId);
 
-    if (linea.tamano && !(producto.tamanos ?? []).includes(linea.tamano)) {
-      return `"${producto.nombre}" no tiene el tamaño "${linea.tamano}"`;
+    if (!linea.tamano) {
+      return `Elegí una variante para "${producto.nombre}"`;
+    }
+
+    const variante = buscarVariante(producto, linea.tamano);
+    if (!variante) {
+      return `"${producto.nombre}" no tiene la variante "${linea.tamano}"`;
+    }
+
+    if (linea.toppings.length > 0) {
+      if (producto.categoria !== 'comidas') {
+        return `Los toppings solo están disponibles para productos de categoría comidas`;
+      }
+
+      for (const nombreTopping of linea.toppings) {
+        if (!buscarTopping(producto, nombreTopping)) {
+          return `"${producto.nombre}" no tiene el topping "${nombreTopping}"`;
+        }
+      }
     }
 
     if (linea.segundoSaborId) {
       const segundo = productosPorId.get(linea.segundoSaborId);
+      const varianteSegundo = buscarVariante(segundo, linea.tamano);
       const mitadValida =
         linea.tamano === TAMANO_MITAD_Y_MITAD &&
         segundo.id !== producto.id &&
         producto.categoria === 'pizzas' && segundo.categoria === 'pizzas' &&
-        producto.permitemitad && segundo.permitemitad;
+        producto.permitemitad && segundo.permitemitad &&
+        varianteSegundo !== null;
 
       if (!mitadValida) {
-        return `La mitad y mitad solo se puede pedir en ${TAMANO_MITAD_Y_MITAD} y entre dos pizzas distintas que la permitan`;
+        return `La mitad y mitad solo se puede pedir en ${TAMANO_MITAD_Y_MITAD}, entre dos pizzas distintas que la permitan y con la misma variante`;
       }
     }
   }
@@ -101,9 +174,9 @@ export const crear = async (req, res, next) => {
   const ids = [...new Set(pedidas.flatMap((l) => [l.productoId, l.segundoSaborId]).filter(Boolean))];
 
   try {
-    // Precio, tamaños y disponibilidad (stock + efecto dominó de ingredientes) de cada producto
+    // Variantes y disponibilidad (stock + efecto dominó de ingredientes) de cada producto
     const { rows: productos } = await pool.query(
-      `SELECT p.id, p.nombre, p.precio, p.categoria, p.tamanos, p.permitemitad,
+      `SELECT p.id, p.nombre, p.variantes, p.toppings, p.categoria, p.permitemitad,
          (COALESCE(p.stock, 0) > 0 AND COALESCE(bool_and(i.activo), TRUE)) AS disponible
        FROM productos p
        LEFT JOIN producto_ingrediente pi ON pi.producto_id = p.id
@@ -129,20 +202,36 @@ export const crear = async (req, res, next) => {
       });
     }
 
-    // La mitad y mitad cobra la mitad de cada pizza sumadas (ej. $9.000 y $11.000 -> $10.000),
-    // igual que la carta (DetalleProducto.jsx) y comandas (FormularioComanda.jsx).
+    // La mitad y mitad suma el precio de la variante "4 porciones" de cada
+    // pizza (ej. $9.000 + $10.800 = $19.800), igual que la carta y las comandas.
     const lineas = pedidas.map((l) => {
       const producto = productosPorId.get(l.productoId);
       const segundo = l.segundoSaborId ? productosPorId.get(l.segundoSaborId) : null;
-      const multiplicador = MULTIPLICADOR_TAMANO[l.tamano] ?? 1;
-      const precioUnitario = segundo
-        ? Math.round((producto.precio * multiplicador) / 2 + (segundo.precio * multiplicador) / 2)
-        : Math.round(producto.precio * multiplicador);
+      const variante = buscarVariante(producto, l.tamano);
+      const varianteSegundo = segundo ? buscarVariante(segundo, l.tamano) : null;
+
+      // Los precios de los toppings salen siempre de la base, nunca del front.
+      const toppings = l.toppings.map((nombreTopping) => {
+        const topping = buscarTopping(producto, nombreTopping);
+        const precio = Number(topping.precio);
+        return {
+          nombre: topping.nombre,
+          precio: Number.isFinite(precio) && precio >= 0 ? precio : 0,
+        };
+      });
+      const precioToppings = toppings.reduce((acc, topping) => acc + topping.precio, 0);
+
+      const precioBase = segundo
+        ? precioUnaMitad(producto, variante) + precioUnaMitad(segundo, varianteSegundo)
+        : Number(variante.precio);
+      const precioUnitario = precioBase + precioToppings;
+
       return {
         productoId: l.productoId,
         nombre: segundo ? `${producto.nombre} / ${segundo.nombre}` : producto.nombre,
         tamano: l.tamano,
         segundoSaborId: l.segundoSaborId,
+        toppings,
         cantidad: l.cantidad,
         precioUnitario,
         subtotal: precioUnitario * l.cantidad,
@@ -153,11 +242,20 @@ export const crear = async (req, res, next) => {
     const costoEnvio = tipo === 'delivery' && subtotal < ENVIO_GRATIS_DESDE ? COSTO_ENVIO : 0;
 
     let detalle = lineas
-      .map((l) => `${l.cantidad}x ${l.nombre}${l.tamano ? ` (${l.tamano})` : ''}`)
+      .map((l) => {
+        const extras = l.toppings.length > 0
+          ? ` + ${l.toppings.map((topping) => topping.nombre).join(', ')}`
+          : '';
+        return `${l.cantidad}x ${l.nombre}${l.tamano ? ` (${l.tamano})` : ''}${extras}`;
+      })
       .join(', ');
     if (detalle.length > LARGO_MAX_DETALLE) {
       detalle = `${detalle.slice(0, LARGO_MAX_DETALLE - 1)}…`;
     }
+
+    // En mesa el contacto es opcional: se guarda vacío o con el nombre de la mesa.
+    const clienteFinal = armarCliente(cliente, tipo, direccionMesa);
+    const telefonoFinal = telefono?.trim() ?? '';
 
     // El pedido y sus líneas se guardan juntos: si algo falla no queda un pedido sin productos.
     const client = await pool.connect();
@@ -170,8 +268,8 @@ export const crear = async (req, res, next) => {
          VALUES ($1, $2, $3, $4, $5, $6, NULL, 'Pendiente', $7, $8, $9)
          RETURNING *`,
         [
-          cliente.trim(),
-          telefono.trim(),
+          clienteFinal,
+          telefonoFinal,
           tipo,
           direccionMesa?.trim() || null,
           subtotal + costoEnvio,
@@ -184,8 +282,12 @@ export const crear = async (req, res, next) => {
       const pedido = rows[0];
 
       await client.query(
-        `INSERT INTO detalle_pedido (pedido_id, producto_id, cantidad, tamano, segundo_sabor_id, precio_unitario)
-         SELECT $1, * FROM unnest($2::int[], $3::int[], $4::text[], $5::int[], $6::int[])`,
+        `INSERT INTO detalle_pedido
+           (pedido_id, producto_id, cantidad, tamano, segundo_sabor_id, precio_unitario, toppings)
+         SELECT $1, t.producto_id, t.cantidad, t.tamano, t.segundo_sabor_id,
+                t.precio_unitario, t.toppings::jsonb
+         FROM unnest($2::int[], $3::int[], $4::text[], $5::int[], $6::int[], $7::text[])
+           AS t(producto_id, cantidad, tamano, segundo_sabor_id, precio_unitario, toppings)`,
         [
           pedido.id,
           lineas.map((l) => l.productoId),
@@ -193,6 +295,7 @@ export const crear = async (req, res, next) => {
           lineas.map((l) => l.tamano),
           lineas.map((l) => l.segundoSaborId),
           lineas.map((l) => l.precioUnitario),
+          lineas.map((l) => JSON.stringify(l.toppings)),
         ]
       );
 

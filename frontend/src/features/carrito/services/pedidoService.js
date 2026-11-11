@@ -29,6 +29,10 @@ export async function crearPedido({ items, tipoEntrega, datosCliente, horario, u
         cantidad: item.cantidad,
         tamano: item.tamanoElegido || null,
         segundoSaborId: item.esMitadYMitad ? item.segundoSaborId ?? null : null,
+        // Solo viajan los nombres: el backend valida y suma los precios de la base.
+        toppings: (item.toppings ?? [])
+          .map((topping) => (typeof topping === 'string' ? topping : topping?.nombre))
+          .filter(Boolean),
       })),
     }),
   });

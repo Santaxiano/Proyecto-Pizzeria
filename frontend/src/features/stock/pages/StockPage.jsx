@@ -32,13 +32,10 @@ export default function StockPage() {
   const [alertaConfirmacion, setAlertaConfirmacion] = useState(null);
   const [busquedaTabla, setBusquedaTabla] = useState('');
 
-  if (cargando) return <div className="text-center py-5"><div className="spinner-border text-danger" /></div>;
-  if (error) return <div className="alert alert-danger m-4 text-center">{error.message}</div>;
-
   const abrirCreacion = (tipo) => {
     setTipoForm(tipo);
     if (tipo === 'producto') {
-      setItemAEditar({ nombre: '', descripcion: '', precio: '', categoria: 'pizzas', imagen: '', ingredientesIds: [] });
+      setItemAEditar({ nombre: '', descripcion: '', categoria: 'pizzas', imagen: '', ingredientesIds: [], variantes: [{ nombre: '', precio: '' }] });
     } else {
       setItemAEditar({ nombre: '' });
     }
@@ -87,9 +84,12 @@ export default function StockPage() {
   }, [ingredientes, busquedaTabla]);
 
   // Lista de tokens estrictos (sin NINGÚN espacio) para evitar duplicados en el Modal
-  const listaActualTokens = tipoForm === 'producto' 
-    ? productos.map(p => crearTokenEstricto(p.nombre)) 
+  const listaActualTokens = tipoForm === 'producto'
+    ? productos.map(p => crearTokenEstricto(p.nombre))
     : ingredientes.map(i => crearTokenEstricto(i.nombre));
+
+  if (cargando) return <div className="text-center py-5"><div className="spinner-border text-danger" /></div>;
+  if (error) return <div className="alert alert-danger m-4 text-center">{error.message}</div>;
 
   return (
     <div className="container py-4">
@@ -117,6 +117,7 @@ export default function StockPage() {
 
       {modalFormAbierto && (
         <ModalFormularioStock 
+          key={itemAEditar?.id ?? `nuevo-${tipoForm}`}
           tipo={tipoForm}
           itemAEditar={itemAEditar}
           listaIngredientesDisponibles={ingredientes}

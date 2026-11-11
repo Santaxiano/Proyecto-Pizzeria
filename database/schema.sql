@@ -14,14 +14,23 @@ CREATE TABLE Usuarios (
 CREATE TABLE Productos (
     id SERIAL PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
-    precio INT NOT NULL,
     categoria VARCHAR(100) NOT NULL,
-    tamanos TEXT[], 
+    -- Cada variante define su propio nombre y precio: [{"nombre":"4 porciones","precio":9000}, ...]
+    variantes JSONB NOT NULL,
+    -- Solo para comidas: [{"nombre":"Cheddar extra","precio":800}, ...]
+    toppings JSONB NOT NULL DEFAULT '[]'::jsonb,
     permiteMitad BOOLEAN,
     stock INT,
     destacado BOOLEAN,
     imagen VARCHAR(255),
-    descripcion VARCHAR(255)
+    descripcion VARCHAR(255),
+    CONSTRAINT productos_variantes_validas CHECK (
+        jsonb_typeof(variantes) = 'array' AND variantes <> '[]'::jsonb
+    ),
+    CONSTRAINT productos_toppings_validos CHECK (
+        jsonb_typeof(toppings) = 'array'
+        AND (categoria = 'comidas' OR toppings = '[]'::jsonb)
+    )
 );
 
 
@@ -67,7 +76,12 @@ CREATE TABLE Detalle_Pedido (
     cantidad INT NOT NULL DEFAULT 1,
     tamano VARCHAR(50),                 -- "4 porciones" / "8 porciones" (NULL si no aplica)
     segundo_sabor_id INT,               -- otra mitad en una pizza mitad y mitad
-    precio_unitario INT NOT NULL,       -- precio al momento de la venta
+    precio_unitario INT NOT NULL,       -- precio al momento de la venta (incluye toppings)
+    -- Foto histórica de los toppings elegidos: [{"nombre":"Cheddar extra","precio":800}, ...]
+    toppings JSONB NOT NULL DEFAULT '[]'::jsonb,
+    CONSTRAINT detalle_pedido_toppings_validos CHECK (
+        jsonb_typeof(toppings) = 'array'
+    ),
     FOREIGN KEY (pedido_id) REFERENCES Pedidos(id) ON DELETE CASCADE,
     FOREIGN KEY (producto_id) REFERENCES Productos(id),
     FOREIGN KEY (segundo_sabor_id) REFERENCES Productos(id)

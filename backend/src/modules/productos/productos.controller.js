@@ -50,11 +50,38 @@ const guardarIngredientes = async (db, productoId, ingredientesIds) => {
   }
 };
 
+// Limpia los nombres y deja solo los datos que persisten en el JSONB.
+const normalizarVariantes = (variantes) => (
+  Array.isArray(variantes)
+    ? variantes.map((variante) => ({
+        nombre: variante.nombre.trim().replace(/\s+/g, ' '),
+        precio: Number(variante.precio),
+      }))
+    : []
+);
+
+// Los toppings se guardan como [{ nombre, precio }] dentro del producto.
+const normalizarToppings = (toppings) => (
+  Array.isArray(toppings)
+    ? toppings.map((topping) => ({
+        nombre: topping.nombre.trim().replace(/\s+/g, ' '),
+        precio: Number(topping.precio),
+      }))
+    : []
+);
+
+// null = no tocar los toppings actuales (PUT sin el campo).
+// En categorías que no son comidas siempre se guarda una lista vacía.
+const toppingsProducto = (body) => {
+  if (body.categoria?.trim() !== 'comidas') return JSON.stringify([]);
+  if (body.toppings === undefined) return null;
+  return JSON.stringify(normalizarToppings(body.toppings));
+};
+
 const valoresProducto = (body) => [
   body.nombre.trim(),
-  body.precio,
+  JSON.stringify(normalizarVariantes(body.variantes)),
   body.categoria.trim(),
-  body.tamanos ?? null,
   body.permiteMitad ?? null,
   body.stock ?? null,
   body.destacado ?? null,
@@ -96,10 +123,10 @@ export const crear = async (req, res, next) => {
     await client.query('BEGIN');
 
     const { rows } = await client.query(
-      `INSERT INTO productos (nombre, precio, categoria, tamanos, permitemitad, stock, destacado, imagen, descripcion)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO productos (nombre, variantes, categoria, permitemitad, stock, destacado, imagen, descripcion, toppings)
+       VALUES ($1, $2::jsonb, $3, $4, $5, $6, $7, $8, COALESCE($9::jsonb, '[]'::jsonb))
        RETURNING id`,
-      valoresProducto(body)
+      [...valoresProducto(body), toppingsProducto(body)]
     );
     const id = rows[0].id;
 
@@ -128,9 +155,11 @@ export const actualizar = async (req, res, next) => {
 
     const { rowCount } = await client.query(
       `UPDATE productos
-       SET nombre = $1, precio = $2, categoria = $3, tamanos = $4, permitemitad = $5, stock = $6, destacado = $7, imagen = $8, descripcion = $9
+       SET nombre = $1, variantes = $2::jsonb, categoria = $3, permitemitad = $4, stock = $5,
+           destacado = $6, imagen = $7, descripcion = $8,
+           toppings = COALESCE($9::jsonb, toppings)
        WHERE id = $10`,
-      [...valoresProducto(body), id]
+      [...valoresProducto(body), toppingsProducto(body), id]
     );
 
     if (rowCount === 0) {

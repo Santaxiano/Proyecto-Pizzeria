@@ -14,26 +14,26 @@ ON CONFLICT (id) DO UPDATE SET
   password = EXCLUDED.password;
 
 INSERT INTO productos
-  (id, nombre, precio, categoria, tamanos, permitemitad, stock, destacado, imagen, descripcion)
+  (id, nombre, variantes, categoria, permitemitad, stock, destacado, imagen, descripcion, toppings)
 VALUES
-  (1, 'Muzzarella Clásica', 8500, 'pizzas', ARRAY['4 porciones', '8 porciones'], TRUE, 50, TRUE, '/IMG_2169.jpeg', 'Salsa de tomate casera, abundante muzzarella, aceitunas verdes y orégano fresco al horno napolitano.'),
-  (2, 'Napolitana Especial', 9800, 'pizzas', ARRAY['4 porciones', '8 porciones'], TRUE, 40, TRUE, '/IMG_2171.jpeg', 'Muzzarella, rodajas de tomate natural, ajo picado, parmesano gratinado y hojas de albahaca fresca.'),
-  (3, 'Fugazzeta Rellena', 10500, 'pizzas', ARRAY['4 porciones', '8 porciones'], TRUE, 25, FALSE, '/IMG_6043.jpeg', 'Doble masa rellena de queso cremoso y muzzarella, cubierta con finas tiras de cebolla caramelizada.'),
-  (4, 'Hamburguesa Doble Smash +Pizza', 9200, 'comidas', ARRAY['Simple', 'Doble con Papas'], FALSE, 30, TRUE, '/IMG_5211.jpeg', 'Doble medallón de carne smash de 120g, cheddar fundido, bacon crocante y salsa especial en pan brioche.'),
-  (5, 'Lomo Completo San Luis', 11500, 'comidas', ARRAY['Para compartir'], FALSE, 20, FALSE, '/IMG_5205.jpeg', 'Bife de lomo tierno, lechuga, tomate, jamón, queso, huevo frito y mayonesa casera en pan casero.'),
-  (6, 'Mascrazzy de Jamón y Queso', 4500, 'comidas', ARRAY['Individual'], FALSE, 15, FALSE, '/IMG_2169.jpeg', 'Tartita individual crocante rellena de queso tybo fundido y jamón cocido seleccionado.'),
-  (7, 'Cerveza Corona 710ml', 4200, 'bebidas', ARRAY['710ml'], FALSE, 60, FALSE, '/IMG_2171.jpeg', 'Cerveza rubia bien fría con rodaja de lima.'),
-  (8, 'Coca Cola 1.5L', 3200, 'bebidas', ARRAY['1.5L'], FALSE, 80, FALSE, '/IMG_6043.jpeg', 'Línea clásica sabor original retornable/descartable.')
+  (1, 'Muzzarella', '[{"nombre": "4 porciones", "precio": 9000}, {"nombre": "8 porciones", "precio": 15000}]'::jsonb, 'pizzas', TRUE, 50, TRUE, '/muzzarella.jpg', 'Salsa de tomate casera, abundante muzzarella, aceitunas verdes y orégano fresco al horno napolitano.', '[]'::jsonb),
+  (2, 'Napolitana', '[{"nombre": "4 porciones", "precio": 10800}, {"nombre": "8 porciones", "precio": 18000}]'::jsonb, 'pizzas', TRUE, 40, TRUE, '/napo.jpg', 'Muzzarella, rodajas de tomate natural, ajo picado, parmesano gratinado y hojas de albahaca fresca.', '[]'::jsonb),
+  (3, 'Fugazzeta', '[{"nombre": "4 porciones", "precio": 9600}, {"nombre": "8 porciones", "precio": 16000}]'::jsonb, 'pizzas', TRUE, 25, FALSE, '/fuga.jpg', 'Doble masa rellena de queso cremoso y muzzarella, cubierta con finas tiras de cebolla caramelizada.', '[]'::jsonb),
+  (4, 'Pollo con barbacoa', '[{"nombre": "4 porciones", "precio": 9000}, {"nombre": "8 porciones", "precio": 15000}]'::jsonb, 'pizzas', TRUE, 50, TRUE, '/barbacoa.jpg', 'Muzzarella fundida, abundante pollo desmechado, aros de cebolla morada y un exquisito glaseado de salsa barbacoa.', '[]'::jsonb),
+  (5, '+Burger', '[{"nombre": "Simple", "precio": 14500}, {"nombre": "Doble con Papas", "precio": 18000}]'::jsonb, 'comidas', FALSE, 30, TRUE, '/hamburguesa.jpeg', 'Doble medallón de carne smash de 120g, cheddar fundido, bacon crocante y salsa especial en pan brioche.', '[{"nombre": "Cheddar extra", "precio": 800}, {"nombre": "Bacon extra", "precio": 1000}, {"nombre": "Huevo frito", "precio": 600}, {"nombre": "Papas extra", "precio": 1200}]'::jsonb),
+  (6, 'Hamburguesa bañada en chedar con panceta', '[{"nombre": "Para compartir", "precio": 18000}]'::jsonb, 'comidas', FALSE, 20, FALSE, '/ham.jpeg', 'Doble hamburguesa casera en pan artesanal, con panceta crocante y bañada completamente en una cascada de cheddar fundido.', '[{"nombre": "Cheddar extra", "precio": 800}, {"nombre": "Panceta extra", "precio": 1000}, {"nombre": "Papas fritas", "precio": 1500}]'::jsonb),
+  (7, 'Cerveza Patagonia 710ml', '[{"nombre": "Amber Lager", "precio": 7500}, {"nombre": "Kune", "precio": 7500}, {"nombre": "Porter", "precio": 7500}, {"nombre": "24.7", "precio": 7500}, {"nombre": "Bohemian Pilsener", "precio": 7500}, {"nombre": "Weisse", "precio": 7500}]'::jsonb, 'bebidas', FALSE, 60, FALSE, '/patagonia.jpg', 'Cerveza de origen patagónico. Disfrutá de nuestras distintas variedades clásicas y especiales.', '[]'::jsonb),
+  (8, 'Pepsi cola', '[{"nombre": "500ml", "precio": 5000}, {"nombre": "2L", "precio": 8000}]'::jsonb, 'bebidas', FALSE, 80, FALSE, '/pepsi2l.jpg', 'Gaseosa línea clásica sabor original. Bien fría, ideal para acompañar tus comidas.', '[]'::jsonb)
 ON CONFLICT (id) DO UPDATE SET
   nombre = EXCLUDED.nombre,
-  precio = EXCLUDED.precio,
+  variantes = EXCLUDED.variantes,
   categoria = EXCLUDED.categoria,
-  tamanos = EXCLUDED.tamanos,
   permitemitad = EXCLUDED.permitemitad,
   stock = EXCLUDED.stock,
   destacado = EXCLUDED.destacado,
   imagen = EXCLUDED.imagen,
-  descripcion = EXCLUDED.descripcion;
+  descripcion = EXCLUDED.descripcion,
+  toppings = EXCLUDED.toppings;
 
 INSERT INTO ingredientes (id, nombre, activo) VALUES
   (1, 'Muzzarella', TRUE),
@@ -133,17 +133,18 @@ ON CONFLICT (producto_id, ingrediente_id) DO NOTHING;
 
 -- La fuente JSON de pedidos solo trae el texto detalle; estas lineas de
 -- detalle_pedido son relaciones de ejemplo para poder probar esa tabla.
-INSERT INTO detalle_pedido (id, pedido_id, producto_id, cantidad, tamano, segundo_sabor_id, precio_unitario) VALUES
-  (1, 1, 2, 1, '8 porciones', NULL, 9800),
-  (2, 1, 7, 1, NULL, NULL, 4200),
-  (3, 2, 1, 1, '8 porciones', NULL, 8500)
+INSERT INTO detalle_pedido (id, pedido_id, producto_id, cantidad, tamano, segundo_sabor_id, precio_unitario, toppings) VALUES
+  (1, 1, 2, 1, '8 porciones', NULL, 9800, '[]'::jsonb),
+  (2, 1, 7, 1, NULL, NULL, 4200, '[]'::jsonb),
+  (3, 2, 1, 1, '8 porciones', NULL, 8500, '[]'::jsonb)
 ON CONFLICT (id) DO UPDATE SET
   pedido_id = EXCLUDED.pedido_id,
   producto_id = EXCLUDED.producto_id,
   cantidad = EXCLUDED.cantidad,
   tamano = EXCLUDED.tamano,
   segundo_sabor_id = EXCLUDED.segundo_sabor_id,
-  precio_unitario = EXCLUDED.precio_unitario;
+  precio_unitario = EXCLUDED.precio_unitario,
+  toppings = EXCLUDED.toppings;
 
 INSERT INTO reserva_mesa (reserva_id, mesa_id) VALUES
   (1, 1),

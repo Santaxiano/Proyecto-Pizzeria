@@ -4,6 +4,9 @@ export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, on
     comanda.estado === 'Finalizada' ? 'bg-success' : 
     comanda.estado === 'Confirmada' ? 'bg-primary' : 'bg-danger';
 
+  // En mesa no hay a quién avisarle por WhatsApp: se pasa directo de estado.
+  const esMesaPendiente = comanda.tipo === 'mesa' && comanda.estado === 'Pendiente';
+
   return (
     <div className="col">
       <div className={`card h-100 shadow-sm border-0 ${comanda.estado === 'Finalizada' ? 'opacity-75' : ''}`} style={{ borderTop: '4px solid var(--color-rojo-tomate)' }}>
@@ -46,12 +49,26 @@ export default function TarjetaComanda({ comanda, onEliminar, onConfirmarWpp, on
           <div className="d-flex flex-column gap-2 mt-auto">
             
             {comanda.estado === 'Pendiente' && (
-              <button className="btn btn-success fw-bold w-100" onClick={() => {
-                onCambiarEstado('Confirmada');
-                onConfirmarWpp();
-              }}>
-                <i className="bi bi-whatsapp"></i> Confirmar y Avisar
-              </button>
+              esMesaPendiente ? (
+                <>
+                  <p className="small text-muted text-center mb-0">
+                    Pedido de mesa: no requiere aviso por WhatsApp.
+                  </p>
+                  <button className="btn btn-primary fw-bold w-100" onClick={() => onCambiarEstado('Confirmada')}>
+                    ✓ Confirmar pedido
+                  </button>
+                  <button className="btn btn-outline-success fw-bold w-100" onClick={() => onCambiarEstado('Finalizada')}>
+                    ✓ Finalizar directamente
+                  </button>
+                </>
+              ) : (
+                <button className="btn btn-success fw-bold w-100" onClick={() => {
+                  onCambiarEstado('Confirmada');
+                  onConfirmarWpp();
+                }}>
+                  <i className="bi bi-whatsapp"></i> Confirmar y Avisar
+                </button>
+              )
             )}
 
             {comanda.estado === 'Confirmada' && (

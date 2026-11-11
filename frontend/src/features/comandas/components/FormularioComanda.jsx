@@ -10,9 +10,47 @@ const formatoKm = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 // Misma regla de envío que aplica el backend al crear el pedido
 const ENVIO_GRATIS_DESDE = 15000;
 const COSTO_ENVIO = 1500;
-// Mismas reglas de precio por tamaño que la carta y el backend (pedidos.controller.js)
-const MULTIPLICADOR_TAMANO = { '4 porciones': 0.6 };
 const TAMANO_MITAD_Y_MITAD = '8 porciones';
+const VARIANTE_MITAD = '4 porciones';
+
+const obtenerVariantes = (producto) => (
+  Array.isArray(producto?.variantes) ? producto.variantes : []
+);
+
+const buscarVariante = (producto, nombre) => (
+  obtenerVariantes(producto).find((variante) => variante.nombre === nombre) ?? null
+);
+
+// Cada mitad se cobra con el precio de la variante "4 porciones". Si esa
+// variante no existe, se usa como fallback la mitad de la variante elegida.
+const precioUnaMitad = (producto, varianteSeleccionada) => {
+  const varianteCuatro = buscarVariante(producto, VARIANTE_MITAD);
+  if (varianteCuatro) return Number(varianteCuatro.precio);
+
+  return Math.round(Number(varianteSeleccionada?.precio ?? 0) / 2);
+};
+
+const obtenerPrecioMinimo = (producto) => {
+  const precios = obtenerVariantes(producto)
+    .map((variante) => Number(variante.precio))
+    .filter((precio) => Number.isFinite(precio) && precio >= 0);
+
+  return precios.length > 0 ? Math.min(...precios) : null;
+};
+
+const etiquetaProducto = (producto) => {
+  const precioMinimo = obtenerPrecioMinimo(producto);
+  const precio = precioMinimo !== null ? `$${precioMinimo.toLocaleString('es-AR')}` : 'sin precio';
+  return `${producto.nombre} - ${precio}`;
+};
+
+// Si el gestor deja vacío el nombre en una comanda de mesa, se usa "Mesa X".
+// Si ya escribió "Mesa 5", se respeta para no generar "Mesa Mesa 5".
+const nombreClienteMesa = (direccionMesa) => {
+  const mesa = direccionMesa?.trim();
+  if (!mesa) return 'Mesa';
+  return (/^mesa\b/i.test(mesa) ? mesa : `Mesa ${mesa}`).slice(0, 255);
+};
 
 export default function FormularioComanda({ onGuardar, onCancelar }) {
   const { datos: productosBackend, cargando: cargandoProductos } = useFetch(obtenerProductos);
@@ -29,10 +67,13 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
     horaProgramada: '' 
   });
 
+  const esMesa = valores.tipo === 'mesa';
+
   const [items, setItems] = useState([]);
   const [prodSeleccionado, setProdSeleccionado] = useState('');
   const [tamanoSeleccionado, setTamanoSeleccionado] = useState('');
   const [segundoSaborSeleccionado, setSegundoSaborSeleccionado] = useState('');
+  const [toppingsSeleccionados, setToppingsSeleccionados] = useState([]);
   const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
 
   // Domicilio marcado en el mapa (solo delivery). Para el gestor es opcional:
@@ -81,42 +122,85 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
   // ------------------------------------
 
   const handleChange = (e) => {
-    setValores({ ...valores, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setValores((prev) => ({
+      ...prev,
+      [name]: value,
+      // La dirección de delivery y el N° de mesa no se mezclan al cambiar el tipo.
+      ...(name === 'tipo' ? { direccionMesa: '' } : {}),
+    }));
   };
 
   // --- Tamaño y mitad y mitad (mismas reglas que la carta y el backend) ---
   const productoActual = productos.find(p => p.id === Number(prodSeleccionado));
-  const tamanosProducto = productoActual?.tamanos ?? [];
+  const variantesProducto = obtenerVariantes(productoActual);
+  const varianteSeleccionada = buscarVariante(productoActual, tamanoSeleccionado);
   const puedeMitad = productoActual?.categoria === 'pizzas'
     && productoActual?.permitemitad
     && tamanoSeleccionado === TAMANO_MITAD_Y_MITAD;
   const opcionesSegundoSabor = productos.filter(p => (
-    p.categoria === 'pizzas' && p.permitemitad && p.disponible && p.id !== productoActual?.id
+    p.categoria === 'pizzas'
+    && p.permitemitad
+    && p.disponible
+    && p.id !== productoActual?.id
+    && buscarVariante(p, tamanoSeleccionado)
   ));
+
+  const toppingsDisponibles = productoActual?.categoria === 'comidas'
+    && Array.isArray(productoActual.toppings)
+    ? productoActual.toppings.filter(topping => topping?.nombre)
+    : [];
+  const toppingsElegidos = toppingsDisponibles.filter(topping => (
+    toppingsSeleccionados.includes(topping.nombre)
+  ));
+  const totalToppings = toppingsElegidos.reduce(
+    (acc, topping) => acc + Number(topping.precio || 0),
+    0
+  );
 
   const elegirProducto = (id) => {
     setProdSeleccionado(id);
     setSegundoSaborSeleccionado('');
+    setToppingsSeleccionados([]);
     const producto = productos.find(p => p.id === Number(id));
-    const tamanos = producto?.tamanos ?? [];
-    // Por defecto el tamaño más grande (en pizzas, 8 porciones)
-    setTamanoSeleccionado(tamanos.length > 0 ? tamanos[tamanos.length - 1] : '');
+    const variantes = obtenerVariantes(producto);
+    // Por defecto la última variante (en pizzas, la más grande)
+    setTamanoSeleccionado(variantes.length > 0 ? variantes[variantes.length - 1].nombre : '');
+  };
+
+  const alternarTopping = (nombre) => {
+    setToppingsSeleccionados(prev => (
+      prev.includes(nombre)
+        ? prev.filter(topping => topping !== nombre)
+        : [...prev, nombre]
+    ));
   };
 
   const agregarProductoAlPedido = () => {
     if (!productoActual || !productoActual.disponible) return;
-    if (tamanosProducto.length > 0 && !tamanoSeleccionado) return;
+    if (variantesProducto.length > 0 && !varianteSeleccionada) return;
 
-    const tamano = tamanosProducto.length > 0 ? tamanoSeleccionado : null;
+    const tamano = varianteSeleccionada?.nombre ?? null;
     const segundo = puedeMitad && segundoSaborSeleccionado
       ? productos.find(p => p.id === Number(segundoSaborSeleccionado))
       : null;
-    // Mitad y mitad: la mitad de cada pizza sumadas (misma regla que el backend)
-    const multiplicador = MULTIPLICADOR_TAMANO[tamano] ?? 1;
-    const precio = segundo
-      ? Math.round((productoActual.precio * multiplicador) / 2 + (segundo.precio * multiplicador) / 2)
-      : Math.round(productoActual.precio * multiplicador);
-    const clave = `${productoActual.id}|${tamano}|${segundo?.id ?? ''}`;
+    const varianteSegundo = segundo ? buscarVariante(segundo, tamano) : null;
+    if (!varianteSeleccionada || (segundo && !varianteSegundo)) return;
+
+    // Mitad y mitad: suma el precio de la variante "4 porciones" de cada pizza
+    // (misma regla que la carta y el backend). Los toppings se suman después.
+    const precioBase = segundo
+      ? precioUnaMitad(productoActual, varianteSeleccionada) + precioUnaMitad(segundo, varianteSegundo)
+      : Number(varianteSeleccionada.precio);
+    const toppings = toppingsElegidos.map(topping => ({
+      nombre: topping.nombre,
+      precio: Number(topping.precio),
+    }));
+    const precio = precioBase + totalToppings;
+    const claveToppings = JSON.stringify(
+      toppings.map(topping => topping.nombre.trim().toLowerCase()).sort()
+    );
+    const clave = `${productoActual.id}|${tamano}|${segundo?.id ?? ''}|${claveToppings}`;
     const nombre = `${productoActual.nombre}${segundo ? ` / ${segundo.nombre}` : ''}${tamano ? ` (${tamano})` : ''}`;
 
     const itemExistente = items.find(i => i.clave === clave);
@@ -132,6 +216,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
         nombre,
         tamano,
         segundoSaborId: segundo?.id ?? null,
+        toppings,
         precio,
         cantidad: cantidadSeleccionada,
         subtotal: precio * cantidadSeleccionada,
@@ -141,6 +226,7 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
     setProdSeleccionado('');
     setTamanoSeleccionado('');
     setSegundoSaborSeleccionado('');
+    setToppingsSeleccionados([]);
     setCantidadSeleccionada(1);
   };
 
@@ -192,9 +278,19 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
       return;
     }
 
+    // En mesa el contacto es opcional: si no hay nombre, la comanda se
+    // identifica con la mesa. El teléfono vacío se envía como cadena vacía.
+    const direccionMesa = valores.direccionMesa.trim();
+    const clienteFinal = esMesa && !valores.cliente.trim()
+      ? nombreClienteMesa(direccionMesa)
+      : valores.cliente.trim();
+
     // Pasamos el horarioFinal a onGuardar. La ubicación solo viaja si es delivery.
     onGuardar({
       ...valores,
+      cliente: clienteFinal,
+      telefono: valores.telefono.trim(),
+      direccionMesa,
       horario: horarioFinal,
       items,
       ubicacion: valores.tipo === 'delivery' ? ubicacion : null,
@@ -219,17 +315,52 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
               </select>
             </div>
             <div className="col-md-4">
-              <label className="form-label fw-bold small text-muted">Nombre del Cliente</label>
-              <input type="text" className="form-control" name="cliente" value={valores.cliente} onChange={handleChange} required />
+              <label className="form-label fw-bold small text-muted">
+                Nombre del Cliente
+                {esMesa && <span className="fw-normal"> (opcional)</span>}
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                name="cliente"
+                value={valores.cliente}
+                onChange={handleChange}
+                placeholder={esMesa ? 'Si lo dejás vacío se usa "Mesa X"' : ''}
+                maxLength={255}
+                required={!esMesa}
+              />
             </div>
             <div className="col-md-4">
-              <label className="form-label fw-bold small text-muted">Teléfono (WhatsApp)</label>
-              <input type="tel" className="form-control" name="telefono" placeholder="Ej: 5492664..." value={valores.telefono} onChange={handleChange} required />
+              <label className="form-label fw-bold small text-muted">
+                Teléfono (WhatsApp)
+                {esMesa && <span className="fw-normal"> (opcional)</span>}
+              </label>
+              <input
+                type="tel"
+                className="form-control"
+                name="telefono"
+                placeholder={esMesa ? 'Opcional en pedidos de mesa' : 'Ej: 5492664...'}
+                value={valores.telefono}
+                onChange={handleChange}
+                maxLength={255}
+                required={!esMesa}
+              />
             </div>
             
             <div className="col-md-8">
-              <label className="form-label fw-bold small text-muted">Dirección / N° Mesa</label>
-              <input type="text" className="form-control" name="direccionMesa" value={valores.direccionMesa} onChange={handleChange} required={valores.tipo !== 'retiro'} />
+              <label className="form-label fw-bold small text-muted">
+                {esMesa ? 'N° de Mesa' : 'Dirección / N° Mesa'}
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                name="direccionMesa"
+                value={valores.direccionMesa}
+                onChange={handleChange}
+                placeholder={esMesa ? 'Ej: 5' : ''}
+                maxLength={255}
+                required={valores.tipo !== 'retiro'}
+              />
             </div>
 
             {valores.tipo === 'delivery' && (
@@ -350,18 +481,18 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                 <option value="">{cargandoProductos ? 'Cargando menú...' : 'Seleccionar producto...'}</option>
                 {productos.map(p => (
                   <option key={p.id} value={p.id} disabled={!p.disponible}>
-                    {p.nombre} - ${p.precio}{!p.disponible ? ' (sin stock)' : ''}
+                    {etiquetaProducto(p)}{!p.disponible ? ' (sin stock)' : ''}
                   </option>
                 ))}
               </select>
             </div>
 
-            {tamanosProducto.length > 0 && (
+            {variantesProducto.length > 0 && (
               <div className={puedeMitad ? 'col-md-4' : 'col-md-7'}>
                 <select className="form-select" value={tamanoSeleccionado} onChange={(e) => { setTamanoSeleccionado(e.target.value); setSegundoSaborSeleccionado(''); }} aria-label="Tamaño">
-                  {tamanosProducto.map(t => (
-                    <option key={t} value={t}>
-                      {t} - ${Math.round(productoActual.precio * (MULTIPLICADOR_TAMANO[t] ?? 1))}
+                  {variantesProducto.map(variante => (
+                    <option key={variante.nombre} value={variante.nombre}>
+                      {variante.nombre} - ${Number(variante.precio).toLocaleString('es-AR')}
                     </option>
                   ))}
                 </select>
@@ -372,14 +503,56 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
               <div className="col-md-3">
                 <select className="form-select" value={segundoSaborSeleccionado} onChange={(e) => setSegundoSaborSeleccionado(e.target.value)} aria-label="Segunda mitad">
                   <option value="">Entera (sin mitad)</option>
-                  {opcionesSegundoSabor.map(p => (
-                    <option key={p.id} value={p.id}>
-                      Mitad: {p.nombre} - ${Math.round(productoActual.precio / 2 + p.precio / 2)}
-                    </option>
-                  ))}
+                  {opcionesSegundoSabor.map(p => {
+                    const varianteSegundo = buscarVariante(p, tamanoSeleccionado);
+                    const precioMitad = varianteSeleccionada && varianteSegundo
+                      ? precioUnaMitad(productoActual, varianteSeleccionada) + precioUnaMitad(p, varianteSegundo)
+                      : null;
+
+                    return (
+                      <option key={p.id} value={p.id}>
+                        Mitad: {p.nombre} - ${precioMitad !== null ? precioMitad.toLocaleString('es-AR') : '-'}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
             )}
+
+            {toppingsDisponibles.length > 0 && (
+              <div className="col-12">
+                <div className="border rounded bg-white p-2">
+                  <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-1">
+                    <span className="small fw-bold">Toppings opcionales</span>
+                    {totalToppings > 0 && (
+                      <span className="small fw-semibold text-danger">
+                        +${totalToppings.toLocaleString('es-AR')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="d-flex flex-wrap gap-3">
+                    {toppingsDisponibles.map((topping, index) => {
+                      const idTopping = `comanda-topping-${productoActual.id}-${index}`;
+                      return (
+                        <div className="form-check" key={`${topping.nombre}-${index}`}>
+                          <input
+                            className="form-check-input"
+                            type="checkbox"
+                            id={idTopping}
+                            checked={toppingsSeleccionados.includes(topping.nombre)}
+                            onChange={() => alternarTopping(topping.nombre)}
+                          />
+                          <label className="form-check-label small" htmlFor={idTopping}>
+                            {topping.nombre} (+${Number(topping.precio).toLocaleString('es-AR')})
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="col-md-2 col-4">
               <input type="number" className="form-control" min="1" value={cantidadSeleccionada} onChange={(e) => setCantidadSeleccionada(Number(e.target.value))} />
             </div>
@@ -403,7 +576,14 @@ export default function FormularioComanda({ onGuardar, onCancelar }) {
                   <tbody>
                     {items.map(item => (
                       <tr key={item.clave} className="align-middle">
-                        <td className="fw-semibold">{item.nombre}</td>
+                        <td className="fw-semibold">
+                          {item.nombre}
+                          {item.toppings?.length > 0 && (
+                            <small className="d-block text-danger fw-normal">
+                              Toppings: {item.toppings.map(topping => topping.nombre).join(', ')}
+                            </small>
+                          )}
+                        </td>
                         <td className="text-end text-muted">${item.subtotal}</td>
                         <td>
                           <div className="d-flex align-items-center justify-content-between border rounded px-1 bg-light">

@@ -39,14 +39,6 @@ function LoginPage() {
 
                             <FormularioLogin onIngresar={handleIngresar} />
                             
-                            {/* Credenciales de prueba adaptadas al diseño */}
-                            <div className="mt-4 p-3 rounded text-center" style={{ backgroundColor: '#fdf3f2', border: '1px solid #fad5d2' }}>
-                                <p className="small mb-0" style={{ color: 'var(--color-rojo-tomate)' }}>
-                                    <strong className="d-block mb-1">Acceso de prueba:</strong>
-                                    admin@maspizza.com <br /> 
-                                    <strong>Clave:</strong> admin123
-                                </p>
-                            </div>
                         </div>
                     </div>
 
