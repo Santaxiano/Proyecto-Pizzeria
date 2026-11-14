@@ -1,5 +1,6 @@
 import { useParams, Link, useOutletContext } from 'react-router';
 import DetalleProducto from '../components/DetalleProducto';
+import BotonFlotanteCarrito from '../../carrito/components/BotonFlotanteCarrito';
 import { obtenerProductos } from '../services/catalogoService';
 // Importamos el hook de la profe
 import { useFetch } from '../../../shared/hooks/useFetch'; 
@@ -10,6 +11,8 @@ function DetalleProductoPage() {
   // 1. Extraemos la función para agregar al carrito
   const contexto = useOutletContext() || {};
   const agregarProducto = contexto.agregarProducto || (() => console.warn('Falta conectar useCarrito al Outlet'));
+  const cantidadTotal = contexto.cantidadTotal || 0;
+  const subtotal = contexto.subtotal || 0;
 
   // 2. Usamos el hook para traer TODOS los productos de una sola vez
   const { datos: productosBackend, error, cargando } = useFetch(obtenerProductos);
@@ -53,13 +56,15 @@ function DetalleProductoPage() {
   }
 
   return (
-    <div className="container py-5">
+    <div className="container py-5 espacio-inferior-menu">
       <DetalleProducto
         key={producto.id}
         producto={producto}
         todasLasPizzas={listaPizzas}
         onAgregar={agregarProducto}
       />
+
+      <BotonFlotanteCarrito cantidadTotal={cantidadTotal} subtotal={subtotal} />
     </div>
   );
 }

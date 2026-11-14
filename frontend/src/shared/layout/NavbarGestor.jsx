@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router';
 import { cerrarSesion, obtenerSesion } from '../../features/login/service/inicioservice';
+import CampanaNotificaciones from '../../features/notificaciones/components/CampanaNotificaciones';
 
-function NavbarGestor() {
+function NavbarGestor({ noLeidas = 0, cargandoNotificaciones = false, onAbrirNotificaciones }) {
     const navigate = useNavigate();
     const [menuAbierto, setMenuAbierto] = useState(false);
     const [rolUsuario, setRolUsuario] = useState('');
@@ -25,19 +26,26 @@ function NavbarGestor() {
     return (
         <aside className="col-12 col-md-3 col-lg-2 bg-sidebar text-white d-flex flex-column p-3 p-md-4 shadow-sm z-3 sticky-top top-0">
             <nav className="navbar navbar-dark navbar-expand-md h-100 w-100 flex-md-column align-items-stretch p-0">
-                <div className="d-flex w-100 justify-content-between align-items-center">
-                    <h2 className="fs-3 text-center mb-0 mb-md-5 d-flex align-items-center justify-content-center gap-2">
+                <div className="d-flex w-100 justify-content-between align-items-center gap-2 mb-0 mb-md-4">
+                    <h2 className="fs-3 text-center mb-0 d-flex align-items-center justify-content-center gap-2">
                         <span style={{ color: 'var(--color-rojo-tomate)' }}>+</span>PIZZA Gestor
                     </h2>
-                    <button
-                        className="navbar-toggler d-md-none"
-                        type="button"
-                        aria-controls="menu-gestor"
-                        aria-expanded={menuAbierto}
-                        onClick={() => setMenuAbierto(!menuAbierto)}
-                    >
-                        <span className="navbar-toggler-icon" />
-                    </button>
+                    <div className="d-flex align-items-center gap-2">
+                        <CampanaNotificaciones
+                            noLeidas={noLeidas}
+                            cargando={cargandoNotificaciones}
+                            onClick={onAbrirNotificaciones}
+                        />
+                        <button
+                            className="navbar-toggler d-md-none"
+                            type="button"
+                            aria-controls="menu-gestor"
+                            aria-expanded={menuAbierto}
+                            onClick={() => setMenuAbierto(!menuAbierto)}
+                        >
+                            <span className="navbar-toggler-icon" />
+                        </button>
+                    </div>
                 </div>
 
                 <div className={`collapse navbar-collapse w-100 flex-md-column align-items-stretch ${menuAbierto ? 'show' : ''}`} id="menu-gestor">

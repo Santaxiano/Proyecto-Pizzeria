@@ -99,6 +99,7 @@ CREATE TABLE Reservas (
     usuario_id INT,
     -- Pendiente: todavía no llegó · En curso: el cliente ocupó la mesa · Finalizada: se liberó la mesa
     estado VARCHAR(20) NOT NULL DEFAULT 'Pendiente',
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW(),      -- momento en que se registró (lo pone Postgres solo)
     CONSTRAINT reservas_estado_valido CHECK (estado IN ('Pendiente', 'En curso', 'Finalizada')),
     FOREIGN KEY (usuario_id) REFERENCES Usuarios(id)
 );

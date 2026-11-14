@@ -12,6 +12,12 @@ psql -U postgres -d Pizzeria -v ON_ERROR_STOP=1 -f database/seed.sql
 (Nota: Si tu usuario local de PostgreSQL no es postgres, reemplazalo por el tuyo).
 Estos comandos eliminan todos los datos existentes en `Pizzeria`. `schema.sql` crea las tablas en la base seleccionada y `seed.sql` carga los datos de prueba.
 
+Si ya tenés una base creada con una versión anterior, aplicá las migraciones pendientes sin borrar datos:
+
+Bash
+psql -U postgres -d Pizzeria -v ON_ERROR_STOP=1 -f database/migraciones/001_envio_y_estado_reservas.sql
+psql -U postgres -d Pizzeria -v ON_ERROR_STOP=1 -f database/migraciones/002_creado_en_reservas.sql
+
 Los toppings están disponibles únicamente para productos de categoría `comidas`. Se administran desde Stock → editar/crear producto, y se guardan en `productos.toppings`; cada línea de pedido conserva una foto histórica en `detalle_pedido.toppings`.
 
 2. Iniciar el Backend (Terminal 1)

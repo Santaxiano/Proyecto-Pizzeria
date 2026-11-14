@@ -1,7 +1,8 @@
-import { Link, useOutletContext } from 'react-router';
+import { useOutletContext } from 'react-router';
 import BarraCategorias from '../components/BarraCategorias';
 import GrillaProductos from '../components/GrillaProductos';
 import ResumenPedidoLateral from '../../carrito/components/ResumenPedidoLateral';
+import BotonFlotanteCarrito from '../../carrito/components/BotonFlotanteCarrito';
 import { useFiltros } from '../hooks/useFiltros';
 import { obtenerProductos } from '../services/catalogoService';
 import { useFetch } from '../../../shared/hooks/useFetch'; 
@@ -93,22 +94,7 @@ function MenuPage() {
         </div>
       </div>
 
-      {itemsCarrito.length > 0 && (
-        <div className="fixed-bottom p-3 d-flex justify-content-center contenedor-boton-flotante">
-          <Link 
-            to="/carrito" 
-            className="btn w-100 fw-bold py-3 fs-5 d-flex justify-content-between align-items-center shadow-lg boton-flotante-pedido"
-          >
-            <div className="d-flex align-items-center gap-3">
-              <span className="badge bg-white fs-6 rounded-pill shadow-sm texto-rojo-tomate">
-                {cantidadTotal}
-              </span>
-              <span>Ver Pedido</span>
-            </div>
-            <span>${total.toLocaleString('es-AR')} ➔</span>
-          </Link>
-        </div>
-      )}
+      <BotonFlotanteCarrito cantidadTotal={cantidadTotal} subtotal={total} />
     </>
   );
 }
