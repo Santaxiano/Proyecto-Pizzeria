@@ -54,7 +54,7 @@ const armarCliente = (cliente, tipo, direccionMesa) => {
 };
 
 // Zona de entrega: mismos valores que el front (frontend/src/shared/utils/pedidosUtils.js)
-const UBICACION_LOCAL = { lat: -33.3021, lng: -66.3368 }; // Pringles 1091, San Luis
+const UBICACION_LOCAL = { lat: -33.30313765217057, lng: -66.33876895311167 }; // Pringles 1091, San Luis
 const RADIO_ENTREGA_KM = 5;
 const LARGO_MAX_NOTAS = 255; // pedidos.notas es VARCHAR(255)
 

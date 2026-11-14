@@ -1,5 +1,5 @@
 // Pizzería: Pringles 1091, San Luis. Mismos valores que el backend (pedidos.controller.js).
-export const UBICACION_LOCAL = { lat: -33.3021, lng: -66.3368 };
+export const UBICACION_LOCAL = { lat: -33.30313765217057, lng: -66.33876895311167 };
 export const RADIO_ENTREGA_KM = 5;
 
 export function verificarDisponibilidadInmediata() {
